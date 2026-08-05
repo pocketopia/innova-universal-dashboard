@@ -1,0 +1,6 @@
+{
+  "name": "Innova Ecosystem Universal Dashboard",
+  "description": "High-fidelity centralized 'Super App' hub for the Innova Network, integrating Web3 node validators, secure multi-sig wallets, indie gaming emulators, ProRes cinema submission pipelines, and StreamShare collaborative review tables.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

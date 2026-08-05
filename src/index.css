@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;600;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-cyber: "Orbitron", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Cyber premium color palette hints for manual utilities if needed */
+  --color-cyber-dark: #050508;
+  --color-cyber-card: rgba(13, 14, 25, 0.7);
+  --color-cyber-cyan: #00f0ff;
+  --color-cyber-purple: #9d4edd;
+  --color-cyber-green: #00f5a0;
+  
+  --animate-scanline: scanline 8s linear infinite;
+  --animate-neon-pulse: neonPulse 2s ease-in-out infinite;
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-matrix: matrixBg 20s linear infinite;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    text-shadow: 0 0 4px rgba(0, 240, 255, 0.6), 0 0 12px rgba(0, 240, 255, 0.4);
+    box-shadow: 0 0 4px rgba(0, 240, 255, 0.3), inset 0 0 4px rgba(0, 240, 255, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 10px rgba(157, 78, 221, 0.8), 0 0 20px rgba(157, 78, 221, 0.6);
+    box-shadow: 0 0 12px rgba(157, 78, 221, 0.5), inset 0 0 8px rgba(157, 78, 221, 0.3);
+    border-color: rgba(157, 78, 221, 0.7);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+@keyframes matrixBg {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 0% 100%; }
+}
+
+/* Glassmorphism details */
+.glass-panel {
+  background: rgba(8, 9, 18, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-panel-cyan {
+  background: rgba(6, 12, 24, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 240, 255, 0.05);
+}
+
+.glass-panel-purple {
+  background: rgba(10, 8, 24, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(157, 78, 221, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(157, 78, 221, 0.05);
+}
+
+.glass-panel-green {
+  background: rgba(5, 15, 12, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 245, 160, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 245, 160, 0.05);
+}
+
+/* Neon glow classes */
+.text-glow-cyan {
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+}
+.text-glow-purple {
+  text-shadow: 0 0 8px rgba(157, 78, 221, 0.6);
+}
+.text-glow-green {
+  text-shadow: 0 0 8px rgba(0, 245, 160, 0.6);
+}
+
+.border-neon-cyan {
+  border-color: rgba(0, 240, 255, 0.4);
+}
+.border-neon-purple {
+  border-color: rgba(157, 78, 221, 0.4);
+}
+.border-neon-green {
+  border-color: rgba(0, 245, 160, 0.4);
+}
+
+/* Scanlines style overlay */
+.scanlines-overlay {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+}
+
+/* Perfect Custom Scrollbar for Cyber Ambient Grid */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(10, 10, 16, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(157, 78, 221, 0.5);
+}
