@@ -97,9 +97,15 @@ export default function App() {
   useEffect(() => {
     if (hasValidSession()) {
       const storedUsername = localStorage.getItem('innova-username');
+      const hasAcceptedLegal = localStorage.getItem('innova-legal-accepted') === 'true';
       if (storedUsername) setClaimedUsername(storedUsername);
-      setAppState('hub');
-      executeConnectSetupWallet();
+      // If legal has been accepted, go directly to hub; otherwise show onboarding
+      if (hasAcceptedLegal) {
+        setAppState('hub');
+        executeConnectSetupWallet();
+      } else {
+        setAppState('onboarding');
+      }
     }
     const statsTimer = setTimeout(() => setIsLoadingStats(false), 1500);
     return () => clearTimeout(statsTimer);
@@ -115,12 +121,16 @@ export default function App() {
     return () => window.removeEventListener('innova-auth-error', handleAuthError);
   }, []);
 
-  // Trigger legal modal when entering hub
+  // Trigger legal modal when entering hub (only if not already accepted)
   useEffect(() => {
     if (appState === 'hub') {
-      // Show legal modal after a short delay for smooth transition
-      const timer = setTimeout(() => setShowLegal(true), 300);
-      return () => clearTimeout(timer);
+      const hasAcceptedLegal = localStorage.getItem('innova-legal-accepted') === 'true';
+      // Only show legal modal if user hasn't accepted yet
+      if (!hasAcceptedLegal) {
+        // Show legal modal after a short delay for smooth transition
+        const timer = setTimeout(() => setShowLegal(true), 300);
+        return () => clearTimeout(timer);
+      }
     }
   }, [appState]);
 
@@ -318,7 +328,11 @@ export default function App() {
                 <div className="p-6 border-t border-white/10 flex justify-end gap-3">
                   <button onClick={() => setShowLegal(false)} className="px-6 py-2.5 rounded-xl text-xs font-bold text-white/50 hover:text-white transition">CANCEL</button>
                   <button 
-                    onClick={() => { setAppState('hub'); setShowLegal(false); }} 
+                    onClick={() => {
+                      localStorage.setItem('innova-legal-accepted', 'true');
+                      setAppState('hub');
+                      setShowLegal(false);
+                    }} 
                     disabled={!agreedToS || !agreedCreator}
                     className="bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-700 disabled:text-slate-500 text-black px-8 py-2.5 rounded-xl text-xs font-black tracking-wider transition"
                   >
@@ -614,6 +628,7 @@ export default function App() {
               <div className="flex gap-3 pt-2">
                 <button 
                   onClick={() => {
+                    localStorage.setItem('innova-legal-accepted', 'true');
                     setShowLegal(false);
                     setAgreedToS(false);
                     setAgreedCreator(false);

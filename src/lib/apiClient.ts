@@ -63,6 +63,7 @@ export const clearIdentityData = (): void => {
   localStorage.removeItem('innova-wallet-address');
   localStorage.removeItem('innova-tenant');
   localStorage.removeItem('innova-custom-token');
+  localStorage.removeItem('innova-legal-accepted');
 };
 
 export const generateMockHardwareSignature = (): string => {
