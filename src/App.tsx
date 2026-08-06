@@ -629,9 +629,11 @@ export default function App() {
                 <button 
                   onClick={() => {
                     localStorage.setItem('innova-legal-accepted', 'true');
+                    setAppState('hub');
                     setShowLegal(false);
                     setAgreedToS(false);
                     setAgreedCreator(false);
+                    executeConnectSetupWallet(claimedUsername);
                   }}
                   disabled={!agreedToS || !agreedCreator}
                   className="flex-1 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-black text-xs uppercase rounded-xl tracking-wider transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
