@@ -20,7 +20,8 @@ import {
   clearIdentityData, 
   fetchEcosystemContent,
   updateContentStatus,
-  fetchWalletBalance
+  fetchWalletBalance,
+  processEcosystemTransaction
 } from './lib/apiClient';
 import { 
   Gamepad2, 
@@ -65,6 +66,8 @@ export default function App() {
   const [showLegal, setShowLegal] = useState(false);
   const [agreedToS, setAgreedToS] = useState(false);
   const [agreedCreator, setAgreedCreator] = useState(false);
+  const [airdropWallet, setAirdropWallet] = useState('');
+  const [airdropAmount, setAirdropAmount] = useState('25000');
 
   const displayUsername = claimedUsername.startsWith('@') ? claimedUsername : `@${claimedUsername}`;
   const formatWallet = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -499,6 +502,61 @@ export default function App() {
                   <p className="text-2xl font-black text-white mt-1">SYNCING...</p>
                 )}
               </div>
+            </div>
+
+            {/* Treasury Airdrop Panel */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-4">
+              <div className="flex-1">
+                <h3 className="text-emerald-400 font-black tracking-widest uppercase text-sm flex items-center gap-2">
+                  <Database className="w-4 h-4"/> Treasury Airdrop / Founder Grants
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">Directly mint and distribute $INVA tokens to verified ecosystem nodes.</p>
+              </div>
+              <div className="flex w-full md:w-auto items-center gap-3">
+                <input 
+                  type="text" 
+                  placeholder="Target EVM Wallet (0x...)" 
+                  value={airdropWallet}
+                  onChange={(e) => setAirdropWallet(e.target.value)}
+                  className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white font-mono w-64 focus:outline-none focus:border-emerald-500/50"
+                />
+                <select 
+                  value={airdropAmount}
+                  onChange={(e) => setAirdropAmount(e.target.value)}
+                  className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white font-bold focus:outline-none focus:border-emerald-500/50"
+                >
+                  <option value="5000">5,000 $INVA</option>
+                  <option value="10000">10,000 $INVA</option>
+                  <option value="25000">25,000 $INVA</option>
+                  <option value="100000">100,000 $INVA</option>
+                </select>
+                <button 
+                  onClick={async () => {
+                    if (!airdropWallet) return;
+                    const time = new Date().toLocaleTimeString();
+                    setAdminLogs(prev => [`[${time}] INITIATING AIRDROP TO ${airdropWallet}...`, ...prev]);
+                    const result = await processEcosystemTransaction(airdropWallet, parseInt(airdropAmount), 'creator_boost', 'Founder Grant Airdrop');
+                    if (result.success) {
+                      setAdminLogs(prev => [`[${time}] SUCCESS: Minted ${airdropAmount} $INVA to ${airdropWallet}`, ...prev]);
+                      setAirdropWallet('');
+                    } else {
+                      setAdminLogs(prev => [`[${time}] FAILED: ${result.error}`, ...prev]);
+                    }
+                  }}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-black px-6 py-2.5 rounded-xl text-xs font-black tracking-wider transition cursor-pointer"
+                >
+                  DISPATCH GRANT
+                </button>
+              </div>
+            </div>
+
+            {/* Admin Terminal Logs */}
+            <div className="bg-black border border-white/10 rounded-2xl p-4 font-mono text-[10px] h-32 overflow-y-auto space-y-1">
+              {adminLogs.map((log, i) => (
+                <div key={i} className={log.includes('SUCCESS') ? 'text-emerald-400' : log.includes('FAILED') ? 'text-rose-400' : 'text-slate-400'}>
+                  {log}
+                </div>
+              ))}
             </div>
 
             <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
