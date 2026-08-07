@@ -24,13 +24,28 @@ build_tenant_apk() {
     
     # Clean up any existing temp directory
     rm -rf "$temp_dir"
-    mkdir -p "$temp_dir"
+    mkdir -p "$temp_dir/www"
     
     # Copy web assets
     cp -r "dist-firetv/$tenant/"* "$temp_dir/www/"
     
-    # Create temporary capacitor config
-    cat > "$temp_dir/capacitor.config.ts" <<EOF
+    # Navigate to temp directory
+    cd "$temp_dir"
+    
+    # Create a minimal package.json for npm/Capacitor
+    cat > package.json <<EOF
+{
+  "name": "$app_id",
+  "version": "1.0.0",
+  "private": true
+}
+EOF
+    
+    # Initialize Capacitor (creates capacitor.config.ts)
+    npx cap init "$app_name - Innova Ecosystem" "$app_id" --web-dir=www
+    
+    # Update capacitor.config.ts with additional settings
+    cat > capacitor.config.ts <<EOF
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
@@ -39,27 +54,11 @@ const config: CapacitorConfig = {
   webDir: 'www',
   server: {
     androidScheme: 'https'
-  },
-  android: {
-    buildOptions: {
-      keystorePath: process.env.ANDROID_KEYSTORE_PATH,
-      keystorePassword: process.env.ANDROID_KEYSTORE_PASSWORD,
-      keystoreAlias: process.env.ANDROID_KEYSTORE_ALIAS
-    }
   }
 };
 
 export default config;
 EOF
-    
-    # Copy package.json and modify
-    cp package.json "$temp_dir/"
-    
-    # Navigate to temp directory
-    cd "$temp_dir"
-    
-    # Initialize Capacitor
-    npx cap init "$app_name - Innova Ecosystem" "$app_id" --web-dir=www
     
     # Add Android platform
     npx cap add android
@@ -69,10 +68,17 @@ EOF
     
     # Build APK (release)
     cd android
-    ./gradlew assembleRelease
     
-    # Copy APK to output directory
-    cp app/build/outputs/apk/release/app-release.apk "../$OUTPUT_DIR/${tenant}-firetv.apk"
+    # Check if keystore is configured for signing
+    if [ -n "$ANDROID_KEYSTORE_PATH" ] && [ -f "$ANDROID_KEYSTORE_PATH" ]; then
+        # Build signed APK
+        ./gradlew assembleRelease -Pandroid.injected.signing.store.file="$ANDROID_KEYSTORE_PATH" -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" -Pandroid.injected.signing.key.alias="$ANDROID_KEYSTORE_ALIAS"
+        cp app/build/outputs/apk/release/app-release.apk "../../$OUTPUT_DIR/${tenant}-firetv.apk"
+    else
+        # Build unsigned APK (needs to be signed before submission)
+        ./gradlew assembleRelease
+        cp app/build/outputs/apk/release/app-release-unsigned.apk "../../$OUTPUT_DIR/${tenant}-firetv-unsigned.apk"
+    fi
     
     # Clean up
     cd ../..
@@ -82,8 +88,8 @@ EOF
 }
 
 # Check if Android SDK is available
-if ! command -v gradle &> /dev/null; then
-    echo "❌ Error: Android SDK/Gradle not found in PATH"
+if [ -z "$ANDROID_HOME" ] || [ ! -d "$ANDROID_HOME" ]; then
+    echo "❌ Error: ANDROID_HOME not set or Android SDK not found"
     echo "Please install Android SDK and set up ANDROID_HOME environment variable"
     echo ""
     echo "Installation instructions:"
