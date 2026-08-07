@@ -8,3 +8,10 @@ coverage/
 !.env.example
 dist-tizen/
 dist-roku/
+dist-webos/
+dist-firetv/
+dist-firetv-apk/
+*.zip
+*.apk
+.keystore
+temp-capacitor-*/
