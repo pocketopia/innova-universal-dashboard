@@ -1,0 +1,29 @@
+{
+  "id": "com.innova.hektic",
+  "version": "1.0.0",
+  "title": "Hektic TV - Live Stream",
+  "vendor": "Innova Ecosystem",
+  "type": "web",
+  "main": "index.html",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "tileSize": "match",
+  "supportGIP": true,
+  "supportTouchMode": false,
+  "bgImage": "bgImage.png",
+  "largeBgImage": "largeBgImage.png",
+  "splashBackground": "#0a0a0f",
+  "features": [
+    "networking",
+    "video",
+    "audio",
+    "chat"
+  ],
+  "permissions": [
+    "network.state",
+    "media.player"
+  ],
+  "uiResolution": "1920x1080",
+  "supportRotateScreen": false,
+  "orientationLock": "landscape"
+}

@@ -8,7 +8,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "build:tv:mvn": "VITE_STANDALONE_APP=mvn vite build",
+    "build:tv:kreation": "VITE_STANDALONE_APP=kreation vite build",
+    "build:tv:archaven": "VITE_STANDALONE_APP=archaven vite build",
+    "build:tv:hektic": "VITE_STANDALONE_APP=hektic vite build",
+    "build:tv:streamshare": "VITE_STANDALONE_APP=streamshare vite build"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
