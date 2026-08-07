@@ -7,13 +7,18 @@
     "dev": "vite --port=3001 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
+    "clean": "rm -rf dist server.js dist-tizen",
     "lint": "tsc --noEmit",
     "build:tv:mvn": "VITE_STANDALONE_APP=mvn vite build",
     "build:tv:kreation": "VITE_STANDALONE_APP=kreation vite build",
     "build:tv:archaven": "VITE_STANDALONE_APP=archaven vite build",
     "build:tv:hektic": "VITE_STANDALONE_APP=hektic vite build",
-    "build:tv:streamshare": "VITE_STANDALONE_APP=streamshare vite build"
+    "build:tv:streamshare": "VITE_STANDALONE_APP=streamshare vite build",
+    "build:tizen:mvn": "VITE_STANDALONE_APP=mvn vite build --outDir dist-tizen/mvn",
+    "build:tizen:kreation": "VITE_STANDALONE_APP=kreation vite build --outDir dist-tizen/kreation",
+    "build:tizen:archaven": "VITE_STANDALONE_APP=archaven vite build --outDir dist-tizen/archaven",
+    "build:tizen:hektic": "VITE_STANDALONE_APP=hektic vite build --outDir dist-tizen/hektic",
+    "build:tizen:streamshare": "VITE_STANDALONE_APP=streamshare vite build --outDir dist-tizen/streamshare"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

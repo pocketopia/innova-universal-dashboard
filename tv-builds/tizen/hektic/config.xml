@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://www.w3.org/2012/widgets" id="innova.hektic" version="1.0.0" viewmodes="maximized">
+  <access origin="*" subdomains="true" />
+  <name>Hektic TV</name>
+  <name short="Hektic TV">Hektic TV</name>
+  <description>Live streaming TV with chat</description>
+  <content src="index.html" />
+  <feature name="http://www.samsung.com/sdk/feature/screen" required="true" />
+  <icon src="icon.png" />
+  <tizen:application id="innova.hektic" package="innova" required_version="6.5" />
+  <tizen:metadata key="http://www.samsung.com/tv/metadata/prelaunch.support" value="true" />
+  <tizen:metadata key="http://www.samsung.com/tv/metadata/launch_priority" value="high" />
+  <tizen:profile name="tv-samsung" />
+  <tizen:privilege name="http://tizen.org/privilege/internet" />
+  <tizen:privilege name="http://tizen.org/privilege/media.read" />
+  <tizen:privilege name="http://tizen.org/privilege/media.write" />
+  <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice" />
+  <tizen:privilege name="http://tizen.org/privilege/content.write" />
+  <tizen:setting screen-orientation="landscape" context-menu="true" background-support="false" encryption="false" install-location="auto" />
+</widget>

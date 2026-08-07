@@ -28,6 +28,37 @@ export const TV_KEYS = {
   VOLUME_DOWN: 449,
 } as const;
 
+// Samsung Tizen-specific Key Codes
+export const TIZEN_KEYS = {
+  UP: 38,
+  DOWN: 40,
+  LEFT: 37,
+  RIGHT: 39,
+  ENTER: 13,
+  BACK: 10009,  // Tizen Return/Back key
+  HOME: 10107,  // Tizen Home key
+  EXIT: 10182,  // Tizen Exit key
+  INFO: 10014,  // Tizen INFO key
+  PLAY: 10105,  // Tizen Play key
+  PAUSE: 10106, // Tizen Pause key
+  FAST_FORWARD: 10104, // Tizen FF key
+  REWIND: 10103, // Tizen Rewind key
+  RED: 10133,   // Tizen Color Red
+  GREEN: 10134, // Tizen Color Green
+  YELLOW: 10135, // Tizen Color Yellow
+  BLUE: 10136,  // Tizen Color Blue
+  NUMBER_0: 48,
+  NUMBER_1: 49,
+  NUMBER_2: 50,
+  NUMBER_3: 51,
+  NUMBER_4: 52,
+  NUMBER_5: 53,
+  NUMBER_6: 54,
+  NUMBER_7: 55,
+  NUMBER_8: 56,
+  NUMBER_9: 57,
+} as const;
+
 /**
  * Get the standalone app configuration from environment
  */
@@ -240,4 +271,123 @@ export const shouldShowPlatform = (platform: string): boolean => {
   };
   
   return platformMap[app] === platform;
+};
+
+/**
+ * Check if a key code is a Tizen navigation key
+ */
+export const isTizenNavigationKey = (keyCode: number): boolean => {
+  const tizenNavKeys = [
+    TIZEN_KEYS.UP, TIZEN_KEYS.DOWN, TIZEN_KEYS.LEFT, TIZEN_KEYS.RIGHT,
+    TIZEN_KEYS.ENTER, TIZEN_KEYS.BACK
+  ] as number[];
+  return tizenNavKeys.includes(keyCode);
+};
+
+/**
+ * Check if a key code is any TV navigation key (webOS or Tizen)
+ */
+export const isAnyTVNavigationKey = (keyCode: number): boolean => {
+  return isTVNavigationKey(keyCode) || isTizenNavigationKey(keyCode);
+};
+
+/**
+ * Handle Tizen remote key press with Tizen-specific key codes
+ */
+export const handleTizenKeyPress = (
+  keyCode: number,
+  callbacks: {
+    onUp?: () => void;
+    onDown?: () => void;
+    onLeft?: () => void;
+    onRight?: () => void;
+    onEnter?: () => void;
+    onBack?: () => void;
+  }
+): boolean => {
+  switch (keyCode) {
+    case TIZEN_KEYS.UP:
+      callbacks.onUp?.();
+      return true;
+    case TIZEN_KEYS.DOWN:
+      callbacks.onDown?.();
+      return true;
+    case TIZEN_KEYS.LEFT:
+      callbacks.onLeft?.();
+      return true;
+    case TIZEN_KEYS.RIGHT:
+      callbacks.onRight?.();
+      return true;
+    case TIZEN_KEYS.ENTER:
+      callbacks.onEnter?.();
+      return true;
+    case TIZEN_KEYS.BACK:  // Tizen Return key (10009)
+      callbacks.onBack?.();
+      return true;
+    default:
+      return false;
+  }
+};
+
+/**
+ * Get Tizen app configuration
+ */
+export const getTizenAppInfo = (app: StandaloneApp) => {
+  const configs = {
+    mvn: {
+      id: 'innova.mvn',
+      name: 'MVN',
+      version: '1.0.0',
+      description: 'Music Video Network - Stream music videos on your TV',
+    },
+    kreation: {
+      id: 'innova.kreation',
+      name: 'Kreation',
+      version: '1.0.0',
+      description: 'Gaming platform for TV - Play WASM games',
+    },
+    archaven: {
+      id: 'innova.archaven',
+      name: 'ArcHaven',
+      version: '1.0.0',
+      description: 'Cinema streaming platform - Watch movies in 8K',
+    },
+    hektic: {
+      id: 'innova.hektic',
+      name: 'Hektic TV',
+      version: '1.0.0',
+      description: 'Live streaming TV with chat',
+    },
+    streamshare: {
+      id: 'innova.streamshare',
+      name: 'StreamShare',
+      version: '1.0.0',
+      description: 'P2P media sharing platform',
+    },
+    hub: {
+      id: 'innova.hub',
+      name: 'Innova Hub',
+      version: '1.0.0',
+      description: 'Universal ecosystem hub',
+    },
+  };
+  
+  return configs[app] || configs.hub;
+};
+
+/**
+ * Initialize Tizen-specific TV mode
+ */
+export const initTizenMode = (): void => {
+  if (typeof window !== 'undefined') {
+    // Tizen-specific initialization
+    document.addEventListener('keydown', (e) => {
+      // Handle Tizen Return key (10009) specially
+      if (e.keyCode === TIZEN_KEYS.BACK) {
+        e.preventDefault();
+        // Dispatch custom event for Tizen back navigation
+        window.dispatchEvent(new CustomEvent('tizen:back'));
+      }
+    });
+  }
 };
