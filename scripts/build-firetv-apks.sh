@@ -69,14 +69,27 @@ EOF
     # Build APK (release)
     cd android
     
+    # Build the APK (always builds unsigned first)
+    ./gradlew assembleRelease
+    
     # Check if keystore is configured for signing
     if [ -n "$ANDROID_KEYSTORE_PATH" ] && [ -f "$ANDROID_KEYSTORE_PATH" ]; then
-        # Build signed APK
-        ./gradlew assembleRelease -Pandroid.injected.signing.store.file="$ANDROID_KEYSTORE_PATH" -Pandroid.injected.signing.store.password="$ANDROID_KEYSTORE_PASSWORD" -Pandroid.injected.signing.key.alias="$ANDROID_KEYSTORE_ALIAS"
-        cp app/build/outputs/apk/release/app-release.apk "../../$OUTPUT_DIR/${tenant}-firetv.apk"
+        # Sign the unsigned APK using apksigner
+        unsigned_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+        signed_apk="../../$OUTPUT_DIR/${tenant}-firetv.apk"
+        
+        # Use apksigner from Android SDK
+        "$ANDROID_HOME/build-tools/35.0.0/apksigner" sign \
+            --ks "$ANDROID_KEYSTORE_PATH" \
+            --ks-key-alias "$ANDROID_KEYSTORE_ALIAS" \
+            --ks-pass pass:"$ANDROID_KEYSTORE_PASSWORD" \
+            --key-pass pass:"$ANDROID_KEYSTORE_PASSWORD" \
+            --out "$signed_apk" \
+            "$unsigned_apk"
+        
+        echo "   ✅ APK signed successfully"
     else
-        # Build unsigned APK (needs to be signed before submission)
-        ./gradlew assembleRelease
+        # Copy unsigned APK (needs to be signed before submission)
         cp app/build/outputs/apk/release/app-release-unsigned.apk "../../$OUTPUT_DIR/${tenant}-firetv-unsigned.apk"
     fi
     
