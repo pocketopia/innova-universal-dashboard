@@ -265,11 +265,15 @@ export async function processEcosystemTransaction(
   recipient?: string
 ): Promise<{success: boolean, newBalance?: number, receipt?: string, error?: string}> {
   try {
+    const session = getStoredUserSession();
     const response = await fetch(`${API_BASE_URL}/wallet/spend`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-tenant-id': 'InnovaHub'
+        'x-tenant-id': 'InnovaHub',
+        'x-user-name': session.userName || '@anonymous',
+        'x-hardware-signature': session.hardwareSignature || 'ringcomm_demo_signature_123',
+        'x-wallet-address': session.walletAddress || walletAddress
       },
       body: JSON.stringify({ amount, walletAddress, txType, recipient, details })
     });
