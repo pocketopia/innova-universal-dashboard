@@ -1,3 +1,5 @@
+import { generateCryptoSignature, encryptSensitiveData, decryptSensitiveData, clearAllSensitiveData } from './securityUtils';
+
 const getApiUrl = () => {
   // Use the Vercel/Production environment variable if it exists
   if (import.meta.env && import.meta.env.VITE_API_URL) {
@@ -11,6 +13,65 @@ const getApiUrl = () => {
 };
 
 export const API_BASE_URL = getApiUrl();
+
+// ============================================
+// RING COMM CRYPTOGRAPHIC DEVICE HANDSHAKE
+// ============================================
+
+// Cache for the current session's crypto signature
+let cachedCryptoSignature: {
+  signature: string;
+  timestamp: number;
+  deviceFingerprint: string;
+} | null = null;
+
+// Signature validity duration (5 minutes)
+const SIGNATURE_VALIDITY_MS = 5 * 60 * 1000;
+
+/**
+ * Gets or generates a cryptographic signature for Ring Comm authentication
+ * Caches the signature for performance, regenerates when expired
+ */
+export const getRingCommSignature = async (): Promise<{
+  signature: string;
+  timestamp: number;
+  deviceFingerprint: string;
+}> => {
+  // Return cached signature if still valid
+  if (cachedCryptoSignature && 
+      (Date.now() - cachedCryptoSignature.timestamp) < SIGNATURE_VALIDITY_MS) {
+    return cachedCryptoSignature;
+  }
+  
+  try {
+    // Generate new cryptographic signature using Web Crypto API
+    const cryptoResult = await generateCryptoSignature();
+    
+    // Cache the signature
+    cachedCryptoSignature = {
+      signature: cryptoResult.signature,
+      timestamp: cryptoResult.timestamp,
+      deviceFingerprint: cryptoResult.challenge.substring(0, 64) // Use first 64 chars of challenge as fingerprint
+    };
+    
+    return cachedCryptoSignature;
+  } catch (error) {
+    console.error('[RING COMM] Failed to generate crypto signature:', error);
+    // Fallback to a basic signature (should not happen in production)
+    return {
+      signature: `fallback_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      timestamp: Date.now(),
+      deviceFingerprint: 'fallback'
+    };
+  }
+};
+
+/**
+ * Invalidates the cached signature, forcing regeneration on next request
+ */
+export const invalidateSignatureCache = (): void => {
+  cachedCryptoSignature = null;
+};
 
 // Identity verification response from backend
 export interface IdentityVerificationResponse {
@@ -79,14 +140,26 @@ export const verifyIdentity = async (
   userName: string,
   hardwareSignature: string
 ): Promise<IdentityVerificationResponse> => {
+  // Generate cryptographic signature for Ring Comm device handshake
+  const cryptoSig = await getRingCommSignature();
+  
   const response = await fetch(`${API_BASE_URL}/identity/verify`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-user-name': userName,
       'x-hardware-signature': hardwareSignature,
+      'x-crypto-signature': cryptoSig.signature,
+      'x-signature-timestamp': cryptoSig.timestamp.toString(),
+      'x-device-fingerprint': cryptoSig.deviceFingerprint,
     },
-    body: JSON.stringify({ userName, hardwareSignature }),
+    body: JSON.stringify({ 
+      userName, 
+      hardwareSignature,
+      cryptoSignature: cryptoSig.signature,
+      signatureTimestamp: cryptoSig.timestamp,
+      deviceFingerprint: cryptoSig.deviceFingerprint
+    }),
   });
 
   if (!response.ok) {
@@ -103,14 +176,28 @@ export const registerIdentity = async (
   publicKey: string,
   signature: string
 ): Promise<IdentityRegistrationResponse> => {
+  // Generate cryptographic signature for Ring Comm device handshake
+  const cryptoSig = await getRingCommSignature();
+  
   const response = await fetch(`${API_BASE_URL}/identity/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-user-name': userName,
       'x-hardware-signature': signature,
+      'x-crypto-signature': cryptoSig.signature,
+      'x-signature-timestamp': cryptoSig.timestamp.toString(),
+      'x-device-fingerprint': cryptoSig.deviceFingerprint,
     },
-    body: JSON.stringify({ userName, walletAddress, publicKey, signature }),
+    body: JSON.stringify({ 
+      userName, 
+      walletAddress, 
+      publicKey, 
+      signature,
+      cryptoSignature: cryptoSig.signature,
+      signatureTimestamp: cryptoSig.timestamp,
+      deviceFingerprint: cryptoSig.deviceFingerprint
+    }),
   });
 
   if (!response.ok) {

@@ -9,6 +9,13 @@ import {
   IdentityVerificationResponse,
   IdentityRegistrationResponse,
 } from '../lib/apiClient';
+import {
+  secureStorage,
+  clearAllSensitiveData,
+  auditStorageSecurity,
+  encryptSensitiveData,
+  decryptSensitiveData,
+} from '../lib/securityUtils';
 
 // User node interface
 export interface UserNode {
@@ -46,9 +53,17 @@ export function NodeAuthProvider({ children }: NodeAuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [userNode, setUserNode] = useState<UserNode | null>(null);
 
-  // Check for existing session on mount
+  // Check for existing session on mount and audit storage security
   useEffect(() => {
     const checkSession = async () => {
+      // Run security audit on mount to ensure no sensitive data is stored in plain text
+      const auditResult = auditStorageSecurity();
+      if (!auditResult.secure) {
+        console.warn('[SECURITY] Storage audit found violations:', auditResult.violations);
+        // Clear any insecure data found
+        clearAllSensitiveData();
+      }
+      
       if (hasValidSession()) {
         const stored = getStoredUserSession();
         setUserNode({
@@ -140,9 +155,11 @@ export function NodeAuthProvider({ children }: NodeAuthProviderProps) {
     }
   }, []);
 
-  // Logout
+  // Logout - clears all sensitive data including encrypted storage
   const logout = useCallback(() => {
     clearIdentityData();
+    // Also clear all sensitive data from secure storage
+    clearAllSensitiveData();
     setUserNode(null);
     setIsAuthenticated(false);
   }, []);

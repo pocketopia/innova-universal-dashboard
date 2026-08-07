@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fingerprint, ArrowRight, Sparkles, AlertCircle, CheckCircle2, Wallet, ArrowLeft } from 'lucide-react';
 import { useNodeAuth } from '../../context/NodeAuthContext';
+import { sanitizeUsername, formatUsernameDisplay, isValidUsernameFormat } from '../../lib/securityUtils';
 
 interface VelvetRopeLoginProps {
   onAuthenticated: (username: string) => void;
@@ -17,10 +18,29 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
   const [registrationWallet, setRegistrationWallet] = useState('');
   const [showRegistrationFlow, setShowRegistrationFlow] = useState(false);
 
+  // Compute sanitized username for display - shows user their standardized @ID in real-time
+  const sanitizedUsername = useMemo(() => sanitizeUsername(accessCode), [accessCode]);
+  const formattedDisplay = useMemo(() => formatUsernameDisplay(accessCode), [accessCode]);
+  const isValidFormat = useMemo(() => isValidUsernameFormat(accessCode), [accessCode]);
+
+  // Handler for input change - sanitizes in real-time
+  const handleAccessCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Allow user to type freely, but we'll sanitize on submit and display the sanitized version
+    setAccessCode(e.target.value);
+  };
+
   // Handler for Ring Comm button - simulates hardware tap with live API call
   const handleRingCommAuth = async () => {
-    if (!accessCode.trim()) {
-      setError('Please enter your @USER.NAME identifier');
+    // Sanitize the input before authentication
+    const sanitized = sanitizeUsername(accessCode);
+    
+    if (!sanitized) {
+      setError('Please enter a valid @USER.NAME identifier');
+      return;
+    }
+
+    if (!isValidUsernameFormat(sanitized)) {
+      setError('Invalid username format. Use letters, numbers, dots, underscores, or hyphens.');
       return;
     }
 
@@ -31,11 +51,12 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
     setShowRegistrationFlow(false);
 
     try {
-      const result = await login(accessCode.trim());
+      // Use sanitized username for authentication
+      const result = await login(sanitized);
       
       if (result.success) {
         setSuccess(true);
-        const formattedHandle = accessCode.trim().startsWith('@') ? accessCode.trim() : `@${accessCode.trim()}`;
+        const formattedHandle = `@${sanitized}`;
         setTimeout(() => {
           onAuthenticated(formattedHandle);
         }, 800);
@@ -56,7 +77,14 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
   // Handler for VIP Access Code submission (legacy fallback)
   const handleAccessCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessCode.trim()) return;
+    
+    // Sanitize the input before authentication
+    const sanitized = sanitizeUsername(accessCode);
+    
+    if (!sanitized || !isValidUsernameFormat(sanitized)) {
+      setError('Invalid username format. Use letters, numbers, dots, underscores, or hyphens.');
+      return;
+    }
 
     setIsAuthenticating(true);
     setError(null);
@@ -64,11 +92,12 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
     setRequiresRegistration(false);
 
     try {
-      const result = await login(accessCode.trim());
+      // Use sanitized username for authentication
+      const result = await login(sanitized);
       
       if (result.success) {
         setSuccess(true);
-        const formattedHandle = accessCode.trim().startsWith('@') ? accessCode.trim() : `@${accessCode.trim()}`;
+        const formattedHandle = `@${sanitized}`;
         setTimeout(() => {
           onAuthenticated(formattedHandle);
         }, 800);
@@ -88,7 +117,16 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
   // Handler for registration flow
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!registrationWallet.trim() || !accessCode.trim()) {
+    
+    // Sanitize the username
+    const sanitized = sanitizeUsername(accessCode);
+    
+    if (!sanitized || !isValidUsernameFormat(sanitized)) {
+      setError('Invalid username format. Use letters, numbers, dots, underscores, or hyphens.');
+      return;
+    }
+    
+    if (!registrationWallet.trim()) {
       setError('Please provide both username and wallet address');
       return;
     }
@@ -97,11 +135,12 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
     setError(null);
 
     try {
-      const result = await register(accessCode.trim(), registrationWallet.trim());
+      // Use sanitized username for registration
+      const result = await register(sanitized, registrationWallet.trim());
       
       if (result.success) {
         setSuccess(true);
-        const formattedHandle = accessCode.trim().startsWith('@') ? accessCode.trim() : `@${accessCode.trim()}`;
+        const formattedHandle = `@${sanitized}`;
         setTimeout(() => {
           onAuthenticated(formattedHandle);
         }, 1500);
@@ -152,21 +191,27 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
               </div>
               <h2 className="font-sans font-black text-xl tracking-tight text-white mb-2">REGISTER NEW NODE</h2>
               <p className="text-xs text-white/50 font-sans font-light">
-                Identity @{accessCode} not found. Link a wallet to establish your node identity.
+                Identity @{sanitizedUsername} not found. Link a wallet to establish your node identity.
               </p>
             </div>
 
             <form onSubmit={handleRegister} className="space-y-6">
               <div>
                 <label className="block text-xs font-bold text-white/70 mb-2 uppercase tracking-wider">
-                  @{accessCode}
+                  Standardized Node ID
                 </label>
-                <input
-                  type="text"
-                  value={accessCode}
-                  disabled
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white/50 outline-none font-mono"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={`@${sanitizedUsername}`}
+                    disabled
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-cyan-300 outline-none font-mono"
+                  />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                </div>
+                <p className="text-[10px] text-white/30 mt-1">
+                  Your username has been standardized for security
+                </p>
               </div>
 
               <div>
@@ -340,6 +385,26 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
                 </motion.button>
               </div>
             </div>
+            
+            {/* Sanitized username preview - shows user their standardized @ID */}
+            {sanitizedUsername && accessCode.trim() && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-center gap-2 px-3 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-lg"
+              >
+                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                <span className="text-[10px] text-cyan-400/70 uppercase tracking-wider font-bold">Standardized ID:</span>
+                <span className="text-xs text-cyan-300 font-mono font-bold">@{sanitizedUsername}</span>
+                {isValidFormat ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 ml-auto" />
+                ) : (
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-400 ml-auto" />
+                )}
+              </motion.div>
+            )}
           </form>
 
           <AnimatePresence mode="wait">
