@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="MainScene" extends="Scene">
+    <children>
+        <!-- Title Label -->
+        <Label 
+            id="titleLabel" 
+            text="Innova MVN - Music Video Network" 
+            font="font:LargeBoldSystemFont" 
+            color="0xFFFFFF" 
+            translation="[50, 30]"
+        />
+        
+        <!-- Video Player Node -->
+        <Video 
+            id="mediaPlayer" 
+            translation="[50, 100]" 
+            width="1820" 
+            height="720"
+        />
+        
+        <!-- Status Label -->
+        <Label 
+            id="statusLabel" 
+            text="Loading content..." 
+            font="font:MediumSystemFont" 
+            color="0xAAAAAA" 
+            translation="[50, 850]"
+        />
+    </children>
+</component>

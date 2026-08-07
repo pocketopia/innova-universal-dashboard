@@ -18,7 +18,12 @@
     "build:tizen:kreation": "VITE_STANDALONE_APP=kreation vite build --outDir dist-tizen/kreation",
     "build:tizen:archaven": "VITE_STANDALONE_APP=archaven vite build --outDir dist-tizen/archaven",
     "build:tizen:hektic": "VITE_STANDALONE_APP=hektic vite build --outDir dist-tizen/hektic",
-    "build:tizen:streamshare": "VITE_STANDALONE_APP=streamshare vite build --outDir dist-tizen/streamshare"
+    "build:tizen:streamshare": "VITE_STANDALONE_APP=streamshare vite build --outDir dist-tizen/streamshare",
+    "build:roku:mvn": "mkdir -p dist-roku && cd tv-builds/roku/mvn && zip -r ../../../dist-roku/mvn.zip .",
+    "build:roku:kreation": "mkdir -p dist-roku && cd tv-builds/roku/kreation && zip -r ../../../dist-roku/kreation.zip .",
+    "build:roku:archaven": "mkdir -p dist-roku && cd tv-builds/roku/archaven && zip -r ../../../dist-roku/archaven.zip .",
+    "build:roku:hektic": "mkdir -p dist-roku && cd tv-builds/roku/hektic && zip -r ../../../dist-roku/hektic.zip .",
+    "build:roku:streamshare": "mkdir -p dist-roku && cd tv-builds/roku/streamshare && zip -r ../../../dist-roku/streamshare.zip ."
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
