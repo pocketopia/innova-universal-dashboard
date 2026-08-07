@@ -1,0 +1,23 @@
+{
+  "manifest_version": "1.0",
+  "name": "Kreation - Innova Ecosystem",
+  "description": "Kreation platform for Innova ecosystem dashboard",
+  "version": "1.0.0",
+  "start_url": "index.html",
+  "icons": {
+    "48": "icon-48.png",
+    "96": "icon-96.png",
+    "128": "icon-128.png"
+  },
+  "orientation": "landscape",
+  "api_version": "1.0",
+  "permissions": [
+    "internet",
+    "localStorage"
+  ],
+  "launch_mode": "landscape",
+  "developer": {
+    "name": "Innova Ecosystem",
+    "url": "https://innova.ecosystem"
+  }
+}

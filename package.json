@@ -23,7 +23,18 @@
     "build:roku:kreation": "mkdir -p dist-roku && cd tv-builds/roku/kreation && zip -r ../../../dist-roku/kreation.zip .",
     "build:roku:archaven": "mkdir -p dist-roku && cd tv-builds/roku/archaven && zip -r ../../../dist-roku/archaven.zip .",
     "build:roku:hektic": "mkdir -p dist-roku && cd tv-builds/roku/hektic && zip -r ../../../dist-roku/hektic.zip .",
-    "build:roku:streamshare": "mkdir -p dist-roku && cd tv-builds/roku/streamshare && zip -r ../../../dist-roku/streamshare.zip ."
+    "build:roku:streamshare": "mkdir -p dist-roku && cd tv-builds/roku/streamshare && zip -r ../../../dist-roku/streamshare.zip .",
+    "build:webos:mvn": "VITE_STANDALONE_APP=mvn vite build --outDir dist-webos/mvn && cp tv-builds/webos/mvn/appinfo.json dist-webos/mvn/",
+    "build:webos:kreation": "VITE_STANDALONE_APP=kreation vite build --outDir dist-webos/kreation && cp tv-builds/webos/kreation/appinfo.json dist-webos/kreation/",
+    "build:webos:archaven": "VITE_STANDALONE_APP=archaven vite build --outDir dist-webos/archaven && cp tv-builds/webos/archaven/appinfo.json dist-webos/archaven/",
+    "build:webos:hektic": "VITE_STANDALONE_APP=hektic vite build --outDir dist-webos/hektic && cp tv-builds/webos/hektic/appinfo.json dist-webos/hektic/",
+    "build:webos:streamshare": "VITE_STANDALONE_APP=streamshare vite build --outDir dist-webos/streamshare && cp tv-builds/webos/streamshare/appinfo.json dist-webos/streamshare/",
+    "build:firetv:mvn": "VITE_STANDALONE_APP=mvn vite build --outDir dist-firetv/mvn && cp tv-builds/firetv/mvn/manifest.json dist-firetv/mvn/",
+    "build:firetv:kreation": "VITE_STANDALONE_APP=kreation vite build --outDir dist-firetv/kreation && cp tv-builds/firetv/kreation/manifest.json dist-firetv/kreation/",
+    "build:firetv:archaven": "VITE_STANDALONE_APP=archaven vite build --outDir dist-firetv/archaven && cp tv-builds/firetv/archaven/manifest.json dist-firetv/archaven/",
+    "build:firetv:hektic": "VITE_STANDALONE_APP=hektic vite build --outDir dist-firetv/hektic && cp tv-builds/firetv/hektic/manifest.json dist-firetv/hektic/",
+    "build:firetv:streamshare": "VITE_STANDALONE_APP=streamshare vite build --outDir dist-firetv/streamshare && cp tv-builds/firetv/streamshare/manifest.json dist-firetv/streamshare/",
+    "build:tv:all": "npm run build:tizen:mvn && npm run build:tizen:kreation && npm run build:tizen:archaven && npm run build:tizen:hektic && npm run build:tizen:streamshare && npm run build:roku:mvn && npm run build:roku:kreation && npm run build:roku:archaven && npm run build:roku:hektic && npm run build:roku:streamshare && npm run build:webos:mvn && npm run build:webos:kreation && npm run build:webos:archaven && npm run build:webos:hektic && npm run build:webos:streamshare && npm run build:firetv:mvn && npm run build:firetv:kreation && npm run build:firetv:archaven && npm run build:firetv:hektic && npm run build:firetv:streamshare"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
