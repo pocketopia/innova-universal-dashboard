@@ -25,7 +25,10 @@ import {
   Film,
   Gamepad2,
   Tv,
-  Share2
+  Share2,
+  Camera,
+  Upload,
+  Image
 } from 'lucide-react';
 
 interface IdentityWalletSettingsProps {
@@ -34,11 +37,173 @@ interface IdentityWalletSettingsProps {
     id: string;
     name: string;
     wallet: string;
+    avatarUrl?: string;
   };
   onClose: () => void;
+  onAvatarUpdate?: (url: string) => void;
 }
 
-export default function IdentityWalletSettings({ userNode, onClose }: IdentityWalletSettingsProps) {
+interface RecognizedDevice {
+  id: string;
+  name: string;
+  type: 'desktop' | 'mobile' | 'tablet' | 'unknown';
+  browser: string;
+  os: string;
+  fingerprint: string;
+  lastActive: string;
+  isCurrent: boolean;
+}
+
+// Parse user agent into readable device name
+const parseUserAgent = (): { name: string; type: RecognizedDevice['type']; browser: string; os: string } => {
+  const ua = window.navigator.userAgent;
+  
+  // Detect device type and name
+  let deviceName = 'Unknown Device';
+  let deviceType: RecognizedDevice['type'] = 'unknown';
+  
+  if (/Macintosh/i.test(ua)) {
+    const macMatch = ua.match(/Macintosh;\s*Intel\s*Mac\s*OS\s*X?\s*([0-9_.]+)/i);
+    if (macMatch) {
+      const version = macMatch[1].replace(/_/g, '.');
+      deviceName = `MacBook Pro (macOS ${version})`;
+      deviceType = 'desktop';
+    } else {
+      deviceName = 'MacBook Pro';
+      deviceType = 'desktop';
+    }
+  } else if (/iPhone/i.test(ua)) {
+    deviceName = 'iPhone';
+    deviceType = 'mobile';
+  } else if (/iPad/i.test(ua)) {
+    deviceName = 'iPad';
+    deviceType = 'tablet';
+  } else if (/Android/i.test(ua)) {
+    const mobileMatch = ua.match(/Mobile/i);
+    deviceName = mobileMatch ? 'Android Phone' : 'Android Tablet';
+    deviceType = mobileMatch ? 'mobile' : 'tablet';
+  } else if (/Windows/i.test(ua)) {
+    deviceName = 'Windows PC';
+    deviceType = 'desktop';
+  } else if (/Linux/i.test(ua)) {
+    deviceName = 'Linux Desktop';
+    deviceType = 'desktop';
+  }
+  
+  // Detect browser
+  let browser = 'Unknown Browser';
+  if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) {
+    const chromeMatch = ua.match(/Chrome\/([0-9.]+)/);
+    browser = chromeMatch ? `Chrome ${chromeMatch[1]}` : 'Chrome';
+  } else if (/Firefox/i.test(ua)) {
+    const firefoxMatch = ua.match(/Firefox\/([0-9.]+)/);
+    browser = firefoxMatch ? `Firefox ${firefoxMatch[1]}` : 'Firefox';
+  } else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) {
+    browser = 'Safari';
+  } else if (/Edg/i.test(ua)) {
+    browser = 'Edge';
+  }
+  
+  // Detect OS
+  let os = 'Unknown OS';
+  if (/Windows NT/i.test(ua)) {
+    const winMatch = ua.match(/Windows NT ([0-9.]+)/);
+    os = winMatch ? `Windows ${winMatch[1]}` : 'Windows';
+  } else if (/Mac OS X/i.test(ua)) {
+    const macMatch = ua.match(/Mac OS X ([0-9_.]+)/);
+    os = macMatch ? `macOS ${macMatch[1].replace(/_/g, '.')}` : 'macOS';
+  } else if (/Android/i.test(ua)) {
+    const androidMatch = ua.match(/Android ([0-9.]+)/);
+    os = androidMatch ? `Android ${androidMatch[1]}` : 'Android';
+  } else if (/Linux/i.test(ua)) {
+    os = 'Linux';
+  } else if (/iPhone|iPad|iPod/i.test(ua)) {
+    const iosMatch = ua.match(/OS ([0-9_]+)/);
+    os = iosMatch ? `iOS ${iosMatch[1].replace(/_/g, '.')}` : 'iOS';
+  }
+  
+  return { name: deviceName, type: deviceType, browser, os };
+};
+
+// Generate device fingerprint from user agent
+const generateDeviceFingerprint = (): string => {
+  const ua = window.navigator.userAgent;
+  const screen = `${window.screen.width}x${window.screen.height}`;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const lang = window.navigator.language;
+  
+  const fingerprintData = `${ua}-${screen}-${timezone}-${lang}`;
+  // Simple hash function
+  let hash = 0;
+  for (let i = 0; i < fingerprintData.length; i++) {
+    const char = fingerprintData.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0').toUpperCase();
+};
+
+// Get or initialize recognized devices from localStorage
+const getRecognizedDevices = (): RecognizedDevice[] => {
+  try {
+    const stored = localStorage.getItem('innova-recognized-devices');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Failed to parse recognized devices:', e);
+  }
+  return [];
+};
+
+// Save recognized devices to localStorage
+const saveRecognizedDevices = (devices: RecognizedDevice[]) => {
+  try {
+    localStorage.setItem('innova-recognized-devices', JSON.stringify(devices));
+  } catch (e) {
+    console.error('Failed to save recognized devices:', e);
+  }
+};
+
+// Register current device as a recognized Ring Comm Auth Device
+const registerCurrentDevice = (): RecognizedDevice => {
+  const deviceInfo = parseUserAgent();
+  const fingerprint = generateDeviceFingerprint();
+  const now = new Date().toISOString();
+  
+  const newDevice: RecognizedDevice = {
+    id: `DEVICE-${fingerprint}`,
+    name: deviceInfo.name,
+    type: deviceInfo.type,
+    browser: deviceInfo.browser,
+    os: deviceInfo.os,
+    fingerprint,
+    lastActive: now,
+    isCurrent: true
+  };
+  
+  // Get existing devices and update
+  const devices = getRecognizedDevices();
+  const existingIndex = devices.findIndex(d => d.fingerprint === fingerprint);
+  
+  if (existingIndex >= 0) {
+    // Update existing device
+    devices[existingIndex] = { ...devices[existingIndex], lastActive: now, isCurrent: true };
+    // Mark others as not current
+    devices.forEach((d, i) => {
+      if (i !== existingIndex) devices[i].isCurrent = false;
+    });
+  } else {
+    // Mark all existing as not current and add new
+    devices.forEach(d => d.isCurrent = false);
+    devices.push(newDevice);
+  }
+  
+  saveRecognizedDevices(devices);
+  return newDevice;
+};
+
+export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpdate }: IdentityWalletSettingsProps) {
   const [activeTab, setActiveTab] = useState<'identity' | 'wallet' | 'security'>('identity');
   const [showSeedPhrase, setShowSeedPhrase] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -53,7 +218,25 @@ export default function IdentityWalletSettings({ userNode, onClose }: IdentityWa
   const [cardName, setCardName] = useState('');
   const [paymentStep, setPaymentStep] = useState<'input' | 'processing' | 'success'>('input');
   const [showQR, setShowQR] = useState(false);
+  const [recognizedDevices, setRecognizedDevices] = useState<RecognizedDevice[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState<string>(userNode.avatarUrl || '');
+  const [showAvatarUpload, setShowAvatarUpload] = useState(false);
+  const [avatarInputUrl, setAvatarInputUrl] = useState('');
 
+  // Initialize device recognition on mount
+  useEffect(() => {
+    const currentDevice = registerCurrentDevice();
+    const devices = getRecognizedDevices();
+    setRecognizedDevices(devices);
+    
+    // Load avatar from localStorage
+    const storedAvatar = localStorage.getItem(`innova-avatar-${userNode.handle}`);
+    if (storedAvatar) {
+      setAvatarUrl(storedAvatar);
+    } else if (userNode.avatarUrl) {
+      setAvatarUrl(userNode.avatarUrl);
+    }
+  }, [userNode.handle, userNode.avatarUrl]);
 
   useEffect(() => {
     const loadBalance = async () => {
@@ -62,6 +245,28 @@ export default function IdentityWalletSettings({ userNode, onClose }: IdentityWa
     };
     loadBalance();
   }, [userNode.wallet]);
+
+  // Handle avatar URL submission
+  const handleAvatarSubmit = () => {
+    if (avatarInputUrl.trim()) {
+      setAvatarUrl(avatarInputUrl.trim());
+      localStorage.setItem(`innova-avatar-${userNode.handle}`, avatarInputUrl.trim());
+      if (onAvatarUpdate) {
+        onAvatarUpdate(avatarInputUrl.trim());
+      }
+      setShowAvatarUpload(false);
+      setAvatarInputUrl('');
+    }
+  };
+
+  // Handle avatar removal
+  const handleAvatarRemove = () => {
+    setAvatarUrl('');
+    localStorage.removeItem(`innova-avatar-${userNode.handle}`);
+    if (onAvatarUpdate) {
+      onAvatarUpdate('');
+    }
+  };
 
   const handleCopyText = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -144,6 +349,84 @@ export default function IdentityWalletSettings({ userNode, onClose }: IdentityWa
           {activeTab === 'identity' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <div><h3 className="text-xl font-black text-white uppercase">Universal Shard Node</h3><p className="text-xs text-white/50 mt-1">Immutable decentralized ledger routing state configuration parameters.</p></div>
+              
+              {/* Profile Avatar Section */}
+              <div className="bg-white/[0.02] border border-white/5 p-4 rounded-xl">
+                <h4 className="text-xs font-bold text-cyan-400 mb-3 uppercase tracking-wider font-mono">// PROFILE AVATAR</h4>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center overflow-hidden relative">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-8 h-8 text-slate-600" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    {avatarUrl ? (
+                      <div className="space-y-2">
+                        <p className="text-xs text-white/60 truncate">{avatarUrl}</p>
+                        <div className="flex gap-2">
+                          <button onClick={() => setShowAvatarUpload(true)} className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-xs font-bold text-cyan-400 transition flex items-center gap-1">
+                            <Camera className="w-3.5 h-3.5" /> Change
+                          </button>
+                          <button onClick={handleAvatarRemove} className="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 rounded-lg text-xs font-bold text-rose-400 transition">
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setShowAvatarUpload(true)} className="px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-xl text-xs font-bold text-cyan-400 transition flex items-center gap-2">
+                        <Upload className="w-3.5 h-3.5" /> UPLOAD AVATAR
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Avatar Upload Modal */}
+              {showAvatarUpload && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setShowAvatarUpload(false)} />
+                  <div className="relative w-full max-w-md bg-[#0a0a0f] border border-cyan-500/30 rounded-2xl shadow-2xl overflow-hidden p-6 animate-in fade-in zoom-in duration-300">
+                    <button onClick={() => setShowAvatarUpload(false)} className="absolute top-4 right-4 text-white/50 hover:text-white transition">
+                      <X className="w-5 h-5" />
+                    </button>
+                    <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <Image className="w-5 h-5 text-cyan-400" />
+                      SET PROFILE AVATAR
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-[9px] font-mono text-white/40 uppercase tracking-widest block mb-2">Avatar Image URL</label>
+                        <input 
+                          type="url" 
+                          value={avatarInputUrl}
+                          onChange={(e) => setAvatarInputUrl(e.target.value)}
+                          placeholder="https://example.com/avatar.jpg"
+                          className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-mono focus:border-cyan-500 focus:outline-none"
+                        />
+                        <p className="text-[10px] text-white/30 mt-2">Enter a URL to an image (JPG, PNG, WebP, GIF)</p>
+                      </div>
+                      {avatarInputUrl && (
+                        <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-xl bg-slate-900 border border-white/10 overflow-hidden flex-shrink-0">
+                            <img src={avatarInputUrl} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                          </div>
+                          <span className="text-xs text-white/60 truncate">Preview</span>
+                        </div>
+                      )}
+                      <button 
+                        onClick={handleAvatarSubmit}
+                        disabled={!avatarInputUrl.trim()}
+                        className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-black text-xs uppercase rounded-xl tracking-wider transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle2 className="w-4 h-4" /> SAVE AVATAR
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white/[0.02] border border-white/5 p-4 rounded-xl space-y-4">
                 <div><label className="text-[9px] font-mono tracking-widest text-white/40 uppercase block mb-1">Ecosystem Root Handle</label><span className="text-lg font-black text-white">{userNode.handle}</span></div>
                 <div><label className="text-[9px] font-mono tracking-widest text-white/40 uppercase block mb-1">Unique Node Id</label><div className="flex items-center gap-2"><span className="font-mono text-xs text-cyan-400 bg-cyan-400/5 px-2.5 py-1.5 border border-cyan-500/10 rounded-lg">{userNode.id}</span><button onClick={() => handleCopyText(userNode.id)} className="text-white/40 hover:text-white transition"><Copy className="w-3.5 h-3.5" /></button></div></div>
@@ -363,9 +646,61 @@ export default function IdentityWalletSettings({ userNode, onClose }: IdentityWa
                 <span className="text-sm font-bold text-amber-400">Seed phrase secured in Ring Comm Hardware Enclave.</span>
               </div>
 
-              {/* Registered Hardware list */}
+              {/* Ring Comm Auth Devices - Recognized Devices List */}
               <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4">
-                <h4 className="text-xs font-bold text-emerald-400 mb-3 uppercase tracking-wider font-mono">// Registered Hardware Modules</h4>
+                <h4 className="text-xs font-bold text-emerald-400 mb-3 uppercase tracking-wider font-mono">// RING COMM AUTH DEVICES</h4>
+                <p className="text-[10px] text-white/40 mb-4">These devices are recognized as your Ring Comm authentication endpoints. Your device acts as your password.</p>
+                
+                {recognizedDevices.length > 0 ? (
+                  <div className="space-y-2">
+                    {recognizedDevices.map((device) => (
+                      <div key={device.id} className={`flex items-center justify-between p-3 rounded-lg border transition ${device.isCurrent ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-white/5 border-white/10'}`}>
+                        <div className="flex items-center gap-3">
+                          {device.type === 'mobile' ? (
+                            <Smartphone className={`w-5 h-5 ${device.isCurrent ? 'text-emerald-400' : 'text-white/50'}`} />
+                          ) : device.type === 'tablet' ? (
+                            <div className="w-5 h-5 flex items-center justify-center"><Smartphone className="w-6 h-6" /></div>
+                          ) : (
+                            <Laptop className={`w-5 h-5 ${device.isCurrent ? 'text-emerald-400' : 'text-white/50'}`} />
+                          )}
+                          <div>
+                            <p className="text-sm font-bold text-white flex items-center gap-2">
+                              {device.name}
+                              {device.isCurrent && (
+                                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-mono">CURRENT</span>
+                              )}
+                            </p>
+                            <p className="text-[10px] text-white/40 font-mono">
+                              {device.browser} on {device.os} • FP: {device.fingerprint}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-[10px] px-2 py-1 rounded font-bold uppercase ${
+                            device.type === 'desktop' ? 'text-cyan-400 bg-cyan-500/10' :
+                            device.type === 'mobile' ? 'text-purple-400 bg-purple-500/10' :
+                            'text-amber-400 bg-amber-500/10'
+                          }`}>
+                            {device.type}
+                          </span>
+                          <p className="text-[9px] text-white/30 mt-1 font-mono">
+                            {new Date(device.lastActive).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-white/30">
+                    <Fingerprint className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">No recognized devices yet</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Registered Hardware list (Legacy) */}
+              <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4">
+                <h4 className="text-xs font-bold text-emerald-400 mb-3 uppercase tracking-wider font-mono">// REGISTERED HARDWARE MODULES</h4>
                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
                   <div className="flex items-center gap-3">
                     <Laptop className="w-5 h-5 text-white/50" />

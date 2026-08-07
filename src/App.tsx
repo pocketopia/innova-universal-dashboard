@@ -68,6 +68,7 @@ export default function App() {
   const [agreedCreator, setAgreedCreator] = useState(false);
   const [airdropWallet, setAirdropWallet] = useState('');
   const [airdropAmount, setAirdropAmount] = useState('25000');
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string>('');
 
   const displayUsername = claimedUsername.startsWith('@') ? claimedUsername : `@${claimedUsername}`;
   const formatWallet = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -353,7 +354,13 @@ export default function App() {
           <div className="w-full max-w-7xl mx-auto space-y-10">
             <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl">
               <div className="flex items-center gap-4.5">
-                <div className="relative w-14 h-14 rounded-2xl bg-[#0d0e19] flex items-center justify-center border border-white/20"><User className="w-7 h-7 text-cyan-400" /></div>
+                <div className="relative w-14 h-14 rounded-2xl bg-[#0d0e19] flex items-center justify-center border border-white/20 overflow-hidden">
+                  {userAvatarUrl ? (
+                    <img src={userAvatarUrl} alt="Profile Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-7 h-7 text-cyan-400" />
+                  )}
+                </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-sans font-black text-2xl text-white flex items-center">{displayUsername.toUpperCase()}</span>
@@ -715,9 +722,11 @@ export default function App() {
             handle: displayUsername,
             id: `NODE-${claimedUsername.toUpperCase()}`,
             name: `${claimedUsername.toUpperCase()}_CENTER`,
-            wallet: wallet.address || '0x7cde882b3a99e15ce89f302b1c41257dfbb39fd1'
+            wallet: wallet.address || '0x7cde882b3a99e15ce89f302b1c41257dfbb39fd1',
+            avatarUrl: userAvatarUrl
           }}
-          onClose={() => setShowSettings(false)} 
+          onClose={() => setShowSettings(false)}
+          onAvatarUpdate={(url) => setUserAvatarUrl(url)}
         />
       )}
     </div>
