@@ -16,6 +16,7 @@ import StreamShareDashboard from './components/platforms/StreamShareDashboard';
 import MVNDashboard from './components/platforms/MVNDashboard';
 import KreationDashboard from './components/platforms/KreationDashboard';
 import DeviceActivation from './pages/DeviceActivation';
+import TVActivationScreen from './components/tv/TVActivationScreen';
 import { 
   hasValidSession, 
   clearIdentityData, 
@@ -55,7 +56,25 @@ import {
 
 export type AppState = 'landing' | 'setup' | 'onboarding' | 'hub' | 'platform' | 'admin' | 'activate';
 
+// Check if running in TV standalone mode
+const isTVStandaloneMode = (): boolean => {
+  return !!import.meta.env.VITE_STANDALONE_APP;
+};
+
+// Check if TV has valid access token
+const hasValidTVToken = (): boolean => {
+  const token = localStorage.getItem('tv_access_token');
+  const expires = localStorage.getItem('tv_token_expires');
+  if (!token || !expires) return false;
+  return Date.now() < parseInt(expires);
+};
+
 export default function App() {
+  // If in TV standalone mode and no valid token, show TV activation screen
+  if (isTVStandaloneMode() && !hasValidTVToken()) {
+    return <TVActivationScreen />;
+  }
+
   const [appState, setAppState] = useState<AppState>('landing');
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [subPlatform, setSubPlatform] = useState<'mvn' | 'archaven' | 'hektic'>('archaven');
