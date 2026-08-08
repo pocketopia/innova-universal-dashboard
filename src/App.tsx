@@ -178,7 +178,18 @@ export default function App() {
   }, [appState, syncEcosystemDataFeed]);
 
   const executeConnectSetupWallet = async (_username?: string) => {
-    const activeAddress = localStorage.getItem('innova-wallet-address') || '0x7cde882b3a99e15ce89f302b1c41257dfbb39fd1';
+    const activeAddress = localStorage.getItem('innova-wallet-address');
+    if (!activeAddress) {
+      setWallet({
+        connected: false,
+        address: '',
+        balance: 0,
+        seedPhrase: [],
+        generating: false,
+        confirmed: false
+      });
+      return;
+    }
     const liveBalance = await fetchWalletBalance(activeAddress);
     
     setWallet({
@@ -371,8 +382,14 @@ export default function App() {
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-[10px] text-white/60 font-mono">EVM ADDR:</span>
-                    <span className="text-xs text-slate-300 font-mono">{formatWallet(wallet.address || '0x7cde...9fd1')}</span>
-                    <button onClick={() => navigator.clipboard.writeText(wallet.address)} className="text-slate-500 hover:text-white transition p-0.5 rounded cursor-pointer"><Copy className="w-3.5 h-3.5" /></button>
+                    {wallet.address ? (
+                      <>
+                        <span className="text-xs text-slate-300 font-mono">{formatWallet(wallet.address)}</span>
+                        <button onClick={() => navigator.clipboard.writeText(wallet.address)} className="text-slate-500 hover:text-white transition p-0.5 rounded cursor-pointer"><Copy className="w-3.5 h-3.5" /></button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-500 font-mono italic">Not connected</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -724,13 +741,13 @@ export default function App() {
         <DeviceActivation />
       )}
 
-      {showSettings && (
+      {showSettings && wallet.address && (
         <IdentityWalletSettings 
           userNode={{
             handle: displayUsername,
             id: `NODE-${claimedUsername.toUpperCase()}`,
             name: `${claimedUsername.toUpperCase()}_CENTER`,
-            wallet: wallet.address || '0x7cde882b3a99e15ce89f302b1c41257dfbb39fd1',
+            wallet: wallet.address,
             avatarUrl: userAvatarUrl
           }}
           onClose={() => setShowSettings(false)}
