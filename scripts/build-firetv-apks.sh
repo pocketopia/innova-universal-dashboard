@@ -8,6 +8,19 @@ TENANTS=("mvn" "kreation" "archaven" "hektic" "streamshare")
 APP_NAMES=("MVN" "Kreation" "ArcHaven" "Hektic" "StreamShare")
 OUTPUT_DIR="dist-firetv-apk"
 
+# Function to get icon filename for a tenant
+get_icon_filename() {
+    local tenant=$1
+    case $tenant in
+        "mvn") echo "MVN_icon.jpg" ;;
+        "kreation") echo "kreaton_icon.jpg" ;;
+        "archaven") echo "archaven_icon.jpg" ;;
+        "hektic") echo "hektictv_icon.jpg" ;;
+        "streamshare") echo "streamshare_icon.jpg" ;;
+        *) echo "" ;;
+    esac
+}
+
 echo "🚀 Starting Amazon Fire TV APK build process..."
 
 # Create output directory
@@ -65,6 +78,27 @@ EOF
     
     # Copy web assets to Android project
     npx cap copy android
+    
+    # Generate Android icons from tenant-specific icon
+    icon_filename=$(get_icon_filename "$tenant")
+    # Use absolute path from project root
+    project_root="../../"
+    icon_source="$project_root/assets/base-icons/$icon_filename"
+    
+    if [ -f "$icon_source" ]; then
+        echo "   🎨 Generating Android icons from $icon_filename..."
+        
+        # Create assets directory and copy icon
+        mkdir -p assets
+        cp "$icon_source" "assets/icon.jpg"
+        
+        # Generate Android icon resources
+        npx @capacitor/assets generate --iconOnly --android
+        
+        echo "   ✅ Android icons generated successfully"
+    else
+        echo "   ⚠️ Warning: Icon not found: $icon_source"
+    fi
     
     # Build APK (release)
     cd android
