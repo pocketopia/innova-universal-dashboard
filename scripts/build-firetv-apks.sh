@@ -13,7 +13,7 @@ get_icon_filename() {
     local tenant=$1
     case $tenant in
         "mvn") echo "MVN_icon.jpg" ;;
-        "kreation") echo "kreaton_icon.jpg" ;;
+        "kreation") echo "kreation_icon.jpg" ;;
         "archaven") echo "archaven_icon.jpg" ;;
         "hektic") echo "hektictv_icon.jpg" ;;
         "streamshare") echo "streamshare_icon.jpg" ;;
