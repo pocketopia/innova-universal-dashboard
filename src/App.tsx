@@ -376,7 +376,10 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
+                <button onClick={() => setAppState('activate')} className="cursor-pointer bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/30 text-amber-400 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition flex items-center gap-2 hover:border-amber-500/50 hover:from-amber-600/30 hover:to-orange-600/30">
+                  <Tv className="w-3.5 h-3.5" /> LINK TV DEVICE
+                </button>
                 <button onClick={() => setShowSettings(true)} className="cursor-pointer bg-gradient-to-r from-cyan-600/20 to-purple-600/20 border border-cyan-500/30 text-cyan-400 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition flex items-center gap-2">
                   <CreditCard className="w-3.5 h-3.5" /> Identity / Wallet & Billing Center
                 </button>
