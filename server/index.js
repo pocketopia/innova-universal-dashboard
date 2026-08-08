@@ -15,8 +15,14 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// Middleware
-app.use(cors());
+// Middleware - Configure CORS to allow specific origins
+const corsOptions = {
+  origin: ['http://localhost:3001', 'http://10.0.0.2:3001'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // In-memory storage for device codes and user sessions

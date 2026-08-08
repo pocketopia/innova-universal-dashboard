@@ -15,6 +15,7 @@ import HekticDashboard from './components/platforms/HekticDashboard';
 import StreamShareDashboard from './components/platforms/StreamShareDashboard';
 import MVNDashboard from './components/platforms/MVNDashboard';
 import KreationDashboard from './components/platforms/KreationDashboard';
+import DeviceActivation from './pages/DeviceActivation';
 import { 
   hasValidSession, 
   clearIdentityData, 
@@ -52,7 +53,7 @@ import {
   Fingerprint
 } from 'lucide-react';
 
-export type AppState = 'landing' | 'setup' | 'onboarding' | 'hub' | 'platform' | 'admin';
+export type AppState = 'landing' | 'setup' | 'onboarding' | 'hub' | 'platform' | 'admin' | 'activate';
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>('landing');
@@ -714,6 +715,10 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {appState === 'activate' && (
+        <DeviceActivation />
       )}
 
       {showSettings && (
