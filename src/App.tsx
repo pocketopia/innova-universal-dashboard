@@ -760,7 +760,7 @@ export default function App() {
         <DeviceActivation />
       )}
 
-      {showSettings && wallet.address && (
+      {showSettings && (
         <IdentityWalletSettings 
           userNode={{
             handle: displayUsername,
