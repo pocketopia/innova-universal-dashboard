@@ -1,0 +1,31 @@
+const fs = require('fs');
+const path = require('path');
+
+const distDir = path.join(process.cwd(), 'distribution');
+if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true });
+
+const manifest = {
+  manifestVersion: '2.0.0',
+  generatedAt: new Date().toISOString(),
+  platform: 'Innova Ecosystem Universal Dashboard',
+  description: 'Next-generation media empire unifying Web3 gaming, film transcoding, and creator pipelines',
+  version: '2.0.0',
+  buildDate: new Date().toISOString().split('T')[0],
+  platforms: {
+    webOS: { appId: 'innova.ecosystem.webos', version: '2.0.0', package: 'innova-webos-2.0.0.zip', apps: ['mvn', 'kreation', 'archaven', 'hektic', 'streamshare'] },
+    tizen: { appId: 'innova.ecosystem.tizen', version: '2.0.0', package: 'innova-tizen-2.0.0.zip', apps: ['mvn', 'kreation', 'archaven', 'hektic', 'streamshare'] },
+    roku: { channelId: 'innova.ecosystem.roku', version: '2.0.0', package: 'innova-roku-2.0.0.zip', apps: ['mvn', 'kreation', 'archaven', 'hektic', 'streamshare'] },
+    firetv: { appId: 'innova.ecosystem.firetv', version: '2.0.0', package: 'innova-firetv-2.0.0.apk', apps: ['mvn', 'kreation', 'archaven', 'hektic', 'streamshare'] }
+  },
+  features: {
+    n2nMessaging: { enabled: true, protocol: 'EdDSA-AES256GCM-P2P', spamProtection: 'MicroToll-PoW' },
+    creatorRewards: { enabled: true, threshold: '80%', tiers: ['emerging', 'verified', 'established', 'premium', 'legend'] },
+    security: { encryption: 'AES-256-GCM', signatures: 'EdDSA-Ed25519', storage: 'SecureEncrypted' }
+  },
+  distribution: {
+    amazonDeveloperPortal: { category: 'Entertainment', contentRating: 'Everyone', countries: ['US', 'CA', 'UK', 'DE', 'FR', 'JP', 'AU'] }
+  }
+};
+
+fs.writeFileSync(path.join(distDir, 'PLATFORM_MANIFEST.json'), JSON.stringify(manifest, null, 2));
+console.log('PLATFORM_MANIFEST.json successfully created!');
