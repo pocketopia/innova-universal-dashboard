@@ -20,6 +20,10 @@ const userRoutes = require('./routes/users');
 const pairingRoutes = require('./routes/pairing');
 const subscriptionRoutes = require('./routes/subscriptions');
 const deletionRoutes = require('./routes/deletion');
+const submissionRoutes = require('./routes/submissions');
+const adminRoutes = require('./routes/admin');
+const messageRoutes = require('./routes/messages');
+const streamshareRoutes = require('./routes/streamshare');
 
 // Import existing device authorization routes (from original index.js)
 const deviceRoutes = require('./routes/device');
@@ -143,6 +147,19 @@ app.use('/api/subscriptions', subscriptionRoutes);
 
 // Device authorization routes (RFC 8628 - existing functionality)
 app.use('/api/device', deviceRoutes);
+
+// Submission routes (content submission and retrieval)
+// Note: /api/submissions/taxonomies is handled by the submissions router
+app.use('/api/submissions', submissionRoutes);
+
+// Message routes (real-time messaging REST API)
+app.use('/api/messages', messageRoutes);
+
+// StreamShare routes (product delivery system)
+app.use('/api/streamshare', streamshareRoutes);
+
+// Admin routes (submission moderation)
+app.use('/api/admin', adminRoutes);
 
 // ============================================
 // Error Handling

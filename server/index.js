@@ -1,6 +1,6 @@
 /**
  * Innova Ecosystem Backend Server
- * Main entry point - starts the Express application
+ * Main entry point - starts the Express application with Socket.IO
  * 
  * Features:
  * - JWT Authentication with refresh tokens
@@ -9,15 +9,23 @@
  * - TV Pairing with 6-digit codes
  * - Subscription Management with Trial Flow
  * - OAuth 2.0 Device Authorization Grant (RFC 8628)
+ * - Real-Time Node-to-Node Messaging (WebSocket)
  */
 
 const app = require('./app');
+const { initializeSocketIO } = require('./socket');
 
 const PORT = process.env.PORT || 3002;
 const HOST = process.env.HOST || '0.0.0.0';
 
+// Create HTTP server
+const http = require('http').createServer(app);
+
+// Initialize Socket.IO for real-time messaging
+initializeSocketIO(http, app);
+
 // Start server
-const server = app.listen(PORT, HOST, () => {
+http.listen(PORT, HOST, () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
@@ -27,6 +35,7 @@ const server = app.listen(PORT, HOST, () => {
   `);
   
   console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+  console.log(`🔌 WebSocket enabled (Socket.IO)`);
   console.log(``);
   console.log(`📋 Available Endpoints:`);
   console.log(``);
@@ -76,6 +85,31 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`     GET  /api/device/status/:code    - Check device status`);
   console.log(`     POST /api/device/authorize-user  - Authorize device`);
   console.log(``);
+  console.log(`  📬 Real-Time Messaging (WebSocket + REST):`);
+  console.log(`     WebSocket: Connect to Socket.IO with JWT token`);
+  console.log(`       - send_message: Send real-time message`);
+  console.log(`       - mark_as_read: Mark messages as read`);
+  console.log(`       - typing_indicator: Show typing status`);
+  console.log(`     REST API:`);
+  console.log(`     GET  /api/messages/conversations      - Get inbox`);
+  console.log(`     GET  /api/messages/:conversationId    - Get chat history`);
+  console.log(`     POST /api/messages/:userId            - Send message`);
+  console.log(`     POST /api/messages/:id/read           - Mark as read`);
+  console.log(`     GET  /api/messages/presence/:userId   - Check online status`);
+  console.log(`     GET  /api/messages/online             - List online users`);
+  console.log(`     GET  /api/messages/unread/count       - Get unread count`);
+  console.log(``);
+  console.log(`  📝 Content Submissions:`);
+  console.log(`     GET  /api/submissions/taxonomies      - Get platform taxonomies`);
+  console.log(`     GET  /api/submissions/:platform       - Get approved content`);
+  console.log(`     POST /api/submissions/:platform       - Submit content`);
+  console.log(`     GET  /api/submissions/me              - Get my submissions`);
+  console.log(``);
+  console.log(`  🔧 Admin:`);
+  console.log(`     GET  /api/admin/submissions/pending   - Get pending submissions`);
+  console.log(`     PUT  /api/admin/submissions/:id/approve - Approve submission`);
+  console.log(`     PUT  /api/admin/submissions/:id/reject  - Reject submission`);
+  console.log(``);
   console.log(`  ❤️  Health:`);
   console.log(`     GET  /api/health                 - Health check`);
   console.log(``);
@@ -86,7 +120,7 @@ const server = app.listen(PORT, HOST, () => {
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('\n[SIGTERM] Received shutdown signal. Closing server...');
-  server.close(() => {
+  http.close(() => {
     console.log('[SIGTERM] Server closed.');
     process.exit(0);
   });
@@ -94,10 +128,10 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
   console.log('\n[SIGINT] Received interrupt signal. Closing server...');
-  server.close(() => {
+  http.close(() => {
     console.log('[SIGINT] Server closed.');
     process.exit(0);
   });
 });
 
-module.exports = server;
+module.exports = http;

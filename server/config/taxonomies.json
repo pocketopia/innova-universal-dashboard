@@ -1,0 +1,249 @@
+{
+  "version": "2.0.0",
+  "lastUpdated": "2026-08-20",
+  "platforms": {
+    "kreation": {
+      "name": "Kreation",
+      "description": "Creative content and interactive experiences",
+      "categories": [
+        {
+          "id": "game",
+          "name": "Game",
+          "description": "Interactive games and gaming experiences"
+        },
+        {
+          "id": "interactive",
+          "name": "Interactive Experience",
+          "description": "Non-game interactive content"
+        },
+        {
+          "id": "educational",
+          "name": "Educational",
+          "description": "Learning and educational content"
+        },
+        {
+          "id": "art",
+          "name": "Art & Creative",
+          "description": "Digital art and creative expressions"
+        },
+        {
+          "id": "music",
+          "name": "Music & Audio",
+          "description": "Music compositions and audio experiences"
+        }
+      ],
+      "genres": [
+        "action", "adventure", "puzzle", "strategy", "simulation",
+        "rpg", "racing", "sports", "horror", "casual",
+        "educational", "kids", "music", "rhythm", "platformer"
+      ],
+      "requiredFields": ["title", "description", "category", "mediaUrls"],
+      "optionalFields": ["genre", "tags", "thumbnailUrl", "trailerUrl", "version", "rating"],
+      "mediaTypes": {
+        "primary": ["video/mp4", "application/octet-stream"],
+        "thumbnail": ["image/jpeg", "image/png", "image/webp"],
+        "maxFileSize": 500000000,
+        "maxMediaCount": 10
+      }
+    },
+    "archaven": {
+      "name": "Archaven",
+      "description": "Architecture and design showcase",
+      "categories": [
+        {
+          "id": "architecture",
+          "name": "Architecture",
+          "description": "Building and architectural designs"
+        },
+        {
+          "id": "interior",
+          "name": "Interior Design",
+          "description": "Interior spaces and decorations"
+        },
+        {
+          "id": "landscape",
+          "name": "Landscape",
+          "description": "Outdoor and landscape designs"
+        },
+        {
+          "id": "virtual-tour",
+          "name": "Virtual Tour",
+          "description": "360° virtual property tours"
+        },
+        {
+          "id": "3d-model",
+          "name": "3D Model",
+          "description": "3D architectural models"
+        }
+      ],
+      "genres": [
+        "residential", "commercial", "industrial", "modern", "classical",
+        "sustainable", "minimalist", "luxury", "urban", "rustic"
+      ],
+      "requiredFields": ["title", "description", "category", "mediaUrls"],
+      "optionalFields": ["genre", "tags", "location", "thumbnailUrl", "floorPlanUrl", "squareFootage"],
+      "mediaTypes": {
+        "primary": ["image/jpeg", "image/png", "video/mp4", "model/gltf+json"],
+        "thumbnail": ["image/jpeg", "image/png", "image/webp"],
+        "maxFileSize": 200000000,
+        "maxMediaCount": 20
+      }
+    },
+    "streamshare": {
+      "name": "StreamShare",
+      "description": "Collaborative projects and streams",
+      "categories": [
+        {
+          "id": "project",
+          "name": "Project",
+          "description": "Collaborative projects and initiatives"
+        },
+        {
+          "id": "stream",
+          "name": "Live Stream",
+          "description": "Live streaming content"
+        },
+        {
+          "id": "tutorial",
+          "name": "Tutorial",
+          "description": "How-to and instructional content"
+        },
+        {
+          "id": "documentary",
+          "name": "Documentary",
+          "description": "Documentary and informational content"
+        },
+        {
+          "id": "community",
+          "name": "Community",
+          "description": "Community-driven content"
+        }
+      ],
+      "genres": [
+        "technology", "science", "arts", "business", "health",
+        "environment", "social", "entertainment", "news", "sports"
+      ],
+      "requiredFields": ["title", "description", "category", "mediaUrls"],
+      "optionalFields": ["genre", "tags", "thumbnailUrl", "scheduledStart", "duration", "collaborators"],
+      "mediaTypes": {
+        "primary": ["video/mp4", "video/ogg", "application/x-mpegURL"],
+        "thumbnail": ["image/jpeg", "image/png", "image/webp"],
+        "maxFileSize": 1000000000,
+        "maxMediaCount": 5
+      }
+    },
+    "hektic": {
+      "name": "Hektic TV",
+      "description": "Broadcast and entertainment content",
+      "categories": [
+        {
+          "id": "broadcast",
+          "name": "Broadcast",
+          "description": "Television broadcast content"
+        },
+        {
+          "id": "show",
+          "name": "Show",
+          "description": "TV shows and series"
+        },
+        {
+          "id": "live-event",
+          "name": "Live Event",
+          "description": "Live event broadcasts"
+        },
+        {
+          "id": "episode",
+          "name": "Episode",
+          "description": "Individual episodes"
+        },
+        {
+          "id": "special",
+          "name": "Special",
+          "description": "Special broadcasts and one-offs"
+        }
+      ],
+      "genres": [
+        "drama", "comedy", "reality", "news", "sports",
+        "documentary", "children", "music", "talk-show", "game-show",
+        "thriller", "romance", "action", "sci-fi", "fantasy"
+      ],
+      "requiredFields": ["title", "description", "category", "mediaUrls"],
+      "optionalFields": ["genre", "tags", "thumbnailUrl", "trailerUrl", "seasonNumber", "episodeNumber", "rating", "cast"],
+      "mediaTypes": {
+        "primary": ["video/mp4", "video/ogg", "application/x-mpegURL"],
+        "thumbnail": ["image/jpeg", "image/png", "image/webp"],
+        "maxFileSize": 2000000000,
+        "maxMediaCount": 3
+      }
+    },
+    "mvn": {
+      "name": "MVN",
+      "description": "Music and video network",
+      "categories": [
+        {
+          "id": "music-video",
+          "name": "Music Video",
+          "description": "Official music videos"
+        },
+        {
+          "id": "audio",
+          "name": "Audio Track",
+          "description": "Audio-only content"
+        },
+        {
+          "id": "live-performance",
+          "name": "Live Performance",
+          "description": "Live music performances"
+        },
+        {
+          "id": "behind-scenes",
+          "name": "Behind the Scenes",
+          "description": "Making-of and behind-the-scenes content"
+        },
+        {
+          "id": "interview",
+          "name": "Interview",
+          "description": "Artist interviews and features"
+        }
+      ],
+      "genres": [
+        "pop", "rock", "hip-hop", "rap", "electronic",
+        "rnb", "country", "jazz", "classical", "indie",
+        "metal", "folk", "reggae", "blues", "latin"
+      ],
+      "requiredFields": ["title", "description", "category", "mediaUrls"],
+      "optionalFields": ["genre", "tags", "thumbnailUrl", "artist", "album", "releaseDate", "duration", "lyrics"],
+      "mediaTypes": {
+        "primary": ["video/mp4", "audio/mpeg", "audio/mp4", "audio/ogg"],
+        "thumbnail": ["image/jpeg", "image/png", "image/webp"],
+        "maxFileSize": 500000000,
+        "maxMediaCount": 5
+      }
+    }
+  },
+  "globalTags": [
+    "trending", "featured", "new", "popular", "editor-pick",
+    "community-choice", "award-winning", "exclusive", "premium", "free"
+  ],
+  "contentRatings": ["G", "PG", "PG-13", "R", "NC-17", "Unrated"],
+  "validationRules": {
+    "title": {
+      "minLength": 3,
+      "maxLength": 200,
+      "pattern": "^[a-zA-Z0-9\\s\\-_'.,!?()]+$"
+    },
+    "description": {
+      "minLength": 10,
+      "maxLength": 5000
+    },
+    "tags": {
+      "maxCount": 20,
+      "minLength": 2,
+      "maxLength": 50
+    },
+    "mediaUrl": {
+      "protocols": ["https", "http"],
+      "maxCount": 20
+    }
+  }
+}

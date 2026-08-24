@@ -302,6 +302,173 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_log(action);
 
+-- ============================================================
+-- SUBMISSIONS TABLE
+-- Unified content submission system for all platforms
+-- ============================================================
+CREATE TABLE IF NOT EXISTS submissions (
+    id TEXT PRIMARY KEY,
+    platform TEXT NOT NULL CHECK (platform IN ('kreation', 'archaven', 'streamshare', 'hektic', 'mvn')),
+    user_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT NOT NULL,
+    genre TEXT,
+    tags TEXT, -- JSON array of tags
+    media_urls TEXT NOT NULL, -- JSON array of media URLs
+    thumbnail_url TEXT,
+    metadata TEXT, -- JSON for platform-specific additional data
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'archived')),
+    is_approved INTEGER DEFAULT 0,
+    rejection_reason TEXT,
+    submitted_at INTEGER NOT NULL,
+    approved_at INTEGER,
+    approved_by TEXT,
+    updated_at INTEGER,
+    view_count INTEGER DEFAULT 0,
+    like_count INTEGER DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_submissions_platform ON submissions(platform);
+CREATE INDEX IF NOT EXISTS idx_submissions_user_id ON submissions(user_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status);
+CREATE INDEX IF NOT EXISTS idx_submissions_category ON submissions(category);
+CREATE INDEX IF NOT EXISTS idx_submissions_approved ON submissions(is_approved);
+CREATE INDEX IF NOT EXISTS idx_submissions_submitted_at ON submissions(submitted_at);
+
+-- ============================================================
+-- SUBMISSION VALIDATION LOG
+-- Tracks validation attempts for submissions
+-- ============================================================
+CREATE TABLE IF NOT EXISTS submission_validation_log (
+    id TEXT PRIMARY KEY,
+    submission_id TEXT NOT NULL,
+    validation_type TEXT NOT NULL,
+    passed INTEGER NOT NULL,
+    errors TEXT, -- JSON array of error messages
+    validated_at INTEGER NOT NULL,
+    FOREIGN KEY (submission_id) REFERENCES submissions(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_submission_validation_submission_id ON submission_validation_log(submission_id);
+CREATE INDEX IF NOT EXISTS idx_submission_validation_type ON submission_validation_log(validation_type);
+
+-- ============================================================
+-- SUBMISSION MODERATION QUEUE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS submission_moderation_queue (
+    id TEXT PRIMARY KEY,
+    submission_id TEXT NOT NULL,
+    moderator_id TEXT NOT NULL,
+    action TEXT NOT NULL CHECK (action IN ('approve', 'reject', 'flag', 'request_changes')),
+    notes TEXT,
+    reviewed_at INTEGER NOT NULL,
+    FOREIGN KEY (submission_id) REFERENCES submissions(id) ON DELETE CASCADE,
+    FOREIGN KEY (moderator_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_submission_moderation_submission_id ON submission_moderation_queue(submission_id);
+CREATE INDEX IF NOT EXISTS idx_submission_moderation_moderator_id ON submission_moderation_queue(moderator_id);
+
+-- ============================================================
+-- SUBMISSION ANALYTICS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS submission_analytics (
+    id TEXT PRIMARY KEY,
+    submission_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    user_id TEXT,
+    session_id TEXT,
+    metadata TEXT,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (submission_id) REFERENCES submissions(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_submission_analytics_submission_id ON submission_analytics(submission_id);
+CREATE INDEX IF NOT EXISTS idx_submission_analytics_event_type ON submission_analytics(event_type);
+CREATE INDEX IF NOT EXISTS idx_submission_analytics_created_at ON submission_analytics(created_at);
+
+-- ============================================================
+-- CONVERSATIONS TABLE (Node-to-Node Messaging)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS conversations (
+    id TEXT PRIMARY KEY,
+    participant_1_id TEXT NOT NULL,
+    participant_2_id TEXT NOT NULL,
+    last_message_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (participant_1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (participant_2_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(participant_1_id, participant_2_id)
+);
+CREATE INDEX IF NOT EXISTS idx_conversations_participant_1 ON conversations(participant_1_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_participant_2 ON conversations(participant_2_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_last_message ON conversations(last_message_at);
+
+-- ============================================================
+-- MESSAGES TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS messages (
+    id TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL,
+    sender_id TEXT NOT NULL,
+    content TEXT NOT NULL,
+    message_type TEXT DEFAULT 'text' CHECK (message_type IN ('text', 'image', 'file', 'system')),
+    metadata TEXT, -- JSON for additional data (file URLs, etc.)
+    is_read INTEGER DEFAULT 0,
+    read_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_messages_is_read ON messages(is_read);
+
+-- ============================================================
+-- USER ONLINE STATUS TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS user_presence (
+    user_id TEXT PRIMARY KEY,
+    is_online INTEGER DEFAULT 0,
+    last_seen_at INTEGER,
+    socket_id TEXT,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_user_presence_online ON user_presence(is_online);
+
+-- ============================================================
+-- STREAMSHARE DELIVERIES TABLE
+-- Product delivery system for StreamShare platform
+-- ============================================================
+CREATE TABLE IF NOT EXISTS streamshare_deliveries (
+    id TEXT PRIMARY KEY,
+    creator_id TEXT NOT NULL,
+    client_id TEXT NOT NULL,
+    project_name TEXT NOT NULL,
+    description TEXT,
+    media_url TEXT NOT NULL,
+    thumbnail_url TEXT,
+    conversation_id TEXT,
+    status TEXT DEFAULT 'pending_review' CHECK (status IN ('pending_review', 'revisions_requested', 'approved', 'cancelled')),
+    revision_count INTEGER DEFAULT 0,
+    revision_notes TEXT,
+    approved_at INTEGER,
+    delivered_at INTEGER NOT NULL,
+    updated_at INTEGER,
+    metadata TEXT, -- JSON for additional delivery data
+    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_streamshare_deliveries_creator ON streamshare_deliveries(creator_id);
+CREATE INDEX IF NOT EXISTS idx_streamshare_deliveries_client ON streamshare_deliveries(client_id);
+CREATE INDEX IF NOT EXISTS idx_streamshare_deliveries_status ON streamshare_deliveries(status);
+CREATE INDEX IF NOT EXISTS idx_streamshare_deliveries_conversation ON streamshare_deliveries(conversation_id);
+
 -- ============================================
 -- SEED DATA
 -- ============================================
