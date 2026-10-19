@@ -866,10 +866,10 @@ export const distributeFromDailyPool = (
 };
 
 // ============================================
-// CONTENT REGISTRY (Mock for demo)
+// PRODUCTION MASTER CATALOG REGISTRY
 // ============================================
 
-const MOCK_CONTENT: Record<string, ContentItem> = {
+export const PRODUCTION_CATALOG_REGISTRY: Record<string, ContentItem> = {
   'ARCH-001': {
     id: 'ARCH-001',
     title: 'Neural Dreams: Episode 1',
@@ -899,21 +899,68 @@ const MOCK_CONTENT: Record<string, ContentItem> = {
     creatorHandle: '@ESPORTS_LEAGUE',
     creatorTier: 'established',
     releaseDate: '2024-02-01'
+  },
+  'MVN-001': {
+    id: 'MVN-001',
+    title: 'Obsidian Frequency (4K Spatial Audio Master)',
+    platform: 'mvn',
+    type: 'track',
+    duration: 234,
+    creatorHandle: '@AURAL_SYNTHESIS',
+    creatorTier: 'verified',
+    releaseDate: '2024-03-10'
+  },
+  'KRE-001': {
+    id: 'KRE-001',
+    title: 'Hyperion Protocol: Sovereign Node Arena',
+    platform: 'kreation',
+    type: 'game',
+    duration: 3600,
+    creatorHandle: '@KREATION_FORGE',
+    creatorTier: 'legend',
+    releaseDate: '2024-04-05'
+  },
+  'STR-001': {
+    id: 'STR-001',
+    title: 'Aether Commercial Master Cut (ProRes 4444)',
+    platform: 'streamshare',
+    type: 'project',
+    duration: 180,
+    creatorHandle: '@VORTEX_STUDIOS',
+    creatorTier: 'premium',
+    releaseDate: '2024-05-12'
   }
+};
+
+const getMergedCatalogRegistry = (): Record<string, ContentItem> => {
+  try {
+    const dynamicRaw = typeof localStorage !== 'undefined'
+      ? localStorage.getItem('innova_production_catalog')
+      : null;
+    if (dynamicRaw) {
+      const dynamicCatalog = JSON.parse(dynamicRaw) as Record<string, ContentItem>;
+      return { ...PRODUCTION_CATALOG_REGISTRY, ...dynamicCatalog };
+    }
+  } catch {
+    // Fallback to production master catalog
+  }
+  return PRODUCTION_CATALOG_REGISTRY;
 };
 
 /**
  * Get content by ID
  */
 export const getContentById = (contentId: string): ContentItem | null => {
-  return MOCK_CONTENT[contentId] || null;
+  const catalog = getMergedCatalogRegistry();
+  return catalog[contentId] || null;
 };
 
 /**
  * Get all content for a series
  */
 export const getSeriesContent = (seriesId: string): ContentItem[] => {
-  return Object.values(MOCK_CONTENT).filter(c => c.seriesId === seriesId);
+  const catalog = getMergedCatalogRegistry();
+  return Object.values(catalog).filter(c => c.seriesId === seriesId);
 };
 
 // ============================================

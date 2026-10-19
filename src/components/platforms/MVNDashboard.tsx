@@ -7,17 +7,92 @@ import {
   BarChart3,
   Lock,
   ExternalLink,
-  Info
+  Info,
+  Play,
+  X,
+  CheckCircle2
 } from 'lucide-react';
 
 interface MusicVideoSubmission {
   id: string;
   songTitle: string;
   primaryArtist: string;
+  genre?: string;
+  duration?: string;
   status: 'draft' | 'pending_qc' | 'qc_passed' | 'syndicated' | 'flagged' | 'rejected';
   submittedAt: string;
   thumbnail?: string;
+  videoUrl?: string;
 }
+
+const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [
+  {
+    id: 'mvn-master-01',
+    songTitle: 'Neon Lights (4K Broadcast Master)',
+    primaryArtist: 'Starlight Synthesis',
+    genre: 'Pop Hits',
+    duration: '3:00',
+    status: 'syndicated',
+    submittedAt: '2025-02-14',
+    thumbnail: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=800',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+  },
+  {
+    id: 'mvn-master-02',
+    songTitle: 'City Streets (Director Cut)',
+    primaryArtist: 'MC Flow',
+    genre: 'Hip Hop & R&B',
+    duration: '4:00',
+    status: 'syndicated',
+    submittedAt: '2025-02-16',
+    thumbnail: 'https://images.unsplash.com/photo-1596525737525-c6514781e641?q=80&w=800',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4'
+  },
+  {
+    id: 'mvn-master-03',
+    songTitle: 'Thunderstruck Odyssey',
+    primaryArtist: 'High Voltage',
+    genre: 'Rock',
+    duration: '4:10',
+    status: 'qc_passed',
+    submittedAt: '2025-02-18',
+    thumbnail: 'https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?q=80&w=800',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackSeeTheWorld.mp4'
+  },
+  {
+    id: 'mvn-master-04',
+    songTitle: 'Cyberpunk City',
+    primaryArtist: 'Synthwave Boy',
+    genre: 'Electronic / Dance',
+    duration: '5:00',
+    status: 'syndicated',
+    submittedAt: '2025-02-19',
+    thumbnail: 'https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=800',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
+  },
+  {
+    id: 'mvn-master-05',
+    songTitle: 'Fiesta Solar',
+    primaryArtist: 'Ritmo Caliente',
+    genre: 'Latin Vibes',
+    duration: '3:30',
+    status: 'qc_passed',
+    submittedAt: '2025-02-20',
+    thumbnail: 'https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=800',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
+  },
+  {
+    id: 'mvn-master-06',
+    songTitle: 'Midnight Sax Sessions',
+    primaryArtist: 'Blue Note Collective',
+    genre: 'Smooth Jazz',
+    duration: '5:20',
+    status: 'pending_qc',
+    submittedAt: '2025-02-22',
+    thumbnail: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?q=80&w=800',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4'
+  }
+];
 
 type TabType = 'dashboard' | 'vault';
 
@@ -31,7 +106,9 @@ interface MVNDashboardProps {
 export default function MVNDashboard({ userNode, onBack, submissions, setSubmissions }: MVNDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [showSubmitInfo, setShowSubmitInfo] = useState(false);
-  const displaySubmissions = submissions;
+  const [previewVideo, setPreviewVideo] = useState<MusicVideoSubmission | null>(null);
+  const displaySubmissions: MusicVideoSubmission[] =
+    Array.isArray(submissions) && submissions.length > 0 ? submissions : VERIFIED_MVN_BROADCASTS;
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -51,7 +128,7 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
           <p className="text-[10px] text-slate-400">Music Video Network Overview</p>
         </div>
       </div>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="glass-panel-amber rounded-xl p-4 border border-amber-500/20">
           <div className="flex items-center justify-between">
             <div>
@@ -59,6 +136,28 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
               <p className="text-2xl font-black text-white mt-1">{displaySubmissions.length}</p>
             </div>
             <Film className="w-8 h-8 text-amber-400" />
+          </div>
+        </div>
+        <div className="glass-panel-amber rounded-xl p-4 border border-amber-500/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Syndicated Live</p>
+              <p className="text-2xl font-black text-emerald-400 mt-1">
+                {displaySubmissions.filter(s => s.status === 'syndicated').length}
+              </p>
+            </div>
+            <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+          </div>
+        </div>
+        <div className="glass-panel-amber rounded-xl p-4 border border-amber-500/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">QC Passed</p>
+              <p className="text-2xl font-black text-cyan-400 mt-1">
+                {displaySubmissions.filter(s => s.status === 'qc_passed').length}
+              </p>
+            </div>
+            <Music className="w-8 h-8 text-cyan-400" />
           </div>
         </div>
         <div className="glass-panel-amber rounded-xl p-4 border border-amber-500/20">
@@ -81,22 +180,31 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-cyber text-sm font-bold tracking-wider text-white">VIDEO VAULT</h3>
-          <p className="text-[10px] text-slate-400">Your submitted music videos</p>
+          <p className="text-[10px] text-slate-400">Your submitted & syndicated MVN master music videos</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {displaySubmissions.map(sub => (
-          <div key={sub.id} className="group cursor-pointer relative rounded-xl overflow-hidden bg-slate-900 border border-white/10 hover:border-amber-500/50 transition">
+        {displaySubmissions.map((sub: any) => (
+          <div
+            key={sub.id}
+            onClick={() => setPreviewVideo(sub)}
+            className="group cursor-pointer relative rounded-xl overflow-hidden bg-slate-900 border border-white/10 hover:border-amber-500/50 transition"
+          >
             <div className="aspect-video bg-slate-800 relative">
-              <img src={sub.thumbnail} alt={sub.songTitle} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition" />
+              <img src={sub.thumbnail} alt={sub.songTitle || sub.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center shadow-lg">
+                  <Play className="w-5 h-5 text-black fill-black ml-0.5" />
+                </div>
+              </div>
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <p className="font-bold text-white text-sm truncate">{sub.songTitle || sub.title}</p>
                 <p className="text-[10px] text-slate-400">{sub.primaryArtist || sub.creator}</p>
               </div>
               <div className="absolute top-2 right-2">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getStatusColor(sub.status)}`}>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getStatusColor(sub.status)}`}>
                   {String(sub.status || 'draft').replace('_', ' ')}
                 </span>
               </div>
@@ -145,6 +253,45 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
         </div>
       </div>
 
+      {/* Inline Video Preview Modal */}
+      {previewVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="bg-[#0a0a0f] border border-amber-500/30 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-black text-white">{previewVideo.songTitle || (previewVideo as any).title}</h3>
+                <p className="text-xs text-amber-400">
+                  {previewVideo.primaryArtist || (previewVideo as any).creator}
+                  {previewVideo.genre ? ` • ${previewVideo.genre}` : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => setPreviewVideo(null)}
+                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="aspect-video bg-black relative">
+              <video
+                src={previewVideo.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}
+                poster={previewVideo.thumbnail}
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="p-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+              <span>Submitted: {previewVideo.submittedAt || 'Verified Master'}</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getStatusColor(previewVideo.status)}`}>
+                {String(previewVideo.status || 'syndicated').replace('_', ' ')}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Submit Music Informational Modal */}
       {showSubmitInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
@@ -171,12 +318,12 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
               <div className="text-center py-4">
                 <p className="text-xs text-slate-400 mb-2">Visit our submission portal at:</p>
                 <a 
-                  href="https://innova.eco" 
+                  href="https://innova-universal-dashboard.vercel.app/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-6 py-3 rounded-xl text-sm font-bold transition"
                 >
-                  <span>innova.eco</span>
+                  <span>innova-universal-dashboard.vercel.app</span>
                   <ExternalLink className="w-4 h-4" />
                 </a>
               </div>

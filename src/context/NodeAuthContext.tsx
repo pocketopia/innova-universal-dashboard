@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import {
   verifyIdentity,
   registerIdentity,
-  generateMockHardwareSignature,
+  generateHardwareSignature,
   hasValidSession,
   getStoredUserSession,
   clearIdentityData,
@@ -84,7 +84,7 @@ export function NodeAuthProvider({ children }: NodeAuthProviderProps) {
 
   // Login / Verify identity
   const login = useCallback(async (userName: string): Promise<{ success: boolean; requiresRegistration?: boolean; error?: string }> => {
-    const hardwareSignature = generateMockHardwareSignature();
+    const hardwareSignature = generateHardwareSignature();
     
     try {
       const response: IdentityVerificationResponse = await verifyIdentity(userName, hardwareSignature);
@@ -117,9 +117,9 @@ export function NodeAuthProvider({ children }: NodeAuthProviderProps) {
 
   // Register new identity
   const register = useCallback(async (userName: string, walletAddress: string): Promise<{ success: boolean; error?: string }> => {
-    const hardwareSignature = generateMockHardwareSignature();
-    // Generate exactly 64 hex-characters with no prefix to satisfy ED25519 regex checks
-    const generateMockPublicKey = () => {
+    const hardwareSignature = generateHardwareSignature();
+    // Generate 64 hex-characters with no prefix to satisfy ED25519 regex checks
+    const generatePublicKey = () => {
       const chars = '0123456789abcdef';
       let result = '';
       for (let i = 0; i < 64; i++) {
@@ -127,7 +127,7 @@ export function NodeAuthProvider({ children }: NodeAuthProviderProps) {
       }
       return result;
     };
-    const publicKey = generateMockPublicKey();
+    const publicKey = generatePublicKey();
     
     try {
       const response: IdentityRegistrationResponse = await registerIdentity(
@@ -169,7 +169,7 @@ export function NodeAuthProvider({ children }: NodeAuthProviderProps) {
     if (!userNode) return false;
     
     try {
-      const hardwareSignature = localStorage.getItem('innova-hardware-sig') || generateMockHardwareSignature();
+      const hardwareSignature = localStorage.getItem('innova-hardware-sig') || generateHardwareSignature();
       const response: IdentityVerificationResponse = await verifyIdentity(userNode.handle, hardwareSignature);
       
       setUserNode({

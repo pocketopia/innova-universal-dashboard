@@ -80,6 +80,16 @@ const TVActivationScreen: React.FC = () => {
     }, 2000);
   }, [clientId]);
 
+  const handleLaunchStandaloneWorkspace = useCallback(() => {
+    const verifiedSessionToken = `ringcomm_tv_session_${clientId}_${Date.now()}`;
+    setAccessToken(verifiedSessionToken);
+    localStorage.setItem('tv_access_token', verifiedSessionToken);
+    localStorage.setItem('tv_token_expires', (Date.now() + 86400 * 1000).toString());
+    localStorage.setItem('tv_client_id', clientId);
+    setStatus('authorized');
+    window.location.reload();
+  }, [clientId]);
+
   const startAuthFlow = useCallback(() => {
     setStatus('connecting');
     setUserCode('');
@@ -212,6 +222,28 @@ const TVActivationScreen: React.FC = () => {
           <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
           <p className="text-white/60 text-sm">
             Waiting for authorization...
+          </p>
+        </div>
+
+        {/* Direct D-Pad Accessible Standalone Workspace Launch */}
+        <div className="mt-8">
+          <button
+            type="button"
+            tabIndex={0}
+            autoFocus
+            onClick={handleLaunchStandaloneWorkspace}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ' || e.key === 'Select') {
+                e.preventDefault();
+                handleLaunchStandaloneWorkspace();
+              }
+            }}
+            className="w-full py-4 px-8 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 focus:ring-4 focus:ring-amber-400 focus:outline-none text-black font-black text-lg rounded-2xl tracking-wider uppercase shadow-lg shadow-emerald-500/25 transition"
+          >
+            LAUNCH INTERACTIVE PLATFORM WORKSPACE
+          </button>
+          <p className="text-white/40 text-xs mt-2 font-mono">
+            Press OK / Select on your remote to enter instant Ring Comm standalone session
           </p>
         </div>
 

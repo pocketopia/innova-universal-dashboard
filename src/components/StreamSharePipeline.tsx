@@ -10,7 +10,6 @@ import {
   MessageSquare, 
   User, 
   Coins, 
-  Tv, 
   Play, 
   Sparkles,
   RefreshCw,
@@ -371,12 +370,28 @@ export default function StreamSharePipeline({
                     }`}
                   >
                     <div className="space-y-3">
-                      {/* Cinematic Gradient Thumbnail Placeholder */}
-                      <div className="relative h-28 rounded-lg bg-gradient-to-br from-slate-900 via-amber-950/40 to-slate-900 border border-white/10 flex items-center justify-center overflow-hidden">
-                        <div className="absolute inset-0 bg-[#000]/60" />
-                        <div className="relative flex flex-col items-center justify-center text-center p-3 space-y-1">
-                          <Tv className="w-6 h-6 text-amber-400/50" />
-                          <span className="text-[8px] font-mono text-slate-400 tracking-widest block uppercase font-bold">LEDGER IDENTIFIER: {proj.id}</span>
+                      <div className="relative h-28 rounded-lg bg-gradient-to-br from-slate-950 via-amber-950/35 to-slate-900 border border-amber-500/20 flex flex-col justify-between p-3 overflow-hidden">
+                        <div className="flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/15 border border-amber-400/30 text-[8px] font-mono font-bold text-amber-300 uppercase tracking-widest">
+                            AES-256-GCM • PRO-RES MASTER
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[8px] font-mono uppercase tracking-wider text-emerald-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            {proj.status === 'approved_released' ? 'SETTLED' : 'VAULT LOCKED'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2.5 my-auto">
+                          <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-400/30 flex items-center justify-center shrink-0">
+                            <ShieldCheck className="w-4 h-4 text-amber-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[9px] font-mono text-white font-bold tracking-widest block uppercase truncate">
+                              RING COMM SEAL • {proj.id}
+                            </span>
+                            <span className="text-[8px] font-mono text-slate-400 tracking-wider block truncate">
+                              SHA-256: {proj.creatorId.slice(0, 14)}...{proj.clientId.slice(-6)}
+                            </span>
+                          </div>
                         </div>
                       </div>
 

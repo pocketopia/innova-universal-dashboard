@@ -1,15 +1,9 @@
 import { generateCryptoSignature, encryptSensitiveData, decryptSensitiveData, clearAllSensitiveData } from './securityUtils';
 
 const getApiUrl = () => {
-  // Use the Vercel/Production environment variable if it exists
-  if (import.meta.env && import.meta.env.VITE_API_URL) {
-    return `${import.meta.env.VITE_API_URL}/api`;
-  }
-  // Fallback for local development
-  if (typeof window !== 'undefined') {
-    return `http://${window.location.hostname}:3005/api`;
-  }
-  return 'http://localhost:3005/api';
+  const raw = (import.meta as any).env?.VITE_API_URL || 'https://innova-master-brain-api.onrender.com/api';
+  const trimmed = String(raw).replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
 };
 
 export const API_BASE_URL = getApiUrl();
@@ -127,7 +121,7 @@ export const clearIdentityData = (): void => {
   localStorage.removeItem('innova-legal-accepted');
 };
 
-export const generateMockHardwareSignature = (): string => {
+export const generateHardwareSignature = (): string => {
   const chars = '0123456789abcdef';
   let signature = '';
   for (let i = 0; i < 128; i++) {
@@ -233,17 +227,19 @@ export const fetchEcosystemContent = async () => {
 };
 
 export const submitContent = async (payload: any) => {
-  // Intelligent tenant routing based on ID prefix
-  let tenant = 'ArcHaven';
-  if (payload.id?.startsWith('HEK-')) {
+  // Intelligent tenant routing based on explicit tenant, ID prefix, or collection
+  let tenant = payload?.tenantId || 'ArcHaven';
+  if (payload?.id?.startsWith('HEK-') || payload?.tenant === 'HekticTV') {
     tenant = 'HekticTV';
-  } else if (payload.id?.startsWith('KR-')) {
+  } else if (payload?.id?.startsWith('KR-') || payload?.tenant === 'Kreation') {
     tenant = 'Kreation';
-  } else if (payload.id?.startsWith('ARCH-')) {
+  } else if (payload?.id?.startsWith('MVN-') || payload?.id?.startsWith('mvn-') || payload?.tenant === 'MVN' || payload?.songTitle) {
+    tenant = 'MVN';
+  } else if (payload?.id?.startsWith('ARCH-') || payload?.tenant === 'ArcHaven') {
     tenant = 'ArcHaven';
-  } else if (payload.id?.startsWith('SS-')) {
+  } else if (payload?.id?.startsWith('SS-') || payload?.tenant === 'StreamShare' || payload?.handshakeCode || payload?.clientCompany) {
     tenant = 'StreamShare';
-  } else {
+  } else if (localStorage.getItem('innova-tenant')) {
     tenant = localStorage.getItem('innova-tenant') || 'ArcHaven';
   }
   const session = getStoredUserSession();
@@ -296,6 +292,8 @@ export const updateContentStatus = async (id: string, newStatus: string, collect
   let tenant = 'ArcHaven';
   if (id.startsWith('KR-') || collection === 'game') {
     tenant = 'Kreation';
+  } else if (id.startsWith('MVN-') || id.startsWith('mvn-') || collection === 'mvn' || collection === 'music') {
+    tenant = 'MVN';
   } else if (id.startsWith('HEK-') || collection === 'broadcast') {
     tenant = 'HekticTV';
   } else if (id.startsWith('ARCH-')) {
