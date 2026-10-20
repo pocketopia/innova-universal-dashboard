@@ -1,14 +1,11 @@
 #!/bin/bash
-# Build Amazon Fire TV APK files for all 5 tenants
-# This script requires Android SDK and Java to be installed
-
 set -e
 
 TENANTS=("mvn" "kreation" "archaven" "hektic" "streamshare")
 APP_NAMES=("MVN" "Kreation" "ArcHaven" "Hektic" "StreamShare")
 OUTPUT_DIR="dist-firetv-apk"
+ROOT_DIR="$(pwd)"
 
-# Function to get icon filename for a tenant
 get_icon_filename() {
     local tenant=$1
     case $tenant in
@@ -21,149 +18,184 @@ get_icon_filename() {
     esac
 }
 
-echo "🚀 Starting Amazon Fire TV APK build process..."
-
-# Create output directory
 mkdir -p "$OUTPUT_DIR"
+mkdir -p "/Users/tickertwizted/Desktop/amazon-upload-ready"
 
-# Function to build APK for a tenant
 build_tenant_apk() {
     local tenant=$1
     local app_name=$2
     local app_id="com.innova.$tenant"
-    local temp_dir="temp-capacitor-$tenant"
-    
-    echo "📱 Building APK for $app_name ($tenant)..."
-    
-    # Clean up any existing temp directory
+    local temp_dir="$ROOT_DIR/temp-capacitor-$tenant"
+
+    echo "📱 Building Amazon Fire TV APK for $app_name ($app_id)..."
     rm -rf "$temp_dir"
     mkdir -p "$temp_dir/www"
-    
-    # Copy web assets
-    cp -r "dist-firetv/$tenant/"* "$temp_dir/www/"
-    
-    # Navigate to temp directory
+    cp -r "$ROOT_DIR/dist-firetv/$tenant/"* "$temp_dir/www/"
+
     cd "$temp_dir"
-    
-    # Create a minimal package.json for npm/Capacitor
-    cat > package.json <<EOF
+    cat > package.json <<PKG
 {
   "name": "$app_id",
-  "version": "1.0.0",
-  "private": true
-}
-EOF
-    
-    # Initialize Capacitor (creates capacitor.config.ts)
-    npx cap init "$app_name - Innova Ecosystem" "$app_id" --web-dir=www
-    
-    # Update capacitor.config.ts with additional settings
-    cat > capacitor.config.ts <<EOF
-import type { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
-  appId: '$app_id',
-  appName: '$app_name - Innova Ecosystem',
-  webDir: 'www',
-  server: {
-    androidScheme: 'https'
+  "version": "1.0.5",
+  "private": true,
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0"
   }
-};
+}
+PKG
 
-export default config;
-EOF
-    
-    # Add Android platform
+    cat > capacitor.config.json <<CAP
+{
+  "appId": "$app_id",
+  "appName": "$app_name",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
+CAP
+
     npx cap add android
-    
-    # Copy web assets to Android project
     npx cap copy android
-    
-    # Generate Android icons from tenant-specific icon
+
+    # 1. Force Amazon-compatible SDK 34 (Android 14) & minSdk 22 in variables.gradle across all subprojects
+    cat > android/variables.gradle <<VARS
+ext {
+    minSdkVersion = 22
+    compileSdkVersion = 34
+    targetSdkVersion = 34
+    androidxActivityVersion = '1.8.2'
+    androidxAppCompatVersion = '1.6.1'
+    androidxCoordinatorLayoutVersion = '1.2.0'
+    androidxCoreVersion = '1.12.0'
+    androidxFragmentVersion = '1.6.2'
+    coreSplashScreenVersion = '1.0.1'
+    androidxWebkitVersion = '1.9.0'
+    junitVersion = '4.13.2'
+    androidxJunitVersion = '1.1.5'
+    androidxEspressoCoreVersion = '3.5.1'
+    cordovaAndroidVersion = '10.1.1'
+}
+VARS
+    # 2. Downgrade AGP from 8.13.0 to 8.2.2 + Gradle 8.5 so platformBuildVersionName is a String & DEX is 035
+    sed -i '' "s/com.android.tools.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.2.2/g" android/build.gradle
+    sed -i '' "s/gradle-[0-9.]*-all.zip/gradle-8.5-all.zip/g" android/gradle/wrapper/gradle-wrapper.properties
+
+    # Force compileSdk 34 and Java 17 bytecode across capacitor-android and cordova plugins
+    cat >> android/build.gradle <<'SUBPROJ'
+
+subprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.jetbrains.kotlin' && details.requested.name.startsWith('kotlin-stdlib')) {
+                details.useVersion '1.8.22'
+            }
+        }
+    }
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                compileSdkVersion 34
+                defaultConfig {
+                    minSdkVersion 22
+                    targetSdkVersion 34
+                }
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
+        }
+    }
+}
+SUBPROJ
+
+    # 3. Disable AGP resource path obfuscation (fixes icon='res/BW.xml')
+    echo "" >> android/gradle.properties
+    echo "android.enableResourceOptimizations=false" >> android/gradle.properties
+    echo "android.useAndroidX=true" >> android/gradle.properties
+
+    # 4. Set versionCode 5 / versionName "1.0.5" and enable R8 minification + resource shrinking
+    sed -i '' 's/versionCode 1/versionCode 5/g; s/versionName "1.0"/versionName "1.0.5"/g; s/minifyEnabled false/minifyEnabled true\n            shrinkResources true/g' android/app/build.gradle
+    cat >> android/app/proguard-rules.pro <<PRO
+-keep class com.getcapacitor.** { *; }
+-keep class com.innova.** { *; }
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+-dontwarn org.apache.cordova.**
+PRO
+
+    # 5. Generate real tenant icons and 320x180 TV banner using correct ROOT_DIR path
     icon_filename=$(get_icon_filename "$tenant")
-    # Use absolute path from project root
-    project_root="../../"
-    icon_source="$project_root/assets/base-icons/$icon_filename"
-    
+    icon_source="$ROOT_DIR/assets/base-icons/$icon_filename"
     if [ -f "$icon_source" ]; then
-        echo "   🎨 Generating Android icons from $icon_filename..."
-        
-        # Create assets directory and copy icon
+        echo "   🎨 Generating Android icons and TV banner from $icon_source..."
         mkdir -p assets
-        cp "$icon_source" "assets/icon.jpg"
-        
-        # Generate Android icon resources
-        npx @capacitor/assets generate --iconOnly --android
-        
-        echo "   ✅ Android icons generated successfully"
-    else
-        echo "   ⚠️ Warning: Icon not found: $icon_source"
+        sips -s format png "$icon_source" --out "assets/icon-only.png" >/dev/null
+        cp "assets/icon-only.png" "assets/splash.png"
+        npx @capacitor/assets generate --android || true
+
+        mkdir -p android/app/src/main/res/drawable
+        sips -s format png -z 180 320 "$icon_source" --out "android/app/src/main/res/drawable/tv_banner.png" >/dev/null
     fi
-    
-    # Build APK (release)
+
+    # 6. Inject Fire TV Leanback, non-touchscreen compatibility, and android:banner="@drawable/tv_banner" into AndroidManifest.xml
+    python3 -c '
+import sys
+p = "android/app/src/main/AndroidManifest.xml"
+s = open(p).read()
+features = """
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+"""
+if "android.software.leanback" not in s:
+    s = s.replace("<application", features + "\n    <application", 1)
+if "android:banner=" not in s:
+    s = s.replace("<application", "<application\n        android:banner=\"@drawable/tv_banner\"", 1)
+    s = s.replace("<activity", "<activity\n            android:banner=\"@drawable/tv_banner\"", 1)
+if "android.intent.category.LEANBACK_LAUNCHER" not in s:
+    s = s.replace("<category android:name=\"android.intent.category.LAUNCHER\" />",
+                  "<category android:name=\"android.intent.category.LAUNCHER\" />\n                <category android:name=\"android.intent.category.LEANBACK_LAUNCHER\" />")
+open(p, "w").write(s)
+'
+
+    # Ensure @capacitor/android compiles against SDK 34
+    sed -i '' 's/Build.VERSION_CODES.VANILLA_ICE_CREAM/35/g' "$ROOT_DIR/node_modules/@capacitor/android/capacitor/src/main/java/com/getcapacitor/plugin/SystemBars.java" 2>/dev/null || true
+
     cd android
-    
-    # Build the APK (always builds unsigned first)
     ./gradlew assembleRelease
-    
-    # Check if keystore is configured for signing
-    if [ -n "$ANDROID_KEYSTORE_PATH" ] && [ -f "$ANDROID_KEYSTORE_PATH" ]; then
-        # Sign the unsigned APK using apksigner
-        unsigned_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
-        signed_apk="../../$OUTPUT_DIR/${tenant}-firetv.apk"
-        
-        # Use apksigner from Android SDK
-        "$ANDROID_HOME/build-tools/35.0.0/apksigner" sign \
-            --ks "$ANDROID_KEYSTORE_PATH" \
-            --ks-key-alias "$ANDROID_KEYSTORE_ALIAS" \
-            --ks-pass pass:"$ANDROID_KEYSTORE_PASSWORD" \
-            --key-pass pass:"$ANDROID_KEYSTORE_PASSWORD" \
-            --out "$signed_apk" \
-            "$unsigned_apk"
-        
-        echo "   ✅ APK signed successfully"
-    else
-        # Copy unsigned APK (needs to be signed before submission)
-        cp app/build/outputs/apk/release/app-release-unsigned.apk "../../$OUTPUT_DIR/${tenant}-firetv-unsigned.apk"
-    fi
-    
-    # Clean up
-    cd ../..
+
+    unsigned_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+    aligned_apk="app/build/outputs/apk/release/app-release-aligned.apk"
+    signed_apk="$ROOT_DIR/$OUTPUT_DIR/${tenant}-firetv.apk"
+    desktop_apk="/Users/tickertwizted/Desktop/amazon-upload-ready/${tenant}-firetv.apk"
+
+    "$ANDROID_HOME/build-tools/35.0.0/zipalign" -f -p 4 "$unsigned_apk" "$aligned_apk"
+    "$ANDROID_HOME/build-tools/35.0.0/apksigner" sign \
+        --min-sdk-version 21 \
+        --v1-signing-enabled true \
+        --v2-signing-enabled true \
+        --v3-signing-enabled false \
+        --v4-signing-enabled false \
+        --ks "$ROOT_DIR/innova-release.keystore" \
+        --ks-key-alias innova-key \
+        --ks-pass pass:innova123 \
+        --key-pass pass:innova123 \
+        --out "$signed_apk" \
+        "$aligned_apk"
+
+    cp "$signed_apk" "$desktop_apk"
+    cd "$ROOT_DIR"
     rm -rf "$temp_dir"
-    
-    echo "✅ $app_name APK built successfully: $OUTPUT_DIR/${tenant}-firetv.apk"
+    echo "✅ Built & signed $desktop_apk"
 }
 
-# Check if Android SDK is available
-if [ -z "$ANDROID_HOME" ] || [ ! -d "$ANDROID_HOME" ]; then
-    echo "❌ Error: ANDROID_HOME not set or Android SDK not found"
-    echo "Please install Android SDK and set up ANDROID_HOME environment variable"
-    echo ""
-    echo "Installation instructions:"
-    echo "1. Download Android Studio from https://developer.android.com/studio"
-    echo "2. Install and set up ANDROID_HOME environment variable"
-    echo "3. Add \$ANDROID_HOME/tools and \$ANDROID_HOME/platform-tools to PATH"
-    echo ""
-    echo "Alternatively, this script can be run in a CI/CD environment with Android SDK installed"
-    exit 1
-fi
-
-# Check if Java is available
-if ! command -v java &> /dev/null; then
-    echo "❌ Error: Java not found in PATH"
-    echo "Please install Java JDK 11 or higher"
-    exit 1
-fi
-
-# Build APKs for all tenants
 for i in "${!TENANTS[@]}"; do
     build_tenant_apk "${TENANTS[$i]}" "${APP_NAMES[$i]}"
 done
 
-echo ""
-echo "🎉 All Fire TV APKs built successfully!"
-echo "📦 Output directory: $OUTPUT_DIR/"
-ls -lh "$OUTPUT_DIR/"
-
-echo ""
-echo "✅ Ready for Amazon Appstore submission!"
+xattr -cr "/Users/tickertwizted/Desktop/amazon-upload-ready"
+echo "=== VERIFYING NEW SDK 34 + UNOBFUSCATED ICON BADGING ON archaven-firetv.apk ==="
+"$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "/Users/tickertwizted/Desktop/amazon-upload-ready/archaven-firetv.apk" | head -n 15
+open "/Users/tickertwizted/Desktop/amazon-upload-ready"
