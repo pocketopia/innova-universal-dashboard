@@ -804,7 +804,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                             {device.type}
                           </span>
                           <p className="text-[9px] text-white/30 mt-1 font-mono">
-                            {new Date(device.lastActive).toLocaleDateString()}
+                            {device?.lastActive ? new Date(device.lastActive).toLocaleDateString() : 'Active'}
                           </p>
                         </div>
                       </div>
@@ -842,58 +842,62 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
       </div>
 
       {/* QR Code & Multi-Device Ring Comm Invite Modal */}
-      {showQR && (() => {
-        const inviteData = generateDeviceInviteForNode(userNode.handle);
-        return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setShowQR(false)} />
-            <div className="relative w-full max-w-md bg-[#0a0a0f] border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden p-8 text-center animate-in fade-in zoom-in duration-300">
-              <button onClick={() => setShowQR(false)} className="absolute top-4 right-4 text-white/50 hover:text-white transition cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-              <div className="mb-5">
-                <div className="w-44 h-44 mx-auto bg-white rounded-xl flex items-center justify-center mb-4 p-2.5 shadow-inner">
-                  <img
-                    src={inviteData.qrImageUrl}
-                    alt={`Scan to pair ${userNode.handle}`}
-                    className="w-full h-full object-contain rounded-lg"
-                  />
-                </div>
-                <h4 className="text-lg font-bold text-white mb-1">AUTHORIZE ADDITIONAL DEVICE</h4>
-                <p className="text-xs text-white/50 max-w-xs mx-auto leading-relaxed">
-                  Enter this Ring Comm Invite Code on your secondary phone, laptop, or TV when logging in as <span className="text-emerald-400 font-mono font-bold">{userNode.handle}</span>:
-                </p>
-              </div>
+      {showQR && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setShowQR(false)} />
+          <div className="relative w-full max-w-md bg-[#0a0a0f] border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden p-8 text-center animate-in fade-in zoom-in duration-300">
+            <button onClick={() => setShowQR(false)} className="absolute top-4 right-4 text-white/50 hover:text-white transition cursor-pointer">
+              <X className="w-5 h-5" />
+            </button>
+            {(() => {
+              const inviteData = generateDeviceInviteForNode(userNode?.handle || 'NODE');
+              return (
+                <>
+                  <div className="mb-5">
+                    <div className="w-44 h-44 mx-auto bg-white rounded-xl flex items-center justify-center mb-4 p-2.5 shadow-inner">
+                      <img
+                        src={inviteData.qrImageUrl}
+                        alt="Scan Ring Comm Invite QR"
+                        className="w-full h-full object-contain rounded-lg"
+                      />
+                    </div>
+                    <h4 className="text-lg font-bold text-white mb-1">AUTHORIZE ADDITIONAL DEVICE</h4>
+                    <p className="text-xs text-white/50 max-w-xs mx-auto leading-relaxed">
+                      Scan with your phone camera or enter this Ring Comm Invite Code on your secondary device when logging in as <span className="text-emerald-400 font-mono font-bold">{userNode?.handle}</span>:
+                    </p>
+                  </div>
 
-              <div className="bg-black/60 border border-emerald-500/30 rounded-xl p-4 mb-4 space-y-3">
-                <div className="text-[10px] font-mono text-emerald-400/70 uppercase tracking-widest">One-Time Hardware Bond Code</div>
-                <div className="text-2xl font-mono font-black tracking-widest text-emerald-400 select-all">{inviteData.code}</div>
-                <div className="flex gap-2 justify-center pt-1">
-                  <button
-                    type="button"
-                    onClick={() => handleCopyText(inviteData.code)}
-                    className="cursor-pointer px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg text-xs font-bold text-emerald-300 transition flex items-center gap-1.5"
-                  >
-                    <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy Code'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyText(inviteData.inviteUrl)}
-                    className="cursor-pointer px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-xs font-bold text-cyan-300 transition flex items-center gap-1.5"
-                  >
-                    <Share2 className="w-3.5 h-3.5" /> Copy Direct Invite Link
-                  </button>
-                </div>
-              </div>
+                  <div className="bg-black/60 border border-emerald-500/30 rounded-xl p-4 mb-4 space-y-3">
+                    <div className="text-[10px] font-mono text-emerald-400/70 uppercase tracking-widest">One-Time Hardware Bond Code</div>
+                    <div className="text-2xl font-mono font-black tracking-widest text-emerald-400 select-all">{inviteData.code}</div>
+                    <div className="flex gap-2 justify-center pt-1">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyText(inviteData.code)}
+                        className="cursor-pointer px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg text-xs font-bold text-emerald-300 transition flex items-center gap-1.5"
+                      >
+                        <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy Code'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyText(inviteData.inviteUrl)}
+                        className="cursor-pointer px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-xs font-bold text-cyan-300 transition flex items-center gap-1.5"
+                      >
+                        <Share2 className="w-3.5 h-3.5" /> Copy Direct Invite Link
+                      </button>
+                    </div>
+                  </div>
 
-              <div className="flex items-center justify-center gap-2 text-[10px] text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-full inline-flex">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span className="font-mono uppercase tracking-wider font-bold">Zero-Password Hardware Bond Active</span>
-              </div>
-            </div>
+                  <div className="flex items-center justify-center gap-2 text-[10px] text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-full inline-flex">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span className="font-mono uppercase tracking-wider font-bold">Zero-Password Hardware Bond Active</span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
-        );
-      })()}
+        </div>
+      )}
 
       {/* Premium Payment Modal - Stripe-like UI */}
       {showPaymentModal && (
