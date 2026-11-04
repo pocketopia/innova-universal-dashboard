@@ -1,4 +1,4 @@
-import { generateDeviceInviteForNode, verifyOrClaimNodeOnDevice } from '../lib/deviceBondRegistry';
+import { generateDeviceInviteForNode, verifyOrClaimNodeOnDevice, subscribeToCrossDeviceBondSync } from '../lib/deviceBondRegistry';
 import React, { useState, useEffect } from 'react';
 import { fetchWalletBalance, processEcosystemTransaction, API_BASE_URL } from '../lib/apiClient';
 import { 
@@ -271,10 +271,16 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
 
   // Initialize device recognition on mount
   useEffect(() => {
-    verifyOrClaimNodeOnDevice(userNode.handle);
-    const currentDevice = registerCurrentDevice();
-    const devices = getRecognizedDevices();
-    setRecognizedDevices(devices);
+    registerCurrentDevice();
+    const claimRes = verifyOrClaimNodeOnDevice(userNode.handle);
+    if (claimRes.entry?.devices?.length) {
+      setRecognizedDevices(claimRes.entry.devices as any);
+    } else {
+      setRecognizedDevices(getRecognizedDevices());
+    }
+    const unsubSync = subscribeToCrossDeviceBondSync(userNode.handle, (syncedDevices) => {
+      setRecognizedDevices(syncedDevices as any);
+    });
     
     // Load avatar from localStorage
     const storedAvatar = localStorage.getItem(`innova-avatar-${userNode.handle}`);
@@ -283,6 +289,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
     } else if (userNode.avatarUrl) {
       setAvatarUrl(userNode.avatarUrl);
     }
+    return () => unsubSync();
   }, [userNode.handle, userNode.avatarUrl]);
 
   useEffect(() => {
@@ -839,8 +846,12 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                 <X className="w-5 h-5" />
               </button>
               <div className="mb-5">
-                <div className="w-36 h-36 mx-auto bg-white rounded-xl flex items-center justify-center mb-4 p-3 shadow-inner">
-                  <QrCode className="w-full h-full text-slate-900" />
+                <div className="w-44 h-44 mx-auto bg-white rounded-xl flex items-center justify-center mb-4 p-2.5 shadow-inner">
+                  <img
+                    src={inviteData.qrImageUrl}
+                    alt={`Scan to pair ${userNode.handle}`}
+                    className="w-full h-full object-contain rounded-lg"
+                  />
                 </div>
                 <h4 className="text-lg font-bold text-white mb-1">AUTHORIZE ADDITIONAL DEVICE</h4>
                 <p className="text-xs text-white/50 max-w-xs mx-auto leading-relaxed">

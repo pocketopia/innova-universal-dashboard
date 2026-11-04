@@ -1,3 +1,4 @@
+import { subscribeToCrossDeviceBondSync, verifyOrClaimNodeOnDevice } from './lib/deviceBondRegistry';
 import { getStoredGlobalSubmissions, updateGlobalSubmissionStatus } from './lib/mediaVault';
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
@@ -135,6 +136,13 @@ export default function App() {
     const statsTimer = setTimeout(() => setIsLoadingStats(false), 1500);
     return () => clearTimeout(statsTimer);
   }, []);
+
+  useEffect(() => {
+    if (!claimedUsername) return;
+    verifyOrClaimNodeOnDevice(claimedUsername);
+    const unsub = subscribeToCrossDeviceBondSync(claimedUsername);
+    return () => unsub();
+  }, [claimedUsername]);
 
   useEffect(() => {
     const handleAuthError = () => {
