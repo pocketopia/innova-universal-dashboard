@@ -1,3 +1,4 @@
+import { storeMediaFileInVault, resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions } from '../../lib/mediaVault';
 import React, { useState } from 'react';
 import { submitContent } from '../../lib/apiClient';
 import {
@@ -339,7 +340,15 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
       // Offline / standalone fallback: persist locally in dashboard state
     }
 
-    const newSubmission: ArcHavenSubmission = {
+    let vaultVideoUrl = '/masters/innova-sovereign-TearsOfSteel.mp4';
+      if (formData.videoFile) {
+        vaultVideoUrl = await storeMediaFileInVault(formData.videoFile);
+      }
+      let vaultPosterUrl = 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23090514%22/><stop offset=%22100%%22 stop-color=%22%23a855f7%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>ARCHAVEN // AI CINEMA</text></svg>';
+      if (formData.posterFile) {
+        vaultPosterUrl = await storeMediaFileInVault(formData.posterFile);
+      }
+      const newSubmission: ArcHavenSubmission = {
       id: remoteResult?.id || `ARCH-${Date.now().toString().slice(-6)}`,
       title: formData.title,
       status: 'admin_review',

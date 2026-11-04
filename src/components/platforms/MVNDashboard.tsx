@@ -1,3 +1,4 @@
+import { storeMediaFileInVault, resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions } from '../../lib/mediaVault';
 import React, { useState } from 'react';
 import {
   Music,
@@ -107,8 +108,73 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [showSubmitInfo, setShowSubmitInfo] = useState(false);
   const [previewVideo, setPreviewVideo] = useState<MusicVideoSubmission | null>(null);
-  const displaySubmissions: MusicVideoSubmission[] =
-    Array.isArray(submissions) && submissions.length > 0 ? submissions : VERIFIED_MVN_BROADCASTS;
+  const [resolvedVideoUrl, setResolvedVideoUrl] = useState<string>('');
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadArtist, setUploadArtist] = useState('');
+  const [uploadGenre, setUploadGenre] = useState('Pop Hits');
+  const [uploadVideoFile, setUploadVideoFile] = useState<File | null>(null);
+  const [uploadVideoUrlInput, setUploadVideoUrlInput] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccessMsg, setUploadSuccessMsg] = useState('');
+
+  React.useEffect(() => {
+    if (previewVideo?.videoUrl) {
+      resolveMediaVaultUrl(previewVideo.videoUrl).then(url => setResolvedVideoUrl(url || previewVideo.videoUrl || ''));
+    } else {
+      setResolvedVideoUrl('');
+    }
+  }, [previewVideo]);
+
+  const handleMvnUploadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadTitle.trim() || !uploadArtist.trim()) return;
+    setIsUploading(true);
+    try {
+      let finalVideoUrl = uploadVideoUrlInput.trim();
+      if (uploadVideoFile) {
+        finalVideoUrl = await storeMediaFileInVault(uploadVideoFile);
+      }
+      const newId = `MVN-${Date.now().toString().slice(-6)}`;
+      const newItem: any = {
+        id: newId,
+        tenant: 'MVN',
+        type: 'video',
+        title: uploadTitle.trim(),
+        songTitle: uploadTitle.trim(),
+        creator: uploadArtist.trim(),
+        primaryArtist: uploadArtist.trim(),
+        genre: uploadGenre,
+        duration: '3:45',
+        status: 'pending_qc',
+        submittedAt: new Date().toISOString().split('T')[0],
+        thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MASTER UPLOAD</text></svg>',
+        videoUrl: finalVideoUrl || '/masters/innova-sovereign-ForBiggerBlazes.mp4'
+      };
+      saveGlobalSubmission(newItem);
+      if (typeof setSubmissions === 'function') {
+        setSubmissions((prev: any[]) => [newItem, ...(Array.isArray(prev) ? prev : [])]);
+      }
+      setUploadTitle('');
+      setUploadArtist('');
+      setUploadVideoFile(null);
+      setUploadVideoUrlInput('');
+      setUploadSuccessMsg('Uploaded to @TICKER Command Deck for approval! Once approved, it broadcasts live on MVN TV & Web.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  const storedMvn = getStoredGlobalSubmissions().filter(x => x.tenant === 'MVN').map(x => ({
+    id: x.id,
+    songTitle: x.title,
+    primaryArtist: x.creator,
+    genre: x.genre || 'Music Video',
+    duration: '3:45',
+    status: (x.status === 'approved' ? 'syndicated' : x.status) as any,
+    submittedAt: x.submittedAt,
+    thumbnail: x.thumbnail,
+    videoUrl: x.videoUrl
+  }));
+  const displaySubmissions: MusicVideoSubmission[] = [...storedMvn, ...VERIFIED_MVN_BROADCASTS];
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -294,53 +360,107 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
 
       {/* Submit Music Informational Modal */}
       {showSubmitInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="bg-[#0a0a0f] border border-amber-500/30 rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-300">
-            <div className="p-6 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center">
-                  <Info className="w-6 h-6 text-amber-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="relative w-full max-w-lg rounded-2xl border border-cyan-500/30 bg-[#0a0d14] p-6 shadow-2xl">
+            <button
+              onClick={() => { setShowSubmitInfo(false); setUploadSuccessMsg(''); }}
+              className="absolute right-4 top-4 text-slate-400 hover:text-white cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                <Film className="h-5 w-5 text-cyan-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">UPLOAD MUSIC VIDEO MASTER</h3>
+                <p className="text-xs text-slate-400">Direct ingest to MVN Registry • Goes live on TV upon @TICKER approval</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleMvnUploadSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1">Song Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={uploadTitle}
+                  onChange={e => setUploadTitle(e.target.value)}
+                  placeholder="e.g., Sovereign Horizon (4K Master)"
+                  className="w-full rounded-xl bg-black/50 border border-white/10 px-3.5 py-2.5 text-xs text-white outline-none focus:border-cyan-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1">Primary Artist *</label>
+                  <input
+                    type="text"
+                    required
+                    value={uploadArtist}
+                    onChange={e => setUploadArtist(e.target.value)}
+                    placeholder={userNode?.handle || '@ARTIST'}
+                    className="w-full rounded-xl bg-black/50 border border-white/10 px-3.5 py-2.5 text-xs text-white outline-none focus:border-cyan-500"
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-white uppercase tracking-wider">Music Submission</h3>
-                  <p className="text-xs text-amber-400/70">External submission portal</p>
+                  <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1">Genre</label>
+                  <select
+                    value={uploadGenre}
+                    onChange={e => setUploadGenre(e.target.value)}
+                    className="w-full rounded-xl bg-black/50 border border-white/10 px-3.5 py-2.5 text-xs text-white outline-none focus:border-cyan-500"
+                  >
+                    <option value="Pop Hits">Pop Hits</option>
+                    <option value="Hip Hop & R&B">Hip Hop & R&B</option>
+                    <option value="Electronic / Dance">Electronic / Dance</option>
+                    <option value="Rock">Rock</option>
+                    <option value="Latin Vibes">Latin Vibes</option>
+                    <option value="Smooth Jazz">Smooth Jazz</option>
+                  </select>
                 </div>
               </div>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
-                <p className="text-sm text-white/80 leading-relaxed">
-                  Do you want to submit your music?
-                </p>
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1">Select Video Master File (.mp4 / .mov / .webm)</label>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={e => setUploadVideoFile(e.target.files?.[0] || null)}
+                  className="w-full rounded-xl bg-black/50 border border-white/10 px-3 py-2 text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-500/20 file:px-3 file:py-1 file:text-xs file:font-bold file:text-cyan-300"
+                />
               </div>
-              
-              <div className="text-center py-4">
-                <p className="text-xs text-slate-400 mb-2">Visit our submission portal at:</p>
-                <a 
-                  href="https://innova-universal-dashboard.vercel.app/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-6 py-3 rounded-xl text-sm font-bold transition"
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1">Or Direct Stream URL (Optional)</label>
+                <input
+                  type="text"
+                  value={uploadVideoUrlInput}
+                  onChange={e => setUploadVideoUrlInput(e.target.value)}
+                  placeholder="https://... or leave blank if uploading file above"
+                  className="w-full rounded-xl bg-black/50 border border-white/10 px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              {uploadSuccessMsg && (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300">
+                  {uploadSuccessMsg}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSubmitInfo(false)}
+                  className="px-4 py-2 rounded-xl bg-white/5 text-xs font-bold text-slate-300 hover:bg-white/10 cursor-pointer"
                 >
-                  <span>innova-universal-dashboard.vercel.app</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploading}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-xs font-black text-white uppercase tracking-wider cursor-pointer"
+                >
+                  {isUploading ? 'Uploading Master...' : 'Submit for @TICKER Approval'}
+                </button>
               </div>
-              
-              <p className="text-[10px] text-slate-500 text-center">
-                All music submissions are processed through our external platform.
-              </p>
-            </div>
-            
-            <div className="p-4 border-t border-white/10">
-              <button 
-                onClick={() => setShowSubmitInfo(false)}
-                className="w-full bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl text-xs font-bold transition"
-              >
-                CLOSE
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}

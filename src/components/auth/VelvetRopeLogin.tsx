@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Fingerprint, ArrowRight, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Fingerprint, ArrowRight, Sparkles, AlertCircle, CheckCircle2, Key, ShieldCheck } from 'lucide-react';
 import { useNodeAuth } from '../../context/NodeAuthContext';
 import { sanitizeUsername, formatUsernameDisplay, isValidUsernameFormat } from '../../lib/securityUtils';
+import { verifyOrClaimNodeOnDevice, computeHardwareFingerprint } from '../../lib/deviceBondRegistry';
 
 interface VelvetRopeLoginProps {
   onAuthenticated: (username: string) => void;
@@ -12,8 +13,22 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
   const { login } = useNodeAuth();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [accessCode, setAccessCode] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+  const [needsInviteCode, setNeedsInviteCode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const currentFp = useMemo(() => computeHardwareFingerprint(), []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlNode = params.get('node');
+    const urlInvite = params.get('invite');
+    if (urlNode) setAccessCode(urlNode);
+    if (urlInvite) {
+      setInviteCode(urlInvite);
+      setNeedsInviteCode(true);
+    }
+  }, []);
 
   const sanitizedUsername = useMemo(() => sanitizeUsername(accessCode), [accessCode]);
   const formattedDisplay = useMemo(() => formatUsernameDisplay(accessCode), [accessCode]);
@@ -36,10 +51,19 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
     setError(null);
     setSuccess(false);
 
+    // Check hardware-bound Ring Comm device lock
+    const bondCheck = verifyOrClaimNodeOnDevice(sanitized, inviteCode);
+    if (!bondCheck.allowed) {
+      setIsAuthenticating(false);
+      setNeedsInviteCode(true);
+      setError(bondCheck.message || `Node @${sanitized} is already claimed on another device. Enter your Ring Comm Device Invite Code.`);
+      return;
+    }
+
     try {
       await login(sanitized);
     } catch {
-      // Seamless local node creation handled below
+      // Handled via local enclave
     } finally {
       localStorage.setItem('innova-username', sanitized);
       setSuccess(true);
@@ -138,7 +162,7 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
                     <Sparkles className="w-5 h-5 text-cyan-400" />
                   </motion.div>
                   <span className="text-sm font-bold text-white tracking-wide">
-                    Establishing Node...
+                    Authenticating Node...
                   </span>
                 </>
               ) : (
@@ -202,6 +226,39 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
                 )}
               </motion.div>
             )}
+
+            {/* Multi-Device Ring Comm Invite Code Input (Passwordless 2nd Device Pairing) */}
+            {needsInviteCode ? (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5" /> Ring Comm Device Invite Code
+                  </span>
+                  <span className="text-[9px] font-mono text-white/40">HW FP: {currentFp}</span>
+                </div>
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  placeholder="RC-XXX-XXX (Generated in Ring Comm Keys on Primary Device)"
+                  className="w-full bg-black/50 border border-emerald-500/30 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none focus:border-emerald-400"
+                />
+              </motion.div>
+            ) : (
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => setNeedsInviteCode(true)}
+                  className="text-[10px] font-mono text-white/40 hover:text-cyan-400 transition cursor-pointer"
+                >
+                  Pairing a 2nd device to an existing @Node? Enter Ring Comm Invite Code
+                </button>
+              </div>
+            )}
           </form>
 
           <AnimatePresence mode="wait">
@@ -226,14 +283,14 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
                 className="mt-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3"
               >
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <p className="text-xs text-emerald-300 font-sans font-light">Identity verified. Welcome.</p>
+                <p className="text-xs text-emerald-300 font-sans font-light">Identity & Hardware Fingerprint verified. Welcome.</p>
               </motion.div>
             )}
           </AnimatePresence>
 
           <div className="mt-8 text-center">
             <p className="text-[10px] text-white/20 font-sans font-light tracking-wide">
-              Secured by Innova Master Brain Engine
+              Secured by Innova Master Brain Engine • HW FP: {currentFp}
             </p>
           </div>
         </div>

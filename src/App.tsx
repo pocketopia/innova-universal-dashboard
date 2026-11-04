@@ -1,3 +1,4 @@
+import { getStoredGlobalSubmissions, updateGlobalSubmissionStatus } from './lib/mediaVault';
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   TabType, 
@@ -177,14 +178,16 @@ export default function App() {
       const res = await fetchEcosystemContent();
       const liveData = (res as any).content || Array.isArray(res) ? res : [];
 
-      // Extract and update cross-tenant lists safely
-      if (Array.isArray(liveData)) {
-        setGames(liveData.filter((item: any) => item.id?.startsWith('KR-') || item.tenant === 'Kreation'));
-        setProjects(liveData.filter((item: any) => item.id?.startsWith('SS-') || item.tenant === 'StreamShare'));
-        setSubmissions(liveData.filter((item: any) => item.id?.startsWith('MVN-') || item.id?.startsWith('HTV-') || item.id?.startsWith('ARCH-') || ['MVN', 'HekticTV', 'ArcHaven'].includes(item.tenant)));
-      }
+      const vaultItems = getStoredGlobalSubmissions();
+      const combined = [...vaultItems, ...(Array.isArray(liveData) ? liveData : [])];
+      setGames(combined.filter((item: any) => item.id?.startsWith('KR-') || item.tenant === 'Kreation') as any);
+      setProjects(combined.filter((item: any) => item.id?.startsWith('SS-') || item.tenant === 'StreamShare') as any);
+      setSubmissions(combined.filter((item: any) => item.id?.startsWith('MVN-') || item.id?.startsWith('HTV-') || item.id?.startsWith('ARCH-') || ['MVN', 'HekticTV', 'ArcHaven'].includes(item.tenant)) as any);
     } catch (err) {
-      console.error(`[DATA ERROR] Failed fetching live shared shard state`, err);
+      const vaultItems = getStoredGlobalSubmissions();
+      setGames(vaultItems.filter((item: any) => item.id?.startsWith('KR-') || item.tenant === 'Kreation') as any);
+      setProjects(vaultItems.filter((item: any) => item.id?.startsWith('SS-') || item.tenant === 'StreamShare') as any);
+      setSubmissions(vaultItems.filter((item: any) => item.id?.startsWith('MVN-') || item.id?.startsWith('HTV-') || item.id?.startsWith('ARCH-') || ['MVN', 'HekticTV', 'ArcHaven'].includes(item.tenant)) as any);
     } finally {
       setIsLoadingContent(false);
     }
@@ -222,6 +225,16 @@ export default function App() {
   };
 
   const handleGlobalStatusUpdate = async (id: string, type: 'game' | 'video' | 'project', newStatus: string) => {
+    updateGlobalSubmissionStatus(id, newStatus);
+    if (type === 'game') {
+      setGames(prev => prev.map(g => g.id === id ? { ...g, status: newStatus as any } : g));
+    } else if (type === 'video') {
+      setSubmissions(prev => prev.map(s => (s as any).id === id ? { ...s, status: newStatus as any } : s));
+    } else if (type === 'project') {
+      setProjects(prev => prev.map(p => p.id === id ? { ...p, status: newStatus as any } : p));
+    }
+    const time = new Date().toLocaleTimeString();
+    setAdminLogs(prev => [`[${time}] AUDIT SHARD INJECTION MUTATION SUCCESS: ${id} -> ${newStatus.toUpperCase()} (LIVE ON PLATFORM & TV)`, ...prev]);
     try {
       await updateContentStatus(id, newStatus, type);
       if (type === 'game') {
@@ -413,9 +426,7 @@ export default function App() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <button onClick={() => setAppState('activate')} className="cursor-pointer bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/30 text-amber-400 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition flex items-center gap-2 hover:border-amber-500/50 hover:from-amber-600/30 hover:to-orange-600/30">
-                  <Tv className="w-3.5 h-3.5" /> LINK TV DEVICE
-                </button>
+
                 <button onClick={() => setShowSettings(true)} className="cursor-pointer bg-gradient-to-r from-cyan-600/20 to-purple-600/20 border border-cyan-500/30 text-cyan-400 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition flex items-center gap-2">
                   <CreditCard className="w-3.5 h-3.5" /> Identity / Wallet & Billing Center
                 </button>
@@ -439,32 +450,22 @@ export default function App() {
 
               {/* ACTIVE: MUSIC VIDEO NET */}
               <div onClick={() => { setActiveTab('entertainment'); setSubPlatform('mvn'); setAppState('platform'); }} className="group cursor-pointer bg-white/5 border border-white/10 hover:border-amber-500/40 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] transition">
-                <div><Tv className="w-8 h-8 text-amber-400 mb-4" /><h4 className="font-black text-lg text-white">MUSIC VIDEO NET</h4><p className="text-xs text-white/60 mt-2">Acoustic spatial metadata registry. Query pipeline arrays with embedded automated audits.</p></div>
+                <div><svg className="w-8 h-8 text-amber-400 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h3l3-9 4 18 4-13 3 4h3"/></svg><h4 className="font-black text-lg text-white">MUSIC VIDEO NET</h4><p className="text-xs text-white/60 mt-2">Acoustic spatial metadata registry. Query pipeline arrays with embedded automated audits.</p></div>
                 <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs font-semibold text-amber-400 group-hover:text-white"><span>OPEN STREAM</span><ChevronRight className="w-4 h-4" /></div>
               </div>
 
-              {/* LOCKED: ARCHAVEN CINEMA */}
-              <div className="group relative bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] overflow-hidden cursor-not-allowed opacity-80">
-                <div className="absolute inset-0 bg-[#020205]/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Lock className="w-8 h-8 text-cyan-400 mb-3" />
-                  <span className="text-xs font-black tracking-widest text-cyan-400 uppercase bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">Awaiting Masters</span>
-                </div>
-                <div className="relative z-0 opacity-50 blur-[1px] group-hover:blur-sm transition-all duration-300">
-                  <div><Film className="w-8 h-8 text-cyan-400 mb-4" /><h4 className="font-black text-lg text-white">ARCHAVEN CINEMA</h4><p className="text-xs text-white/60 mt-2">High-bitrate ProRes distribution. Process global automated licensing matrices.</p></div>
-                  <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs font-semibold text-white/40"><span>CURATING CONTENT...</span><Lock className="w-4 h-4" /></div>
-                </div>
+              {/* ACTIVE: ARCHAVEN CINEMA */}
+              <div onClick={() => { setActiveTab('entertainment'); setSubPlatform('archaven'); setAppState('platform'); }} className="group cursor-pointer bg-white/5 border border-white/10 hover:border-cyan-500/40 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] transition relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-cyan-500 text-black text-[8px] font-black px-3 py-1 rounded-bl-lg tracking-widest uppercase">AI Cinema Live</div>
+                <div><Film className="w-8 h-8 text-cyan-400 mb-4" /><h4 className="font-black text-lg text-white">ARCHAVEN CINEMA</h4><p className="text-xs text-white/60 mt-2">High-bitrate AI-only series & film distribution. Process global automated licensing matrices.</p></div>
+                <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs font-semibold text-cyan-400 group-hover:text-white"><span>OPEN CINEMA</span><ChevronRight className="w-4 h-4" /></div>
               </div>
 
-              {/* LOCKED: HEKTIC TV */}
-              <div className="group relative bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] overflow-hidden cursor-not-allowed opacity-80">
-                <div className="absolute inset-0 bg-[#020205]/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Lock className="w-8 h-8 text-indigo-400 mb-3" />
-                  <span className="text-xs font-black tracking-widest text-indigo-400 uppercase bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">Signal Offline</span>
-                </div>
-                <div className="relative z-0 opacity-50 blur-[1px] group-hover:blur-sm transition-all duration-300">
-                  <div><Database className="w-8 h-8 text-indigo-400 mb-4" /><h4 className="font-black text-lg text-white">HEKTIC LIVE TV</h4><p className="text-xs text-white/60 mt-2">Decentralized edge caching arrays. Audit real-time streaming bitstreams and telemetry.</p></div>
-                  <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs font-semibold text-white/40"><span>ROUTING NODES...</span><Lock className="w-4 h-4" /></div>
-                </div>
+              {/* ACTIVE: HEKTIC TV */}
+              <div onClick={() => { setActiveTab('entertainment'); setSubPlatform('hektic'); setAppState('platform'); }} className="group cursor-pointer bg-white/5 border border-white/10 hover:border-indigo-500/40 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] transition relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-lg tracking-widest uppercase">Live Broadcast</div>
+                <div><Database className="w-8 h-8 text-indigo-400 mb-4" /><h4 className="font-black text-lg text-white">HEKTIC LIVE TV</h4><p className="text-xs text-white/60 mt-2">Decentralized edge caching arrays. Audit real-time streaming bitstreams and telemetry.</p></div>
+                <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs font-semibold text-indigo-400 group-hover:text-white"><span>OPEN BROADCAST</span><ChevronRight className="w-4 h-4" /></div>
               </div>
 
               {/* ACTIVE: STREAMSHARE B2B */}
