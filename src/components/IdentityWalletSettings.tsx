@@ -1,4 +1,4 @@
-import { generateDeviceInviteForNode, verifyOrClaimNodeOnDevice, subscribeToCrossDeviceBondSync } from '../lib/deviceBondRegistry';
+import { generateDeviceInviteForNode, verifyOrClaimNodeOnDevice, subscribeToCrossDeviceBondSync, persistMergedDevicesForHandle } from '../lib/deviceBondRegistry';
 import React, { useState, useEffect } from 'react';
 import { fetchWalletBalance, processEcosystemTransaction, API_BASE_URL } from '../lib/apiClient';
 import { 
@@ -200,7 +200,8 @@ const registerCurrentDevice = (): RecognizedDevice => {
     devices.push(newDevice);
   }
   
-  saveRecognizedDevices(devices);
+  const handle = localStorage.getItem('innova-username') || 'NODE';
+  persistMergedDevicesForHandle(handle, { devices });
   return newDevice;
 };
 
@@ -279,7 +280,12 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
       setRecognizedDevices(getRecognizedDevices());
     }
     const unsubSync = subscribeToCrossDeviceBondSync(userNode.handle, (syncedDevices) => {
-      setRecognizedDevices(syncedDevices as any);
+      setRecognizedDevices((prev) => {
+        if (syncedDevices.length > prev.length && prev.length >= 1) {
+          setShowQR(false);
+        }
+        return syncedDevices as any;
+      });
     });
     
     // Load avatar from localStorage

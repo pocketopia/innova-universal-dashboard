@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Fingerprint, ArrowRight, Sparkles, AlertCircle, CheckCircle2, Key, ShieldCheck } from 'lucide-react';
 import { useNodeAuth } from '../../context/NodeAuthContext';
 import { sanitizeUsername, formatUsernameDisplay, isValidUsernameFormat } from '../../lib/securityUtils';
-import { verifyOrClaimNodeOnDevice, computeHardwareFingerprint } from '../../lib/deviceBondRegistry';
+import { verifyOrClaimNodeOnDevice, computeHardwareFingerprint, broadcastDeviceBondSync } from '../../lib/deviceBondRegistry';
 
 interface VelvetRopeLoginProps {
   onAuthenticated: (username: string) => void;
@@ -53,6 +53,9 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
 
     // Check hardware-bound Ring Comm device lock
     const bondCheck = verifyOrClaimNodeOnDevice(sanitized, inviteCode);
+    if (bondCheck.allowed && bondCheck.entry) {
+      await broadcastDeviceBondSync(sanitized, bondCheck.entry);
+    }
     if (!bondCheck.allowed) {
       setIsAuthenticating(false);
       setNeedsInviteCode(true);

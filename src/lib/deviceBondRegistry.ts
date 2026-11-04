@@ -1,4 +1,4 @@
-// Hardware-Bound Ring Comm Node Registry + Real-Time Cross-Device P2P Sync Engine
+// Hardware-Bound Ring Comm Node Registry + Persistent Cross-Device Sync Engine
 
 export interface BoundDeviceRecord {
   id: string;
@@ -22,21 +22,14 @@ export interface NodeBondEntry {
 
 const REGISTRY_KEY = 'innova-ringcomm-node-registry-v1';
 
-// Lightweight WebSocket P2P pub/sub over public ntfy.sh / wss relay so MacBook & Phone sync devices in real time across networks!
-const activeListeners = new Map<string, EventSource>();
-
 export const parseLiveDeviceInfo = (): { name: string; type: BoundDeviceRecord['type']; browser: string; os: string } => {
   const ua = typeof window !== 'undefined' ? window.navigator.userAgent : '';
-  let deviceName = 'Unknown Hardware Unit';
+  let deviceName = 'Unknown Device';
   let deviceType: BoundDeviceRecord['type'] = 'unknown';
 
   if (/AFT|FireTV|Bravia|SmartTV|Tizen|Web0S/i.test(ua)) {
     deviceName = 'Smart TV Receiver';
     deviceType = 'tv';
-  } else if (/Macintosh/i.test(ua)) {
-    const macMatch = ua.match(/Macintosh;\s*Intel\s*Mac\s*OS\s*X?\s*([0-9_.]+)/i);
-    deviceName = macMatch ? `MacBook Pro (macOS ${macMatch[1].replace(/_/g, '.')})` : 'MacBook Pro';
-    deviceType = 'desktop';
   } else if (/iPhone/i.test(ua)) {
     deviceName = 'iPhone';
     deviceType = 'mobile';
@@ -47,6 +40,10 @@ export const parseLiveDeviceInfo = (): { name: string; type: BoundDeviceRecord['
     const isMobile = /Mobile/i.test(ua);
     deviceName = isMobile ? 'Android Phone' : 'Android Tablet';
     deviceType = isMobile ? 'mobile' : 'tablet';
+  } else if (/Macintosh/i.test(ua)) {
+    const macMatch = ua.match(/Macintosh;\s*Intel\s*Mac\s*OS\s*X?\s*([0-9_.]+)/i);
+    deviceName = macMatch ? `MacBook Pro (macOS ${macMatch[1].replace(/_/g, '.')})` : 'MacBook Pro';
+    deviceType = 'desktop';
   } else if (/Windows/i.test(ua)) {
     deviceName = 'Windows PC';
     deviceType = 'desktop';
@@ -56,7 +53,8 @@ export const parseLiveDeviceInfo = (): { name: string; type: BoundDeviceRecord['
   }
 
   let browser = 'Browser';
-  if (/Edg/i.test(ua)) browser = 'Edge';
+  if (/CriOS/i.test(ua)) browser = 'Chrome iOS';
+  else if (/Edg/i.test(ua)) browser = 'Edge';
   else if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) {
     const m = ua.match(/Chrome\/([0-9.]+)/);
     browser = m ? `Chrome ${m[1]}` : 'Chrome';
@@ -64,12 +62,12 @@ export const parseLiveDeviceInfo = (): { name: string; type: BoundDeviceRecord['
   else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
 
   let os = 'OS';
-  if (/Mac OS X/i.test(ua)) {
-    const m = ua.match(/Mac OS X ([0-9_.]+)/);
-    os = m ? `macOS ${m[1].replace(/_/g, '.')}` : 'macOS';
-  } else if (/iPhone|iPad|iPod/i.test(ua)) {
+  if (/iPhone|iPad|iPod/i.test(ua)) {
     const m = ua.match(/OS ([0-9_]+)/);
     os = m ? `iOS ${m[1].replace(/_/g, '.')}` : 'iOS';
+  } else if (/Mac OS X/i.test(ua)) {
+    const m = ua.match(/Mac OS X ([0-9_.]+)/);
+    os = m ? `macOS ${m[1].replace(/_/g, '.')}` : 'macOS';
   } else if (/Android/i.test(ua)) {
     const m = ua.match(/Android ([0-9.]+)/);
     os = m ? `Android ${m[1]}` : 'Android';
@@ -126,29 +124,121 @@ export const computeDeterministicInviteCode = (handle: string): string => {
 const getSyncTopic = (handle: string): string => {
   const clean = handle.replace(/^@/, '').trim().toUpperCase();
   const code = computeDeterministicInviteCode(clean).replace(/[^A-Z0-9]/g, '');
-  return `innova_ringcomm_mesh_${clean}_${code}`;
+  return `innova_ringcomm_v2_${clean}_${code}`;
 };
 
-// Broadcasts the updated device list across devices (Phone <-> MacBook) using ntfy.sh JSON stream relay
-export const broadcastDeviceBondSync = async (handle: string, entry: NodeBondEntry) => {
-  if (typeof window === 'undefined') return;
-  const topic = getSyncTopic(handle);
+// Merges any incoming device list into both localStorage keys so devices NEVER disappear on modal reopen or page reload!
+export const persistMergedDevicesForHandle = (handle: string, incoming: Partial<NodeBondEntry>): BoundDeviceRecord[] => {
+  const clean = handle.replace(/^@/, '').trim().toUpperCase();
+  const currentFp = computeHardwareFingerprint();
+  const reg = loadRegistry();
+
+  const existing: NodeBondEntry = reg[clean] || {
+    handle: clean,
+    primaryFingerprint: incoming.primaryFingerprint || currentFp,
+    authorizedFingerprints: [currentFp],
+    devices: []
+  };
+
+  if (incoming.primaryFingerprint && !existing.primaryFingerprint) {
+    existing.primaryFingerprint = incoming.primaryFingerprint;
+  }
+
+  const fpSet = new Set<string>([
+    currentFp,
+    ...(existing.authorizedFingerprints || []),
+    ...(incoming.authorizedFingerprints || [])
+  ]);
+
+  const mapByFp = new Map<string, BoundDeviceRecord>();
+
+  // 1. Load existing from per-node registry
+  for (const d of (existing.devices || [])) {
+    if (d && d.fingerprint) {
+      fpSet.add(d.fingerprint);
+      mapByFp.set(d.fingerprint, { ...d, isCurrent: d.fingerprint === currentFp });
+    }
+  }
+
+  // 2. Load existing from innova-recognized-devices
   try {
-    await fetch(`https://ntfy.sh/${topic}`, {
-      method: 'POST',
-      body: JSON.stringify({
-        type: 'RINGCOMM_DEVICE_SYNC',
-        handle: entry.handle,
-        primaryFingerprint: entry.primaryFingerprint,
-        authorizedFingerprints: entry.authorizedFingerprints,
-        devices: entry.devices,
-        ts: Date.now()
-      })
-    });
+    const rawLocal = JSON.parse(localStorage.getItem('innova-recognized-devices') || '[]');
+    for (const d of rawLocal) {
+      if (d && d.fingerprint) {
+        fpSet.add(d.fingerprint);
+        mapByFp.set(d.fingerprint, { ...d, isCurrent: d.fingerprint === currentFp });
+      }
+    }
   } catch {}
+
+  // 3. Ensure current physical device is always present
+  const myInfo = parseLiveDeviceInfo();
+  const prevMe = mapByFp.get(currentFp);
+  mapByFp.set(currentFp, {
+    id: `DEVICE-${currentFp}`,
+    name: myInfo.name,
+    type: myInfo.type,
+    browser: myInfo.browser,
+    os: myInfo.os,
+    fingerprint: currentFp,
+    lastActive: prevMe?.lastActive || new Date().toISOString(),
+    isCurrent: true
+  });
+
+  // 4. Merge incoming remote devices (e.g. iPhone -> MacBook or MacBook -> iPhone)
+  for (const inc of (incoming.devices || [])) {
+    if (!inc || !inc.fingerprint) continue;
+    fpSet.add(inc.fingerprint);
+    mapByFp.set(inc.fingerprint, {
+      ...mapByFp.get(inc.fingerprint),
+      ...inc,
+      id: `DEVICE-${inc.fingerprint}`,
+      isCurrent: inc.fingerprint === currentFp
+    });
+  }
+
+  // Sort so current device is first, followed by other bound devices
+  const mergedList = Array.from(mapByFp.values()).sort((a, b) => (a.isCurrent === b.isCurrent ? 0 : a.isCurrent ? -1 : 1));
+  existing.authorizedFingerprints = Array.from(fpSet);
+  existing.devices = mergedList;
+  reg[clean] = existing;
+
+  saveRegistry(reg);
+  localStorage.setItem('innova-recognized-devices', JSON.stringify(mergedList));
+  localStorage.setItem(`innova-devices-${clean}`, JSON.stringify(mergedList));
+  window.dispatchEvent(new CustomEvent('innova-devices-synced', { detail: mergedList }));
+  return mergedList;
 };
 
-// Subscribes the current browser (e.g., MacBook) to real-time device bond updates from Phone/TV (including cached history with since=24h)
+// Broadcasts with keepalive: true to BOTH first-party /api/ringcomm-sync AND ntfy.sh JSON stream so iOS Safari never drops the packet!
+export const broadcastDeviceBondSync = async (handle: string, entry: NodeBondEntry): Promise<void> => {
+  if (typeof window === 'undefined') return;
+  const clean = handle.replace(/^@/, '').trim().toUpperCase();
+  const topic = getSyncTopic(clean);
+  const payload = JSON.stringify({
+    type: 'RINGCOMM_DEVICE_SYNC',
+    handle: clean,
+    primaryFingerprint: entry.primaryFingerprint,
+    authorizedFingerprints: entry.authorizedFingerprints,
+    devices: entry.devices,
+    ts: Date.now()
+  });
+
+  const tasks: Promise<any>[] = [
+    fetch(`https://ntfy.sh/${topic}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=UTF-8',
+        'Cache-Control': 'no-cache'
+      },
+      body: payload,
+      keepalive: true
+    }).catch(() => {})
+  ];
+
+  await Promise.allSettled(tasks);
+};
+
 export const subscribeToCrossDeviceBondSync = (
   handle: string,
   onDevicesUpdated?: (devices: BoundDeviceRecord[]) => void
@@ -156,66 +246,41 @@ export const subscribeToCrossDeviceBondSync = (
   if (typeof window === 'undefined' || !handle) return () => {};
   const clean = handle.replace(/^@/, '').trim().toUpperCase();
   const topic = getSyncTopic(clean);
-  const currentFp = computeHardwareFingerprint();
 
-  const mergeIncoming = (payload: any) => {
-    if (!payload || payload.type !== 'RINGCOMM_DEVICE_SYNC' || !Array.isArray(payload.devices)) return;
-    const reg = loadRegistry();
-    const existing: NodeBondEntry = reg[clean] || {
-      handle: clean,
-      primaryFingerprint: payload.primaryFingerprint || currentFp,
-      authorizedFingerprints: [currentFp],
-      devices: []
-    };
-
-    // Merge authorized fingerprints
-    const fpSet = new Set<string>([
-      ...(existing.authorizedFingerprints || []),
-      ...(payload.authorizedFingerprints || [])
-    ]);
-    existing.authorizedFingerprints = Array.from(fpSet);
-
-    // Merge devices by fingerprint and mark only THIS physical device as isCurrent
-    const mapByFp = new Map<string, BoundDeviceRecord>();
-    for (const d of existing.devices) {
-      mapByFp.set(d.fingerprint, { ...d, isCurrent: d.fingerprint === currentFp });
-    }
-    for (const inc of payload.devices) {
-      if (!inc || !inc.fingerprint) continue;
-      const prev = mapByFp.get(inc.fingerprint);
-      if (!prev || new Date(inc.lastActive).getTime() >= new Date(prev.lastActive).getTime()) {
-        mapByFp.set(inc.fingerprint, {
-          ...inc,
-          isCurrent: inc.fingerprint === currentFp
-        });
-      }
-    }
-
-    existing.devices = Array.from(mapByFp.values());
-    reg[clean] = existing;
-    saveRegistry(reg);
-    localStorage.setItem('innova-recognized-devices', JSON.stringify(existing.devices));
-    window.dispatchEvent(new CustomEvent('innova-devices-synced', { detail: existing.devices }));
-    if (onDevicesUpdated) onDevicesUpdated(existing.devices);
+  const handleIncomingPayload = (data: any) => {
+    if (!data || !Array.isArray(data.devices) || data.devices.length === 0) return;
+    const updated = persistMergedDevicesForHandle(clean, data);
+    if (onDevicesUpdated) onDevicesUpdated(updated);
   };
 
-  // 1. Fetch last 24h of device bond messages immediately so even if Phone paired before modal opened, MacBook gets it right away
-  fetch(`https://ntfy.sh/${topic}/json?poll=1&since=24h`)
-    .then(r => r.text())
-    .then(text => {
-      for (const line of text.split('\n')) {
-        if (!line.trim()) continue;
-        try {
-          const evt = JSON.parse(line);
-          if (evt.message) {
-            mergeIncoming(JSON.parse(evt.message));
-          }
-        } catch {}
-      }
-    })
-    .catch(() => {});
+  const pollAllChannels = async () => {
 
-  // 2. Open live SSE stream for instant real-time updates when Phone scans QR or logs in
+
+    // Channel 2: ntfy.sh JSON history poll
+    try {
+      const res2 = await fetch(`https://ntfy.sh/${topic}/json?poll=1&since=24h&_t=${Date.now()}`, { cache: 'no-store' });
+      if (res2.ok) {
+        const text = await res2.text();
+        for (const line of text.split('\n')) {
+          if (!line.trim()) continue;
+          try {
+            const evt = JSON.parse(line);
+            if (evt.message) {
+              const parsed = JSON.parse(evt.message);
+              if (parsed && parsed.type === 'RINGCOMM_DEVICE_SYNC') {
+                handleIncomingPayload(parsed);
+              }
+            }
+          } catch {}
+        }
+      }
+    } catch {}
+  };
+
+  // Run immediately and every 2.5 seconds so desktop updates live when iPhone verifies!
+  pollAllChannels();
+  const pollTimer = window.setInterval(pollAllChannels, 2500);
+
   let es: EventSource | null = null;
   try {
     es = new EventSource(`https://ntfy.sh/${topic}/sse`);
@@ -223,45 +288,64 @@ export const subscribeToCrossDeviceBondSync = (
       try {
         const evt = JSON.parse(e.data);
         if (evt.message) {
-          mergeIncoming(JSON.parse(evt.message));
+          const parsed = JSON.parse(evt.message);
+          if (parsed && parsed.type === 'RINGCOMM_DEVICE_SYNC') {
+            handleIncomingPayload(parsed);
+          }
         }
       } catch {}
     };
   } catch {}
 
+  const onLocalSyncEvent = (e: any) => {
+    if (onDevicesUpdated && Array.isArray(e.detail)) {
+      onDevicesUpdated(e.detail);
+    }
+  };
+  window.addEventListener('innova-devices-synced', onLocalSyncEvent);
+
   return () => {
+    window.clearInterval(pollTimer);
+    window.removeEventListener('innova-devices-synced', onLocalSyncEvent);
     if (es) es.close();
   };
 };
 
 export const generateDeviceInviteForNode = (handle: string): { code: string; inviteUrl: string; qrImageUrl: string; expiresAt: number } => {
   const clean = handle.replace(/^@/, '').trim().toUpperCase();
-  const reg = loadRegistry();
   const code = computeDeterministicInviteCode(clean);
   const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
   const currentFp = computeHardwareFingerprint();
+  const myInfo = parseLiveDeviceInfo();
 
-  if (!reg[clean]) {
-    reg[clean] = {
-      handle: clean,
-      primaryFingerprint: currentFp,
-      authorizedFingerprints: [currentFp],
-      devices: [],
-      activeInviteCode: code,
-      inviteExpiresAt: expiresAt,
-    };
-  } else {
+  const mergedDevices = persistMergedDevicesForHandle(clean, {
+    handle: clean,
+    primaryFingerprint: currentFp
+  });
+
+  const reg = loadRegistry();
+  if (reg[clean]) {
     reg[clean].activeInviteCode = code;
     reg[clean].inviteExpiresAt = expiresAt;
+    saveRegistry(reg);
+    broadcastDeviceBondSync(clean, reg[clean]);
   }
-  saveRegistry(reg);
-  broadcastDeviceBondSync(clean, reg[clean]);
 
-  // Always point QR code to the public production URL so phones on cellular/Wi-Fi can open it!
   const prodOrigin = (typeof window !== 'undefined' && !window.location.hostname.includes('localhost'))
     ? window.location.origin
     : 'https://innova-universal-dashboard.vercel.app';
-  const inviteUrl = `${prodOrigin}/?node=${encodeURIComponent(clean)}&invite=${encodeURIComponent(code)}`;
+
+  // Embed primary device metadata in the QR link so the iPhone immediately knows about the MacBook and broadcasts both back!
+  const params = new URLSearchParams({
+    node: clean,
+    invite: code,
+    pfp: currentFp,
+    pname: myInfo.name,
+    ptype: myInfo.type,
+    pbrowser: myInfo.browser,
+    pos: myInfo.os
+  });
+  const inviteUrl = `${prodOrigin}/?${params.toString()}`;
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=12&color=0a0a0f&bgcolor=ffffff&data=${encodeURIComponent(inviteUrl)}`;
   return { code, inviteUrl, qrImageUrl, expiresAt };
 };
@@ -272,9 +356,30 @@ export const verifyOrClaimNodeOnDevice = (
 ): { allowed: boolean; requiresInvite?: boolean; message?: string; entry?: NodeBondEntry } => {
   const clean = handle.replace(/^@/, '').trim().toUpperCase();
   const currentFp = computeHardwareFingerprint();
-  const info = parseLiveDeviceInfo();
   const now = new Date().toISOString();
   const reg = loadRegistry();
+
+  // Check if URL contains primary device metadata from a scanned QR code (?pfp=...&pname=...)
+  const seedDevices: BoundDeviceRecord[] = [];
+  let urlPrimaryFp = '';
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    const pfp = params.get('pfp');
+    const pname = params.get('pname');
+    if (pfp && pname) {
+      urlPrimaryFp = pfp;
+      seedDevices.push({
+        id: `DEVICE-${pfp}`,
+        name: pname,
+        type: (params.get('ptype') as any) || 'desktop',
+        browser: params.get('pbrowser') || 'Browser',
+        os: params.get('pos') || 'macOS',
+        fingerprint: pfp,
+        lastActive: now,
+        isCurrent: pfp === currentFp
+      });
+    }
+  }
 
   const existing = reg[clean];
   const expectedInvite = computeDeterministicInviteCode(clean);
@@ -282,22 +387,17 @@ export const verifyOrClaimNodeOnDevice = (
 
   if (existing && !existing.authorizedFingerprints.includes(currentFp)) {
     if (cleanInvite && (cleanInvite === existing.activeInviteCode || cleanInvite === expectedInvite)) {
-      existing.authorizedFingerprints.push(currentFp);
-      existing.devices.forEach(d => (d.isCurrent = false));
-      existing.devices.push({
-        id: `DEVICE-${currentFp}`,
-        name: info.name,
-        type: info.type,
-        browser: info.browser,
-        os: info.os,
-        fingerprint: currentFp,
-        lastActive: now,
-        isCurrent: true,
+      const merged = persistMergedDevicesForHandle(clean, {
+        handle: clean,
+        primaryFingerprint: existing.primaryFingerprint,
+        authorizedFingerprints: [...existing.authorizedFingerprints, currentFp],
+        devices: [...existing.devices, ...seedDevices]
       });
-      saveRegistry(reg);
-      localStorage.setItem('innova-recognized-devices', JSON.stringify(existing.devices));
-      broadcastDeviceBondSync(clean, existing);
-      return { allowed: true, entry: existing };
+      const updatedEntry = loadRegistry()[clean];
+      if (updatedEntry) {
+        broadcastDeviceBondSync(clean, updatedEntry);
+      }
+      return { allowed: true, entry: updatedEntry };
     }
     return {
       allowed: false,
@@ -306,47 +406,16 @@ export const verifyOrClaimNodeOnDevice = (
     };
   }
 
-  const entry: NodeBondEntry = existing || {
+  // Merge current device + any QR-seeded primary device (e.g. MacBook) + existing devices
+  persistMergedDevicesForHandle(clean, {
     handle: clean,
-    primaryFingerprint: currentFp,
-    authorizedFingerprints: [currentFp],
-    devices: [],
-  };
+    primaryFingerprint: existing?.primaryFingerprint || urlPrimaryFp || currentFp,
+    devices: seedDevices
+  });
 
-  if (!entry.authorizedFingerprints.includes(currentFp)) {
-    entry.authorizedFingerprints.push(currentFp);
+  const finalEntry = loadRegistry()[clean];
+  if (finalEntry) {
+    broadcastDeviceBondSync(clean, finalEntry);
   }
-
-  // Also merge any existing localStorage recognized devices so nothing is lost
-  try {
-    const localDevs = JSON.parse(localStorage.getItem('innova-recognized-devices') || '[]');
-    for (const ld of localDevs) {
-      if (ld && ld.fingerprint && !entry.devices.some(ed => ed.fingerprint === ld.fingerprint)) {
-        entry.devices.push({ ...ld, isCurrent: ld.fingerprint === currentFp });
-      }
-    }
-  } catch {}
-
-  const idx = entry.devices.findIndex(d => d.fingerprint === currentFp);
-  entry.devices.forEach(d => (d.isCurrent = d.fingerprint === currentFp));
-  if (idx >= 0) {
-    entry.devices[idx] = { ...entry.devices[idx], name: info.name, type: info.type, browser: info.browser, os: info.os, lastActive: now, isCurrent: true };
-  } else {
-    entry.devices.push({
-      id: `DEVICE-${currentFp}`,
-      name: info.name,
-      type: info.type,
-      browser: info.browser,
-      os: info.os,
-      fingerprint: currentFp,
-      lastActive: now,
-      isCurrent: true,
-    });
-  }
-
-  reg[clean] = entry;
-  saveRegistry(reg);
-  localStorage.setItem('innova-recognized-devices', JSON.stringify(entry.devices));
-  broadcastDeviceBondSync(clean, entry);
-  return { allowed: true, entry };
+  return { allowed: true, entry: finalEntry };
 };
