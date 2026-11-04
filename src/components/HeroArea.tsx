@@ -167,7 +167,7 @@ export default function HeroArea() {
     };
   }, [isPlaying, renderingPreset]);
 
-  // Bind production 8K neural master stream asset
+  // Handle mock video upload
   const handleUploadTeaser = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];

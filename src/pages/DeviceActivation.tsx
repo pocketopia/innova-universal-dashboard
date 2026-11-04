@@ -47,13 +47,19 @@ const DeviceActivation: React.FC = () => {
         setDeviceInfo(null);
       }
     } catch (err) {
-      setDeviceInfo({ client_name: 'INNOVA RING COMM TV NODE', expires_in: 600 });
-      setMessage(`Ring Comm Direct Bridge Lock: ${userCode}`);
+      setError('Failed to connect to server. Make sure the backend is running.');
     }
   };
 
   const handleAuthorize = async () => {
-    const activeNodeId = localStorage.getItem('innova_node_username') || localStorage.getItem('claimed_username') || '@SOVEREIGN_NODE';
+    // In a real app, you would get the userId from the authenticated session
+    // For demo, we'll use a test user ID
+    const testUserId = localStorage.getItem('test_user_id');
+    
+    if (!testUserId) {
+      setError('No user session found. Please log in first.');
+      return;
+    }
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/device/authorize-user`, {
@@ -63,7 +69,7 @@ const DeviceActivation: React.FC = () => {
         },
         body: JSON.stringify({
           userCode,
-          userId: activeNodeId,
+          userId: testUserId,
           action: 'authorize'
         })
       });
@@ -78,8 +84,8 @@ const DeviceActivation: React.FC = () => {
         setError(data.message || data.error || 'Authorization failed');
       }
     } catch (err) {
-      setStatus('authorized');
-      setMessage(`RING COMM LOCK ESTABLISHED // ${userCode} BRIDGED TO ${activeNodeId}`);
+      setStatus('error');
+      setError('Failed to authorize device');
     }
   };
 
@@ -92,7 +98,7 @@ const DeviceActivation: React.FC = () => {
         },
         body: JSON.stringify({
           userCode,
-          userId: localStorage.getItem('innova_node_username') || '@SOVEREIGN_NODE',
+          userId: localStorage.getItem('test_user_id'),
           action: 'deny'
         })
       });
@@ -117,15 +123,15 @@ const DeviceActivation: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-red-950/60 to-black flex items-center justify-center p-4">
-      <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-2xl p-8 max-w-md w-full border border-red-500/50 shadow-[0_0_35px_rgba(255,0,34,0.25)]">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
+      <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-2xl p-8 max-w-md w-full border border-gray-700">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-600 to-rose-700 shadow-[0_0_25px_rgba(255,0,34,0.5)] rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">RING COMM // BRIDGE TV NODE</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Link Your TV Device</h1>
           <p className="text-gray-400">Enter the 8-character code displayed on your TV to authorize the device.</p>
         </div>
 
@@ -167,7 +173,7 @@ const DeviceActivation: React.FC = () => {
                 value={userCode}
                 onChange={handleCodeChange}
                 placeholder="ABCD-EFGH"
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-center text-2xl font-mono tracking-wider placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent uppercase"
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-center text-2xl font-mono tracking-wider placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent uppercase"
                 maxLength={9}
               />
               <p className="text-xs text-gray-500 mt-2 text-center">
@@ -203,7 +209,7 @@ const DeviceActivation: React.FC = () => {
                 <button
                   onClick={checkDeviceStatus}
                   disabled={userCode.length < 9}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 shadow-[0_0_20px_rgba(255,0,34,0.4)] text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Check Device
                 </button>

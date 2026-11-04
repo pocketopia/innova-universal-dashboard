@@ -210,6 +210,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
   const [isProcessing, setIsProcessing] = useState(false);
   const [tokenAmount, setTokenAmount] = useState<number>(100);
   const [currentBalance, setCurrentBalance] = useState<number>(0);
+  const [activeWalletAddress, setActiveWalletAddress] = useState<string>(() => activeWalletAddress || localStorage.getItem('innova-wallet-address') || '');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [cardInput, setCardInput] = useState('');
   const [txReceipt, setTxReceipt] = useState<string | null>(null);
@@ -240,11 +241,11 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
 
   useEffect(() => {
     const loadBalance = async () => {
-      const balance = await fetchWalletBalance(userNode.wallet);
+      const balance = await fetchWalletBalance(activeWalletAddress);
       setCurrentBalance(balance);
     };
     loadBalance();
-  }, [userNode.wallet]);
+  }, [activeWalletAddress]);
 
   // Handle avatar URL submission
   const handleAvatarSubmit = () => {
@@ -297,7 +298,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
         const response = await fetch(`${API_BASE_URL}/wallet/mint`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: tokenAmount, walletAddress: userNode.wallet, paymentMethod: 'card' })
+        body: JSON.stringify({ amount: tokenAmount, walletAddress: activeWalletAddress, paymentMethod: 'card' })
       });
 
       const data = await response.json();
@@ -443,6 +444,77 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
 
           {activeTab === 'wallet' && (
             <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="bg-white/[0.02] border border-purple-500/20 p-5 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-purple-400 uppercase tracking-wider font-mono">// BOUND EVM WALLET ADDRESS</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                    {activeWalletAddress ? 'CONNECTED' : 'UNASSIGNED'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={activeWalletAddress}
+                    onChange={(e) => {
+                      setActiveWalletAddress(e.target.value);
+                      localStorage.setItem('innova-wallet-address', e.target.value.trim());
+                    }}
+                    placeholder="0x... (Click Auto-Forge below or paste your EVM address)"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-purple-500/50"
+                  />
+                  {activeWalletAddress && (
+                    <button
+                      onClick={() => handleCopyText(activeWalletAddress)}
+                      className="px-3 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs text-white/70 hover:text-white transition shrink-0"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const clean = (userNode.handle || localStorage.getItem('innova-username') || 'NODE').replace(/^@/, '').toUpperCase();
+                      const encoded = new TextEncoder().encode(`INNOVA_EVM_VAULT::${clean}`);
+                      const hashBuffer = await window.crypto.subtle.digest('SHA-256', encoded);
+                      const hex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                      const forged = `0x${hex.slice(0, 40)}`;
+                      setActiveWalletAddress(forged);
+                      localStorage.setItem('innova-wallet-address', forged);
+                    }}
+                    className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600/30 to-cyan-600/30 hover:from-purple-600/40 hover:to-cyan-600/40 border border-purple-500/40 text-xs font-bold text-white transition flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-cyan-400" /> Auto-Forge EVM Wallet
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const eth = (window as any).ethereum;
+                      if (eth) {
+                        try {
+                          const accounts = await eth.request({ method: 'eth_requestAccounts' });
+                          if (accounts && accounts[0]) {
+                            setActiveWalletAddress(accounts[0]);
+                            localStorage.setItem('innova-wallet-address', accounts[0]);
+                          }
+                        } catch {}
+                      } else {
+                        const clean = (userNode.handle || localStorage.getItem('innova-username') || 'NODE').replace(/^@/, '').toUpperCase();
+                        const encoded = new TextEncoder().encode(`INNOVA_EVM_VAULT::${clean}`);
+                        const hashBuffer = await window.crypto.subtle.digest('SHA-256', encoded);
+                        const hex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                        const forged = `0x${hex.slice(0, 40)}`;
+                        setActiveWalletAddress(forged);
+                        localStorage.setItem('innova-wallet-address', forged);
+                      }
+                    }}
+                    className="py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white/80 hover:text-white transition flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Wallet className="w-3.5 h-3.5 text-purple-400" /> Connect MetaMask / Web3
+                  </button>
+                </div>
+              </div>
               <div><h3 className="text-xl font-black text-white uppercase">EVM Wallet Engine</h3><p className="text-xs text-white/50 mt-1">Cross-chain network liquidity channel tied universally to your account handler.</p></div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20 p-5 rounded-xl relative">
@@ -452,8 +524,8 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                 </div>
                 <div className="bg-white/[0.02] border border-white/5 p-5 rounded-xl flex flex-col justify-between">
                   <span className="text-[9px] font-mono text-white/40 tracking-wider block">LEDGER ADDRESS</span>
-                  <span className="text-xs font-mono text-slate-300 truncate block mt-2">{userNode.wallet}</span>
-                  <button onClick={() => handleCopyText(userNode.wallet)} className="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1 mt-2 text-left"><Copy className="w-3.5 h-3.5" /> Copy Address</button>
+                  <span className="text-xs font-mono text-slate-300 truncate block mt-2">{activeWalletAddress}</span>
+                  <button onClick={() => handleCopyText(activeWalletAddress)} className="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1 mt-2 text-left"><Copy className="w-3.5 h-3.5" /> Copy Address</button>
                 </div>
               </div>
 
@@ -468,7 +540,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                     <button 
                       onClick={async () => {
                         setIsProcessing(true);
-                        const res = await processEcosystemTransaction(userNode.wallet, 2999, 'subscription', 'Universal Ecosystem Pass - Monthly');
+                        const res = await processEcosystemTransaction(activeWalletAddress, 2999, 'subscription', 'Universal Ecosystem Pass - Monthly');
                         if (res.success) { setCurrentBalance(res.newBalance!); alert('Monthly All-Access Pass Activated!'); }
                         else alert(`Failed: ${res.error}`);
                         setIsProcessing(false);
@@ -486,7 +558,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                     <button 
                       onClick={async () => {
                         setIsProcessing(true);
-                        const res = await processEcosystemTransaction(userNode.wallet, 29999, 'subscription', 'Universal Ecosystem Pass - Annual');
+                        const res = await processEcosystemTransaction(activeWalletAddress, 29999, 'subscription', 'Universal Ecosystem Pass - Annual');
                         if (res.success) { setCurrentBalance(res.newBalance!); alert('Annual All-Access Pass Activated! Welcome to the Vanguard.'); }
                         else alert(`Failed: ${res.error}`);
                         setIsProcessing(false);
@@ -515,7 +587,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                   <button 
                     onClick={async () => {
                       setIsProcessing(true);
-                      const res = await processEcosystemTransaction(userNode.wallet, 1499, 'game_purchase', 'Kreation Gaming Pass - Monthly');
+                      const res = await processEcosystemTransaction(activeWalletAddress, 1499, 'game_purchase', 'Kreation Gaming Pass - Monthly');
                       if (res.success) { setCurrentBalance(res.newBalance!); alert('Kreation Gaming Pass Activated!'); }
                       else alert(`Failed: ${res.error}`);
                       setIsProcessing(false);
@@ -543,7 +615,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                     <button 
                       onClick={async () => {
                         setIsProcessing(true);
-                        const res = await processEcosystemTransaction(userNode.wallet, 1200, 'creator_boost', 'StreamShare Creator Tier - Monthly');
+                        const res = await processEcosystemTransaction(activeWalletAddress, 1200, 'creator_boost', 'StreamShare Creator Tier - Monthly');
                         if (res.success) { setCurrentBalance(res.newBalance!); alert('StreamShare Creator Node Activated! 500GB Storage Allocated.'); }
                         else alert(`Transaction failed: ${res.error}`);
                         setIsProcessing(false);
@@ -561,7 +633,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                     <button 
                       onClick={async () => {
                         setIsProcessing(true);
-                        const res = await processEcosystemTransaction(userNode.wallet, 12000, 'creator_boost', 'StreamShare Creator Tier - Annual');
+                        const res = await processEcosystemTransaction(activeWalletAddress, 12000, 'creator_boost', 'StreamShare Creator Tier - Annual');
                         if (res.success) { setCurrentBalance(res.newBalance!); alert('Annual StreamShare Creator Node Locked In! 500GB Allocated.'); }
                         else alert(`Transaction failed: ${res.error}`);
                         setIsProcessing(false);
@@ -582,7 +654,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
 
               {/* ArcHaven / Hektic / MVN Viewer Pass */}
               <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-xl p-5 space-y-4 mb-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-15 text-red-500"><svg className="w-24 h-24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg></div>
+                <div className="absolute top-0 right-0 p-4 opacity-10"><Tv className="w-24 h-24" /></div>
                 <div className="relative z-10">
                   <span className="text-xs font-bold text-amber-400 tracking-widest block uppercase mb-1">// ENTERTAINMENT VIEWER PASS</span>
                   <p className="text-[10px] text-white/50 mb-4">ArcHaven Cinema, Hektic TV & MVN Music - ad-free 8K streaming with priority routing paths.</p>
@@ -590,7 +662,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                   <button 
                     onClick={async () => {
                       setIsProcessing(true);
-                      const res = await processEcosystemTransaction(userNode.wallet, 999, 'subscription', 'Entertainment Viewer Pass - Monthly');
+                      const res = await processEcosystemTransaction(activeWalletAddress, 999, 'subscription', 'Entertainment Viewer Pass - Monthly');
                       if (res.success) { setCurrentBalance(res.newBalance!); alert('Viewer Pass Activated! 8K streaming unlocked.'); }
                       else alert(`Failed: ${res.error}`);
                       setIsProcessing(false);

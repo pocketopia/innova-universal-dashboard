@@ -413,8 +413,8 @@ export default function App() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <button onClick={() => setAppState('activate')} className="cursor-pointer bg-gradient-to-r from-red-600/30 via-rose-600/25 to-amber-600/30 border border-red-500/60 text-red-400 px-4 py-2 rounded-xl text-xs font-black tracking-widest uppercase transition flex items-center gap-2 hover:border-red-400 hover:text-white shadow-[0_0_18px_rgba(239,68,68,0.35)]">
-                  <svg className="w-4 h-4 text-red-500 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg> RING COMM // BRIDGE TV NODE
+                <button onClick={() => setAppState('activate')} className="cursor-pointer bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/30 text-amber-400 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition flex items-center gap-2 hover:border-amber-500/50 hover:from-amber-600/30 hover:to-orange-600/30">
+                  <Tv className="w-3.5 h-3.5" /> LINK TV DEVICE
                 </button>
                 <button onClick={() => setShowSettings(true)} className="cursor-pointer bg-gradient-to-r from-cyan-600/20 to-purple-600/20 border border-cyan-500/30 text-cyan-400 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition flex items-center gap-2">
                   <CreditCard className="w-3.5 h-3.5" /> Identity / Wallet & Billing Center
@@ -438,25 +438,21 @@ export default function App() {
               </div>
 
               {/* ACTIVE: MUSIC VIDEO NET */}
-              <div onClick={() => { setActiveTab('entertainment'); setSubPlatform('mvn'); setAppState('platform'); }} className="group cursor-pointer bg-gradient-to-br from-black via-zinc-950 to-amber-950/20 border border-amber-500/40 hover:border-amber-400 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] transition relative overflow-hidden shadow-[0_0_25px_rgba(245,158,11,0.15)]">
-                <div className="absolute top-0 right-0 bg-amber-500 text-black text-[8px] font-black px-3 py-1 rounded-bl-lg tracking-widest uppercase">8K Acoustic Node Live</div>
-                <div>
-                  <svg className="w-9 h-9 text-amber-400 mb-4 drop-shadow-[0_0_10px_rgba(245,158,11,0.6)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M2 12h3l3-9 4 18 4-13 3 4h3"/></svg>
-                  <h4 className="font-black text-lg text-white tracking-wide">MVN // MUSIC VIDEO NET</h4>
-                  <p className="text-xs text-white/70 mt-2">Sovereign 8K spatial audio-visual broadcast grid synced directly to your @USER.NAME Node.</p>
-                </div>
-                <div className="mt-4 pt-4 border-t border-amber-500/20 flex justify-between items-center text-xs font-black tracking-wider text-amber-400 group-hover:text-white"><span>LAUNCH MVN BROADCAST</span><ChevronRight className="w-4 h-4" /></div>
+              <div onClick={() => { setActiveTab('entertainment'); setSubPlatform('mvn'); setAppState('platform'); }} className="group cursor-pointer bg-white/5 border border-white/10 hover:border-amber-500/40 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] transition">
+                <div><Tv className="w-8 h-8 text-amber-400 mb-4" /><h4 className="font-black text-lg text-white">MUSIC VIDEO NET</h4><p className="text-xs text-white/60 mt-2">Acoustic spatial metadata registry. Query pipeline arrays with embedded automated audits.</p></div>
+                <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs font-semibold text-amber-400 group-hover:text-white"><span>OPEN STREAM</span><ChevronRight className="w-4 h-4" /></div>
               </div>
 
-              {/* ACTIVE: ARCHAVEN AI-ONLY HIGH-FIDELITY SERIES & FILM PLATFORM */}
-              <div onClick={() => { setActiveTab('entertainment'); setSubPlatform('archaven'); setAppState('platform'); }} className="group cursor-pointer bg-gradient-to-br from-black via-zinc-950 to-red-950/25 border border-red-500/40 hover:border-red-500 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] transition relative overflow-hidden shadow-[0_0_25px_rgba(239,68,68,0.2)]">
-                <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-3 py-1 rounded-bl-lg tracking-widest uppercase">AI-Only Cinema Live</div>
-                <div>
-                  <Film className="w-9 h-9 text-red-500 mb-4 drop-shadow-[0_0_10px_rgba(239,68,68,0.6)]" />
-                  <h4 className="font-black text-lg text-white tracking-wide">ARCHAVEN // AI FILM & SERIES</h4>
-                  <p className="text-xs text-white/70 mt-2">Sovereign AI-only high-fidelity series and film platform. Direct 8K neural master streaming via Ring Comm.</p>
+              {/* LOCKED: ARCHAVEN CINEMA */}
+              <div className="group relative bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] overflow-hidden cursor-not-allowed opacity-80">
+                <div className="absolute inset-0 bg-[#020205]/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Lock className="w-8 h-8 text-cyan-400 mb-3" />
+                  <span className="text-xs font-black tracking-widest text-cyan-400 uppercase bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">Awaiting Masters</span>
                 </div>
-                <div className="mt-4 pt-4 border-t border-red-500/20 flex justify-between items-center text-xs font-black tracking-wider text-red-400 group-hover:text-white"><span>ENTER ARCHAVEN CINEMA</span><ChevronRight className="w-4 h-4" /></div>
+                <div className="relative z-0 opacity-50 blur-[1px] group-hover:blur-sm transition-all duration-300">
+                  <div><Film className="w-8 h-8 text-cyan-400 mb-4" /><h4 className="font-black text-lg text-white">ARCHAVEN CINEMA</h4><p className="text-xs text-white/60 mt-2">High-bitrate ProRes distribution. Process global automated licensing matrices.</p></div>
+                  <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs font-semibold text-white/40"><span>CURATING CONTENT...</span><Lock className="w-4 h-4" /></div>
+                </div>
               </div>
 
               {/* LOCKED: HEKTIC TV */}
@@ -773,7 +769,7 @@ export default function App() {
             wallet: wallet.address,
             avatarUrl: userAvatarUrl
           }}
-          onClose={() => setShowSettings(false)}
+          onClose={() => { setShowSettings(false); executeConnectSetupWallet(); }}
           onAvatarUpdate={(url) => setUserAvatarUrl(url)}
         />
       )}
