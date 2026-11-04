@@ -119,9 +119,9 @@ const TVActivationScreen: React.FC = () => {
   // Render connecting state
   if (status === 'connecting') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-black via-red-950/60 to-black flex items-center justify-center p-8">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-8 animate-pulse">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-red-600 to-rose-700 shadow-[0_0_30px_rgba(255,0,34,0.6)] rounded-full mb-8 animate-pulse">
             <svg className="w-12 h-12 text-white animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
@@ -180,7 +180,7 @@ const TVActivationScreen: React.FC = () => {
 
   // Render code display state
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-8">
+    <div className="min-h-screen bg-gradient-to-br from-black via-red-950/60 to-black flex items-center justify-center p-8">
       <div className="text-center max-w-2xl">
         {/* Header */}
         <div className="mb-12">
@@ -238,7 +238,7 @@ const TVActivationScreen: React.FC = () => {
                 handleLaunchStandaloneWorkspace();
               }
             }}
-            className="w-full py-4 px-8 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 focus:ring-4 focus:ring-amber-400 focus:outline-none text-black font-black text-lg rounded-2xl tracking-wider uppercase shadow-lg shadow-emerald-500/25 transition"
+            className="w-full py-4 px-8 bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white shadow-[0_0_30px_rgba(255,0,34,0.5)] focus:ring-4 focus:ring-amber-400 focus:outline-none text-black font-black text-lg rounded-2xl tracking-wider uppercase shadow-lg shadow-emerald-500/25 transition"
           >
             LAUNCH INTERACTIVE PLATFORM WORKSPACE
           </button>
@@ -252,19 +252,19 @@ const TVActivationScreen: React.FC = () => {
           <h3 className="text-white font-bold mb-3">How to activate:</h3>
           <ol className="text-white/60 space-y-2 text-sm">
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 font-bold">1.</span>
+              <span className="text-red-500 font-bold">1.</span>
               <span>Open your phone or computer browser</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 font-bold">2.</span>
+              <span className="text-red-500 font-bold">2.</span>
               <span>Visit the URL shown above</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 font-bold">3.</span>
+              <span className="text-red-500 font-bold">3.</span>
               <span>Enter the 8-character code exactly as shown</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 font-bold">4.</span>
+              <span className="text-red-500 font-bold">4.</span>
               <span>Sign in and approve the device</span>
             </li>
           </ol>

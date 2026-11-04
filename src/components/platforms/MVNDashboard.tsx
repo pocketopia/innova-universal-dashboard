@@ -28,69 +28,47 @@ interface MusicVideoSubmission {
 const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [
   {
     id: 'mvn-master-01',
-    songTitle: 'Neon Lights (4K Broadcast Master)',
-    primaryArtist: 'Starlight Synthesis',
-    genre: 'Pop Hits',
-    duration: '3:00',
+    songTitle: 'CRIMSON FREQUENCY (8K SPATIAL MASTER)',
+    primaryArtist: '@SOVEREIGN_AUDIO',
+    genre: 'Industrial Bass / Hyper-Synth',
+    duration: '3:42',
     status: 'syndicated',
-    submittedAt: '2025-02-14',
-    thumbnail: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=800',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+    submittedAt: '2026-08-14',
+    thumbnail: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23f59e0b%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23f59e0b%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23f59e0b%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23f59e0b%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EMVN%20//%20MUSIC%20VIDEO%20NET%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3ECRIMSON%20FREQUENCY%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23f59e0b%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3E%40SOVEREIGN_AUDIO%20//%208K%20SPATIAL%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/mvn/crimson-frequency-8k.mp4'
   },
   {
     id: 'mvn-master-02',
-    songTitle: 'City Streets (Director Cut)',
-    primaryArtist: 'MC Flow',
-    genre: 'Hip Hop & R&B',
-    duration: '4:00',
+    songTitle: 'RING COMM OVERDRIVE (DIRECTOR CUT)',
+    primaryArtist: '@VORTEX_UNIT',
+    genre: 'Hardcore Hip-Hop & Cyber Grime',
+    duration: '4:05',
     status: 'syndicated',
-    submittedAt: '2025-02-16',
-    thumbnail: 'https://images.unsplash.com/photo-1596525737525-c6514781e641?q=80&w=800',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4'
+    submittedAt: '2026-08-16',
+    thumbnail: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23ef4444%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23ef4444%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23ef4444%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23ef4444%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EMVN%20//%20MUSIC%20VIDEO%20NET%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3ERING%20COMM%20OVERDRIVE%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23ef4444%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3E%40VORTEX_UNIT%20//%20DIRECT%20TV%20BRIDGE%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/mvn/ring-comm-overdrive-8k.mp4'
   },
   {
     id: 'mvn-master-03',
-    songTitle: 'Thunderstruck Odyssey',
-    primaryArtist: 'High Voltage',
-    genre: 'Rock',
-    duration: '4:10',
+    songTitle: 'IRON VOLTAGE // LIVE ARENA ANTHEM',
+    primaryArtist: '@HIGH_VOLTAGE_NODE',
+    genre: 'Heavy Metal / Arena Rock',
+    duration: '4:18',
     status: 'qc_passed',
-    submittedAt: '2025-02-18',
-    thumbnail: 'https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?q=80&w=800',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackSeeTheWorld.mp4'
+    submittedAt: '2026-08-18',
+    thumbnail: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23ea580c%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23ea580c%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23ea580c%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23ea580c%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EMVN%20//%20MUSIC%20VIDEO%20NET%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3EIRON%20VOLTAGE%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23ea580c%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3E%40HIGH_VOLTAGE_NODE%20//%20LOSSLESS%208K%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/mvn/iron-voltage-8k.mp4'
   },
   {
     id: 'mvn-master-04',
-    songTitle: 'Cyberpunk City',
-    primaryArtist: 'Synthwave Boy',
-    genre: 'Electronic / Dance',
+    songTitle: 'OBSIDIAN GRID // SUBWOOFER PROTOCOL',
+    primaryArtist: '@DARKWAVE_CORE',
+    genre: 'Dark Electronic / Bass',
     duration: '5:00',
     status: 'syndicated',
-    submittedAt: '2025-02-19',
-    thumbnail: 'https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=800',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
-  },
-  {
-    id: 'mvn-master-05',
-    songTitle: 'Fiesta Solar',
-    primaryArtist: 'Ritmo Caliente',
-    genre: 'Latin Vibes',
-    duration: '3:30',
-    status: 'qc_passed',
-    submittedAt: '2025-02-20',
-    thumbnail: 'https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=800',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
-  },
-  {
-    id: 'mvn-master-06',
-    songTitle: 'Midnight Sax Sessions',
-    primaryArtist: 'Blue Note Collective',
-    genre: 'Smooth Jazz',
-    duration: '5:20',
-    status: 'pending_qc',
-    submittedAt: '2025-02-22',
-    thumbnail: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?q=80&w=800',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4'
+    submittedAt: '2026-08-19',
+    thumbnail: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23dc2626%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23dc2626%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23dc2626%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23dc2626%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EMVN%20//%20MUSIC%20VIDEO%20NET%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3EOBSIDIAN%20GRID%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23dc2626%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3E%40DARKWAVE_CORE%20//%208K%20SPATIAL%20AUDIO%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/mvn/obsidian-grid-8k.mp4'
   }
 ];
 
@@ -274,7 +252,7 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
             </div>
             <div className="aspect-video bg-black relative">
               <video
-                src={previewVideo.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}
+                src={previewVideo.videoUrl || '/masters/mvn/sovereign-audio-8k.mp4'}
                 poster={previewVideo.thumbnail}
                 controls
                 autoPlay

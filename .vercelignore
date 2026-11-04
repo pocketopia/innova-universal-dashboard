@@ -1,0 +1,14 @@
+*
+.*
+!package.json
+!package-lock.json
+!index.html
+!vite.config.ts
+!tsconfig*.json
+!postcss.config.*
+!tailwind.config.*
+!vercel.json
+!src/
+!src/**
+!public/
+!public/**

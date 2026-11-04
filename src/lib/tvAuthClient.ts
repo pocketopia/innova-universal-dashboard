@@ -7,7 +7,7 @@
  * for the access token.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://10.0.0.2:3002';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://innova-master-brain-api.onrender.com';
 
 // Types for Device Authorization Flow
 export interface DeviceAuthorizationResponse {
@@ -69,7 +69,7 @@ function buildDeterministicRingCommAuth(clientId: string): DeviceAuthorizationRe
   return {
     device_code: `ringcomm_local_${cleanPrefix.toLowerCase()}_${numericSuffix}`,
     user_code: userCode,
-    verification_uri: 'https://innova-ecosystem.app/activate',
+    verification_uri: 'https://innova-universal-dashboard.vercel.app/activate',
     expires_in: 600,
     interval: 5,
   };
@@ -80,7 +80,7 @@ export async function requestDeviceAuthorization(
   clientName: string
 ): Promise<DeviceAuthorizationResponse> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3500); // Fast fallback for standalone TV devices
+  const timeoutId = setTimeout(() => controller.abort(), 900); // Fast fallback for standalone TV devices
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/device/authorize`, {

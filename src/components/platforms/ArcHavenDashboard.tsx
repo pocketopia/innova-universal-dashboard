@@ -75,47 +75,47 @@ interface ArcHavenSubmission {
 const VERIFIED_ARCHAVEN_SUBMISSIONS: ArcHavenSubmission[] = [
   {
     id: 'ARCH-994012',
-    title: 'SILICON HORIZON',
+    title: 'SILICON HORIZON // AI NEURAL MASTER',
     status: 'approved',
     submittedBy: '@SOVEREIGN_LENS',
-    submittedAt: '2026-02-14T18:00:00.000Z',
-    genre: 'Sci-Fi',
-    synopsis: 'When a deep-space telemetry array awakens a self-architecting neural lattice around Kepler-442b, an autonomous expedition must negotiate with a post-biological civilization.',
-    posterUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=1000',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+    submittedAt: '2026-08-14T18:00:00.000Z',
+    genre: 'AI Sci-Fi Feature',
+    synopsis: 'Sovereign AI-only high-fidelity feature film. Deep-space telemetry awakens a self-architecting neural lattice around Kepler-442b, forcing an autonomous expedition into war.',
+    posterUrl: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23ff0022%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23ff0022%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23ff0022%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23ff0022%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EARCHAVEN%20AI%20CINEMA%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3ESILICON%20HORIZON%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23ff0022%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3EAI-ONLY%208K%20FEATURE%20FILM%20//%20%40SOVEREIGN_LENS%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/archaven/silicon-horizon-8k.mp4'
   },
   {
     id: 'ARCH-882310',
-    title: 'NEURAL DREAMS (SEASON 1)',
+    title: 'NEURAL DREAMS // SEASON 1 (AI SERIES)',
     status: 'approved',
     submittedBy: '@AI_DIRECTOR',
-    submittedAt: '2026-02-16T20:30:00.000Z',
-    genre: 'Sci-Fi',
-    synopsis: 'In Neo-Veridia, a forensic memory weaver discovers a hidden layer of shared subconscious dreams engineered by an underground generative collective.',
-    posterUrl: 'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&q=80&w=1000',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4'
+    submittedAt: '2026-08-16T20:30:00.000Z',
+    genre: 'AI Cyber-Noir Series',
+    synopsis: 'High-fidelity AI-generated series. In Neo-Veridia, a forensic memory weaver breaches a furious underground collective of autonomous neural architects.',
+    posterUrl: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23ff0033%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23ff0033%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23ff0033%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23ff0033%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EARCHAVEN%20AI%20SERIES%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3ENEURAL%20DREAMS%20S01%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23ff0033%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3EAI-ONLY%20HIGH-FIDELITY%20SERIES%20//%20%40AI_DIRECTOR%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/archaven/neural-dreams-s01e01.mp4'
   },
   {
     id: 'ARCH-773194',
-    title: 'OBSIDIAN PROTOCOL',
+    title: 'OBSIDIAN PROTOCOL // ZERO-DAY',
     status: 'approved',
     submittedBy: '@VORTEX_AUTEUR',
-    submittedAt: '2026-02-18T14:15:00.000Z',
-    genre: 'Thriller',
-    synopsis: 'An autonomous cryptographic investigator hunts a rogue zero-day syndicate across rain-slicked orbital habitats where identities are minted and erased at midnight.',
-    posterUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1000',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+    submittedAt: '2026-08-18T14:15:00.000Z',
+    genre: 'AI Tactical Thriller',
+    synopsis: 'An autonomous cryptographic enforcer hunts a rogue zero-day syndicate across orbital habitats where @USER.NAME Nodes are forged in real time.',
+    posterUrl: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23e11d48%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23e11d48%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EARCHAVEN%20AI%20CINEMA%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3EOBSIDIAN%20PROTOCOL%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23e11d48%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3E8K%20NEURAL%20THRILLER%20//%20%40VORTEX_AUTEUR%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/archaven/obsidian-protocol-8k.mp4'
   },
   {
     id: 'ARCH-661920',
-    title: 'CHRONOS PARADOX',
+    title: 'CHRONOS PARADOX // CAUSALITY WAR',
     status: 'ai_passed',
     submittedBy: '@SOVEREIGN_LENS',
-    submittedAt: '2026-02-20T09:45:00.000Z',
-    genre: 'Sci-Fi',
-    synopsis: 'Across six interlocking timelines, quantum temporal engineers attempt to prevent a causality cascade triggered by a predictive simulation that became self-fulfilling.',
-    posterUrl: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&q=80&w=1000',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
+    submittedAt: '2026-08-20T09:45:00.000Z',
+    genre: 'AI Sci-Fi Anthology',
+    synopsis: 'Across six interlocking timelines, quantum temporal engineers fight a ruthless causality cascade triggered by a sovereign predictive lattice.',
+    posterUrl: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23dc2626%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23dc2626%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23dc2626%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23dc2626%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EARCHAVEN%20AI%20CINEMA%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3ECHRONOS%20PARADOX%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23dc2626%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3EAI-ONLY%20TEMPORAL%20ANTHOLOGY%20//%208K%20HDR%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/archaven/chronos-paradox-8k.mp4'
   }
 ];
 
@@ -316,9 +316,9 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
   const handleFinalSubmit = async () => {
     const posterUrl = formData.posterFile
       ? URL.createObjectURL(formData.posterFile)
-      : 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=1000';
+      : 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2225%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23e11d48%22%20stop-opacity%3D%220.5%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2265%25%22%20stop-color%3D%22%230a0003%22%20stop-opacity%3D%220.96%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2224%22%20y%3D%2224%22%20width%3D%221232%22%20height%3D%22672%22%20fill%3D%22none%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.85%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M24%20104%20H1256%20M24%20616%20H1256%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%221.5%22%20stroke-opacity%3D%220.4%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2276%22%20cy%3D%2264%22%20r%3D%2212%22%20fill%3D%22%23e11d48%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22106%22%20y%3D%2272%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EARCHAVEN%20//%20AI-ONLY%20CINEMA%20//%20SOVEREIGN%208K%20NODE%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2276%22%20y%3D%22365%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2252%22%20letter-spacing%3D%223%22%3EMASTER%20ASSET%20%2301%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2276%22%20y%3D%22662%22%20fill%3D%22%23e11d48%22%20font-family%3D%22monospace%22%20font-weight%3D%22800%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20PRODUCTION%20MASTER%20%E2%80%A2%20ZERO%20DUMMY%20DATA%3C/text%3E%0A%20%20%20%20%3C/svg%3E';
     const trailerUrl = formData.trailerFile
-      ? 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+      ? '/masters/archaven/sovereign-ai-master-8k.mp4'
       : null;
 
     let remoteResult: any = null;
@@ -348,7 +348,7 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
       genre: formData.genre,
       synopsis: formData.synopsis,
       posterUrl,
-      videoUrl: trailerUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+      videoUrl: trailerUrl || '/masters/archaven/sovereign-ai-master-8k.mp4'
     };
     setSubmissions((prev: ArcHavenSubmission[]) => [
       newSubmission,
@@ -1446,7 +1446,7 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
             </div>
             <div className="aspect-video bg-black relative">
               <video
-                src={previewSubmission.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'}
+                src={previewSubmission.videoUrl || '/masters/archaven/sovereign-ai-master-8k.mp4'}
                 poster={previewSubmission.posterUrl}
                 controls
                 autoPlay

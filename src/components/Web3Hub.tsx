@@ -121,13 +121,14 @@ export default function Web3Hub({ node, setNode, wallet, setWallet, userEmail }:
   };
 
   const finalizeWalletCreation = () => {
-    const mockAddress = '0x' + Array.from({ length: 40 }, () => 
-      Math.floor(Math.random() * 16).toString(16)
+    const seedJoined = wallet.seedPhrase.join('-') || 'SOVEREIGN-INNOVA-NODE';
+    const derivedAddress = '0x' + Array.from({ length: 40 }, (_, idx) =>
+      ((seedJoined.charCodeAt(idx % seedJoined.length) * (idx + 17)) % 16).toString(16)
     ).join('');
 
     setWallet({
       connected: true,
-      address: mockAddress,
+      address: derivedAddress,
       balance: 15750.85,
       seedPhrase: wallet.seedPhrase,
       generating: false,

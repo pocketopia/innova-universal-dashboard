@@ -582,7 +582,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
 
               {/* ArcHaven / Hektic / MVN Viewer Pass */}
               <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-xl p-5 space-y-4 mb-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10"><Tv className="w-24 h-24" /></div>
+                <div className="absolute top-0 right-0 p-4 opacity-15 text-red-500"><svg className="w-24 h-24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg></div>
                 <div className="relative z-10">
                   <span className="text-xs font-bold text-amber-400 tracking-widest block uppercase mb-1">// ENTERTAINMENT VIEWER PASS</span>
                   <p className="text-[10px] text-white/50 mb-4">ArcHaven Cinema, Hektic TV & MVN Music - ad-free 8K streaming with priority routing paths.</p>

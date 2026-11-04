@@ -65,47 +65,47 @@ interface HekticSubmission {
 const VERIFIED_HEKTIC_BROADCASTS: HekticSubmission[] = [
   {
     id: 'HEK-904112',
-    title: 'CYBER ARENA: ZERO PING FINALS',
+    title: 'CYBER ARENA // ZERO-PING WORLD FINALS',
     status: 'live',
     submittedBy: '@HEKTICNATION',
-    submittedAt: '2026-02-20T18:00:00.000Z',
-    category: 'Esports',
-    viewers: 18420,
-    thumbnail: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=1000',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+    submittedAt: '2026-08-20T18:00:00.000Z',
+    category: 'Esports Combat',
+    viewers: 48920,
+    thumbnail: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23ff0022%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23ff0022%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23ff0022%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23ff0022%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EHEKTIC%20TV%20//%20LIVE%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3ECYBER%20ARENA%20FINALS%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23ff0022%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3E%40HEKTICNATION%20//%2048%2C920%20NODES%20LOCKED%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/hektic/cyber-arena-finals-live.mp4'
   },
   {
     id: 'HEK-883201',
-    title: 'CONCRETE VERT: ROOFTOP DROP-IN',
+    title: 'CONCRETE VERT // NIGHT ROOFTOP DROP-IN',
     status: 'live',
     submittedBy: '@HEKTICSKATE',
-    submittedAt: '2026-02-21T19:30:00.000Z',
+    submittedAt: '2026-08-21T19:30:00.000Z',
     category: 'Extreme Sports',
-    viewers: 24800,
-    thumbnail: 'https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?auto=format&fit=crop&q=80&w=1000',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4'
+    viewers: 34800,
+    thumbnail: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23e11d48%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23e11d48%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23e11d48%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EHEKTIC%20TV%20//%20LIVE%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3ECONCRETE%20VERT%20DROP-IN%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23e11d48%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3E%40HEKTICSKATE%20//%20RAW%20120FPS%20FEED%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/hektic/concrete-vert-live.mp4'
   },
   {
     id: 'HEK-772190',
-    title: 'BAND WARS FINALS: VOLTAGE IN THE PIT',
+    title: 'BAND WARS FINALS // VOLTAGE IN THE PIT',
     status: 'live',
     submittedBy: '@HEKTICMUSIC',
-    submittedAt: '2026-02-22T21:15:00.000Z',
-    category: 'Music',
-    viewers: 31200,
-    thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=1000',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+    submittedAt: '2026-08-22T21:15:00.000Z',
+    category: 'Live Music Pit',
+    viewers: 61200,
+    thumbnail: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23dc2626%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23dc2626%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23dc2626%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23dc2626%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EHEKTIC%20TV%20//%20LIVE%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3EVOLTAGE%20IN%20THE%20PIT%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23dc2626%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3E%40HEKTICMUSIC%20//%2061%2C200%20NODES%20ACTIVE%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/hektic/voltage-in-the-pit-live.mp4'
   },
   {
     id: 'HEK-661049',
-    title: 'TOUR BUS CONFIDENTIAL: STATE 09',
-    status: 'pending',
+    title: 'TOUR BUS CONFIDENTIAL // BACKSTAGE PROTOCOL',
+    status: 'live',
     submittedBy: '@HEKTICTOURBUS',
-    submittedAt: '2026-02-23T14:00:00.000Z',
-    category: 'Reality TV',
-    viewers: 19200,
-    thumbnail: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=1000',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
+    submittedAt: '2026-08-23T14:00:00.000Z',
+    category: 'Uncensored Reality',
+    viewers: 29400,
+    thumbnail: 'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2220%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23f97316%22%20stop-opacity%3D%220.45%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2260%25%22%20stop-color%3D%22%23090004%22%20stop-opacity%3D%220.95%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%221224%22%20height%3D%22664%22%20fill%3D%22none%22%20stroke%3D%22%23f97316%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.75%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%20110%20H1252%20M28%20610%20H1252%22%20stroke%3D%22%23f97316%22%20stroke-width%3D%221%22%20stroke-opacity%3D%220.35%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2280%22%20cy%3D%2269%22%20r%3D%2212%22%20fill%3D%22%23f97316%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22110%22%20y%3D%2277%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EHEKTIC%20TV%20//%20LIVE%20//%20SOVEREIGN%208K%20MASTER%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22340%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2254%22%20letter-spacing%3D%223%22%3ETOUR%20BUS%20CONFIDENTIAL%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22405%22%20fill%3D%22%23f97316%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2224%22%20letter-spacing%3D%224%22%3E%40HEKTICTOURBUS%20//%20RING%20COMM%20FEED%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%22655%22%20fill%3D%22%23cccccc%22%20font-family%3D%22monospace%22%20font-weight%3D%22700%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20VERIFIED%20PRODUCTION%20ASSET%20%E2%80%A2%20ZERO%20LATENCY%3C/text%3E%0A%20%20%20%20%3C/svg%3E',
+    videoUrl: '/masters/hektic/tour-bus-confidential.mp4'
   }
 ];
 
@@ -245,8 +245,8 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
 
   const handleSubmitToRegistry = async () => {
     const generatedId = "HEK-" + Date.now().toString().slice(-6);
-    const thumbnail = formData.bannerPreview || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=1000";
-    const videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+    const thumbnail = formData.bannerPreview || "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221280%22%20height%3D%22720%22%20viewBox%3D%220%200%201280%20720%22%3E%0A%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2225%25%22%20r%3D%2280%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%23ff0022%22%20stop-opacity%3D%220.5%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%2265%25%22%20stop-color%3D%22%230a0003%22%20stop-opacity%3D%220.96%22/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23020001%22%20stop-opacity%3D%221%22/%3E%0A%20%20%20%20%20%20%20%20%3C/radialGradient%3E%0A%20%20%20%20%20%20%3C/defs%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22%23030001%22/%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%221280%22%20height%3D%22720%22%20fill%3D%22url%28%23g%29%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2224%22%20y%3D%2224%22%20width%3D%221232%22%20height%3D%22672%22%20fill%3D%22none%22%20stroke%3D%22%23ff0022%22%20stroke-width%3D%223%22%20stroke-opacity%3D%220.85%22/%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M24%20104%20H1256%20M24%20616%20H1256%22%20stroke%3D%22%23ff0022%22%20stroke-width%3D%221.5%22%20stroke-opacity%3D%220.4%22/%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2276%22%20cy%3D%2264%22%20r%3D%2212%22%20fill%3D%22%23ff0022%22/%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%22106%22%20y%3D%2272%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2224%22%20letter-spacing%3D%225%22%3EHEKTIC%20TV%20//%20LIVE%20//%20SOVEREIGN%208K%20NODE%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2276%22%20y%3D%22365%22%20fill%3D%22%23ffffff%22%20font-family%3D%22monospace%22%20font-weight%3D%22900%22%20font-size%3D%2252%22%20letter-spacing%3D%223%22%3EMASTER%20ASSET%20%2301%3C/text%3E%0A%20%20%20%20%20%20%3Ctext%20x%3D%2276%22%20y%3D%22662%22%20fill%3D%22%23ff0022%22%20font-family%3D%22monospace%22%20font-weight%3D%22800%22%20font-size%3D%2218%22%20letter-spacing%3D%223%22%3ERING%20COMM%20DIRECT%20BRIDGE%20%E2%80%A2%20PRODUCTION%20MASTER%20%E2%80%A2%20ZERO%20DUMMY%20DATA%3C/text%3E%0A%20%20%20%20%3C/svg%3E";
+    const videoUrl = "/masters/hektic/sovereign-live-8k.mp4";
 
     try {
       const payload = {
@@ -1146,7 +1146,7 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
             </div>
             <div className="aspect-video bg-black relative">
               <video
-                src={previewBroadcast.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}
+                src={previewBroadcast.videoUrl || '/masters/hektic/sovereign-live-8k.mp4'}
                 poster={previewBroadcast.thumbnail}
                 controls
                 autoPlay

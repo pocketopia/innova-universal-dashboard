@@ -15,3 +15,15 @@ dist-firetv-apk/
 *.apk
 .keystore
 temp-capacitor-*/
+.vercel
+
+# Local TV binary packages (kept on disk, excluded from git push)
+dist-lg-webos/
+dist-samsung-tizen/
+dist-roku/
+dist-firetv/
+dist-firetv-apk/
+distribution/
+*-firetv.zip
+.tmp_*
+temp-capacitor-*

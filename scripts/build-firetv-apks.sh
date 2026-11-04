@@ -164,7 +164,7 @@ open(p, "w").write(s)
     sed -i '' 's/Build.VERSION_CODES.VANILLA_ICE_CREAM/35/g' "$ROOT_DIR/node_modules/@capacitor/android/capacitor/src/main/java/com/getcapacitor/plugin/SystemBars.java" 2>/dev/null || true
 
     cd android
-    ./gradlew assembleRelease
+    ./gradlew --no-daemon assembleRelease
 
     unsigned_apk="app/build/outputs/apk/release/app-release-unsigned.apk"
     aligned_apk="app/build/outputs/apk/release/app-release-aligned.apk"
