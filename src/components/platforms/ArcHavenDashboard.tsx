@@ -81,7 +81,7 @@ const VERIFIED_ARCHAVEN_SUBMISSIONS: ArcHavenSubmission[] = [
     submittedAt: '2026-02-14T18:00:00.000Z',
     genre: 'Sci-Fi',
     synopsis: 'When a deep-space telemetry array awakens a self-architecting neural lattice around Kepler-442b, an autonomous expedition must negotiate with a post-biological civilization.',
-    posterUrl: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23090514'/><stop offset='100%' stop-color='%23a855f7'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>ARCHAVEN // AI CINEMA</text></svg>',
+    posterUrl: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23090514%22/><stop offset=%22100%%22 stop-color=%22%23a855f7%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>ARCHAVEN // AI CINEMA</text></svg>',
     videoUrl: '/masters/innova-sovereign-TearsOfSteel.mp4'
   },
   {
@@ -92,7 +92,7 @@ const VERIFIED_ARCHAVEN_SUBMISSIONS: ArcHavenSubmission[] = [
     submittedAt: '2026-02-16T20:30:00.000Z',
     genre: 'Sci-Fi',
     synopsis: 'In Neo-Veridia, a forensic memory weaver discovers a hidden layer of shared subconscious dreams engineered by an underground generative collective.',
-    posterUrl: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23090514'/><stop offset='100%' stop-color='%23a855f7'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>ARCHAVEN // AI CINEMA</text></svg>',
+    posterUrl: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23090514%22/><stop offset=%22100%%22 stop-color=%22%23a855f7%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>ARCHAVEN // AI CINEMA</text></svg>',
     videoUrl: '/masters/innova-sovereign-Sintel.mp4'
   },
   {
@@ -103,7 +103,7 @@ const VERIFIED_ARCHAVEN_SUBMISSIONS: ArcHavenSubmission[] = [
     submittedAt: '2026-02-18T14:15:00.000Z',
     genre: 'Thriller',
     synopsis: 'An autonomous cryptographic investigator hunts a rogue zero-day syndicate across rain-slicked orbital habitats where identities are minted and erased at midnight.',
-    posterUrl: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23090514'/><stop offset='100%' stop-color='%23a855f7'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>ARCHAVEN // AI CINEMA</text></svg>',
+    posterUrl: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23090514%22/><stop offset=%22100%%22 stop-color=%22%23a855f7%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>ARCHAVEN // AI CINEMA</text></svg>',
     videoUrl: '/masters/innova-sovereign-ForBiggerBlazes.mp4'
   },
   {
@@ -114,7 +114,7 @@ const VERIFIED_ARCHAVEN_SUBMISSIONS: ArcHavenSubmission[] = [
     submittedAt: '2026-02-20T09:45:00.000Z',
     genre: 'Sci-Fi',
     synopsis: 'Across six interlocking timelines, quantum temporal engineers attempt to prevent a causality cascade triggered by a predictive simulation that became self-fulfilling.',
-    posterUrl: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23090514'/><stop offset='100%' stop-color='%23a855f7'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>ARCHAVEN // AI CINEMA</text></svg>',
+    posterUrl: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23090514%22/><stop offset=%22100%%22 stop-color=%22%23a855f7%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>ARCHAVEN // AI CINEMA</text></svg>',
     videoUrl: '/masters/innova-sovereign-ForBiggerEscapes.mp4'
   }
 ];
@@ -316,7 +316,7 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
   const handleFinalSubmit = async () => {
     const posterUrl = formData.posterFile
       ? URL.createObjectURL(formData.posterFile)
-      : 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23090514'/><stop offset='100%' stop-color='%23a855f7'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>ARCHAVEN // AI CINEMA</text></svg>';
+      : 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23090514%22/><stop offset=%22100%%22 stop-color=%22%23a855f7%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>ARCHAVEN // AI CINEMA</text></svg>';
     const trailerUrl = formData.trailerFile
       ? '/masters/innova-sovereign-TearsOfSteel.mp4'
       : null;

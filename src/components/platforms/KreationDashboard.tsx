@@ -64,7 +64,7 @@ const VERIFIED_KREATION_GAMES: IndieGame[] = [
     systemRequirements: 'Kreation Cloud Shard v4.0 • 120FPS 4K Stream',
     status: 'published',
     submittedAt: '2026-03-14T00:00:00.000Z',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2304120e'/><stop offset='100%' stop-color='%2310b981'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>KREATION // GAMING</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%2304120e%22/><stop offset=%22100%%22 stop-color=%22%2310b981%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>KREATION // GAMING</text></svg>',
     videoUrl: '/masters/innova-sovereign-TearsOfSteel.mp4',
     rating: 4.9,
     downloads: 18420
@@ -77,7 +77,7 @@ const VERIFIED_KREATION_GAMES: IndieGame[] = [
     systemRequirements: 'Kreation Cloud Shard v4.0 • 16GB Virtual VRAM',
     status: 'published',
     submittedAt: '2026-02-20T00:00:00.000Z',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2304120e'/><stop offset='100%' stop-color='%2310b981'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>KREATION // GAMING</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%2304120e%22/><stop offset=%22100%%22 stop-color=%22%2310b981%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>KREATION // GAMING</text></svg>',
     videoUrl: '/masters/innova-sovereign-Sintel.mp4',
     rating: 4.9,
     downloads: 14210
@@ -90,7 +90,7 @@ const VERIFIED_KREATION_GAMES: IndieGame[] = [
     systemRequirements: 'Kreation Cloud Shard v4.0 • Sub-8ms Telemetry',
     status: 'approved',
     submittedAt: '2026-06-01T00:00:00.000Z',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2304120e'/><stop offset='100%' stop-color='%2310b981'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>KREATION // GAMING</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%2304120e%22/><stop offset=%22100%%22 stop-color=%22%2310b981%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>KREATION // GAMING</text></svg>',
     videoUrl: '/masters/innova-sovereign-ForBiggerBlazes.mp4',
     rating: 4.8,
     downloads: 11950
@@ -103,7 +103,7 @@ const VERIFIED_KREATION_GAMES: IndieGame[] = [
     systemRequirements: 'Kreation Cloud Shard v4.0 • WASM Container',
     status: 'published',
     submittedAt: '2026-01-29T00:00:00.000Z',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2304120e'/><stop offset='100%' stop-color='%2310b981'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>KREATION // GAMING</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%2304120e%22/><stop offset=%22100%%22 stop-color=%22%2310b981%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>KREATION // GAMING</text></svg>',
     videoUrl: '/masters/innova-sovereign-ElephantsDream.mp4',
     rating: 4.9,
     downloads: 9840
@@ -116,7 +116,7 @@ const VERIFIED_KREATION_GAMES: IndieGame[] = [
     systemRequirements: 'Kreation Cloud Shard v4.0 • Indie Spotlight',
     status: 'approved',
     submittedAt: '2026-07-01T00:00:00.000Z',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2304120e'/><stop offset='100%' stop-color='%2310b981'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>KREATION // GAMING</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%2304120e%22/><stop offset=%22100%%22 stop-color=%22%2310b981%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>KREATION // GAMING</text></svg>',
     videoUrl: '/masters/innova-sovereign-ForBiggerEscapes.mp4',
     rating: 4.8,
     downloads: 6410
@@ -210,7 +210,7 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
       systemRequirements: formData.systemRequirements || 'Kreation Cloud Shard v4.0 • 16GB Virtual VRAM',
       status: 'pending_review',
       submittedAt: new Date().toISOString(),
-      thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2304120e'/><stop offset='100%' stop-color='%2310b981'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>KREATION // GAMING</text></svg>',
+      thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%2304120e%22/><stop offset=%22100%%22 stop-color=%22%2310b981%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>KREATION // GAMING</text></svg>',
       videoUrl: '/masters/innova-sovereign-TearsOfSteel.mp4',
       rating: 4.9,
       downloads: 1

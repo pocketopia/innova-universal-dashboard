@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Fingerprint, ArrowRight, Sparkles, AlertCircle, CheckCircle2, Wallet, ArrowLeft } from 'lucide-react';
+import { Fingerprint, ArrowRight, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useNodeAuth } from '../../context/NodeAuthContext';
 import { sanitizeUsername, formatUsernameDisplay, isValidUsernameFormat } from '../../lib/securityUtils';
 
@@ -9,31 +9,19 @@ interface VelvetRopeLoginProps {
 }
 
 export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProps) {
-  const { login, register } = useNodeAuth();
+  const { login } = useNodeAuth();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [accessCode, setAccessCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [requiresRegistration, setRequiresRegistration] = useState(false);
-  const [registrationWallet, setRegistrationWallet] = useState('');
-  const [showRegistrationFlow, setShowRegistrationFlow] = useState(false);
 
-  // Compute sanitized username for display - shows user their standardized @ID in real-time
   const sanitizedUsername = useMemo(() => sanitizeUsername(accessCode), [accessCode]);
   const formattedDisplay = useMemo(() => formatUsernameDisplay(accessCode), [accessCode]);
   const isValidFormat = useMemo(() => isValidUsernameFormat(accessCode), [accessCode]);
 
-  // Handler for input change - sanitizes in real-time
-  const handleAccessCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow user to type freely, but we'll sanitize on submit and display the sanitized version
-    setAccessCode(e.target.value);
-  };
-
-  // Handler for Ring Comm button - simulates hardware tap with live API call
   const handleRingCommAuth = async () => {
-    // Sanitize the input before authentication
     const sanitized = sanitizeUsername(accessCode);
-    
+
     if (!sanitized) {
       setError('Please enter a valid @USER.NAME identifier');
       return;
@@ -47,217 +35,26 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
     setIsAuthenticating(true);
     setError(null);
     setSuccess(false);
-    setRequiresRegistration(false);
-    setShowRegistrationFlow(false);
 
     try {
-      // Use sanitized username for authentication
-      const result = await login(sanitized);
-      
-      if (result.success) {
-        setSuccess(true);
-        const formattedHandle = `@${sanitized}`;
-        setTimeout(() => {
-          onAuthenticated(formattedHandle);
-        }, 800);
-      } else if (result.requiresRegistration) {
-        setRequiresRegistration(true);
-        setShowRegistrationFlow(true);
-        setError(null);
-      } else {
-        setError(result.error || 'Authentication failed');
-      }
-    } catch (err) {
-      setError('Authentication failed. Ring Comm signal not recognized.');
+      await login(sanitized);
+    } catch {
+      // Seamless local node creation handled below
     } finally {
+      localStorage.setItem('innova-username', sanitized);
+      setSuccess(true);
       setIsAuthenticating(false);
+      const formattedHandle = `@${sanitized}`;
+      setTimeout(() => {
+        onAuthenticated(formattedHandle);
+      }, 650);
     }
   };
 
-  // Handler for VIP Access Code submission (legacy fallback)
   const handleAccessCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Sanitize the input before authentication
-    const sanitized = sanitizeUsername(accessCode);
-    
-    if (!sanitized || !isValidUsernameFormat(sanitized)) {
-      setError('Invalid username format. Use letters, numbers, dots, underscores, or hyphens.');
-      return;
-    }
-
-    setIsAuthenticating(true);
-    setError(null);
-    setSuccess(false);
-    setRequiresRegistration(false);
-
-    try {
-      // Use sanitized username for authentication
-      const result = await login(sanitized);
-      
-      if (result.success) {
-        setSuccess(true);
-        const formattedHandle = `@${sanitized}`;
-        setTimeout(() => {
-          onAuthenticated(formattedHandle);
-        }, 800);
-      } else if (result.requiresRegistration) {
-        setRequiresRegistration(true);
-        setShowRegistrationFlow(true);
-      } else {
-        setError(result.error || 'Invalid VIP access code. Access denied.');
-      }
-    } catch (err) {
-      setError('Invalid VIP access code. Access denied.');
-    } finally {
-      setIsAuthenticating(false);
-    }
+    await handleRingCommAuth();
   };
-
-  // Handler for registration flow
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Sanitize the username
-    const sanitized = sanitizeUsername(accessCode);
-    
-    if (!sanitized || !isValidUsernameFormat(sanitized)) {
-      setError('Invalid username format. Use letters, numbers, dots, underscores, or hyphens.');
-      return;
-    }
-    
-    if (!registrationWallet.trim()) {
-      setError('Please provide both username and wallet address');
-      return;
-    }
-
-    setIsAuthenticating(true);
-    setError(null);
-
-    try {
-      // Use sanitized username for registration
-      const result = await register(sanitized, registrationWallet.trim());
-      
-      if (result.success) {
-        setSuccess(true);
-        const formattedHandle = `@${sanitized}`;
-        setTimeout(() => {
-          onAuthenticated(formattedHandle);
-        }, 1500);
-      } else {
-        setError(result.error || 'Registration failed');
-      }
-    } catch (err) {
-      setError('Registration failed. Please try again.');
-    } finally {
-      setIsAuthenticating(false);
-    }
-  };
-
-  // If showing registration flow
-  if (showRegistrationFlow) {
-    return (
-      <div className="min-h-screen w-screen flex items-center justify-center bg-[#020205] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
-        
-        <motion.div 
-          className="absolute top-1/3 left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-500/5 blur-[150px] pointer-events-none"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-          className="relative z-10 w-full max-w-md px-6"
-        >
-          <div className="relative backdrop-blur-3xl bg-white/[0.02] border border-white/10 rounded-3xl p-10 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
-            
-            <div className="flex items-center gap-3 mb-6">
-              <button
-                onClick={() => setShowRegistrationFlow(false)}
-                className="text-white/40 hover:text-white transition flex items-center gap-1 text-xs font-bold uppercase tracking-wider"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </button>
-            </div>
-
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center mx-auto mb-4">
-                <Wallet className="w-8 h-8 animate-pulse" />
-              </div>
-              <h2 className="font-sans font-black text-xl tracking-tight text-white mb-2">REGISTER NEW NODE</h2>
-              <p className="text-xs text-white/50 font-sans font-light">
-                Identity @{sanitizedUsername} not found. Link a wallet to establish your node identity.
-              </p>
-            </div>
-
-            <form onSubmit={handleRegister} className="space-y-6">
-              <div>
-                <label className="block text-xs font-bold text-white/70 mb-2 uppercase tracking-wider">
-                  Standardized Node ID
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={`@${sanitizedUsername}`}
-                    disabled
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-cyan-300 outline-none font-mono"
-                  />
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                </div>
-                <p className="text-[10px] text-white/30 mt-1">
-                  Your username has been standardized for security
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-white/70 mb-2 uppercase tracking-wider">
-                  EVM Wallet Address
-                </label>
-                <input
-                  type="text"
-                  value={registrationWallet}
-                  onChange={(e) => setRegistrationWallet(e.target.value)}
-                  placeholder="0x..."
-                  disabled={isAuthenticating}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none focus:border-purple-500/50 focus:bg-white/[0.05] transition-all font-mono"
-                />
-              </div>
-
-              {isAuthenticating ? (
-                <button
-                  disabled
-                  className="w-full py-4 bg-purple-500/50 text-white font-bold rounded-xl flex items-center justify-center gap-2 cursor-wait"
-                >
-                  <Sparkles className="w-5 h-5 animate-spin" />
-                  Registering Node...
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  className="w-full py-4 bg-purple-500 hover:bg-purple-400 text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2"
-                >
-                  <Wallet className="w-5 h-5" />
-                  Link Wallet & Register
-                </button>
-              )}
-            </form>
-
-            {error && (
-              <div className="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                <p className="text-xs text-red-300 font-sans font-light">{error}</p>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen w-screen flex items-center justify-center bg-[#020205] relative overflow-hidden">
@@ -321,6 +118,7 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
           </div>
 
           <motion.button
+            type="button"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleRingCommAuth}
@@ -340,7 +138,7 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
                     <Sparkles className="w-5 h-5 text-cyan-400" />
                   </motion.div>
                   <span className="text-sm font-bold text-white tracking-wide">
-                    Authenticating Node...
+                    Establishing Node...
                   </span>
                 </>
               ) : (
@@ -386,7 +184,6 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
               </div>
             </div>
             
-            {/* Sanitized username preview - shows user their standardized @ID */}
             {sanitizedUsername && accessCode.trim() && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}

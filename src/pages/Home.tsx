@@ -45,7 +45,7 @@ export default function Home() {
         category: foundProject.genre || 'Cinematic Weddings',
         creator: foundProject.creator || 'Aura Cinematic',
         description: foundProject.synopsis || foundProject.description || '',
-        thumbnailUrl: foundProject.thumbnail || 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g1' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23050814'/><stop offset='50%' stop-color='%230f172a'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g1)'/><circle cx='650' cy='120' r='180' fill='%2306b6d4' fill-opacity='0.12'/><text x='48' y='360' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='28' letter-spacing='4'>INNOVA // SOVEREIGN STREAM</text><text x='48' y='395' fill='%2322d3ee' font-family='monospace' font-weight='700' font-size='14' letter-spacing='3'>MASTER_NODE_4K_HDR</text></svg>',
+        thumbnailUrl: foundProject.thumbnail || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>INNOVA // STREAM</text></svg>',
         duration: '06:12',
         releaseYear: '2026',
         tags: ["UHD 4K", "Dolby Atmos", "Director Cut"]

@@ -34,7 +34,7 @@ const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [
     duration: '3:00',
     status: 'syndicated',
     submittedAt: '2025-02-14',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23050814'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>MVN // MUSIC VIDEO NET</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
     videoUrl: '/masters/innova-sovereign-ForBiggerBlazes.mp4'
   },
   {
@@ -45,7 +45,7 @@ const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [
     duration: '4:00',
     status: 'syndicated',
     submittedAt: '2025-02-16',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23050814'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>MVN // MUSIC VIDEO NET</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
     videoUrl: '/masters/innova-sovereign-ForBiggerJoy.mp4'
   },
   {
@@ -56,7 +56,7 @@ const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [
     duration: '4:10',
     status: 'qc_passed',
     submittedAt: '2025-02-18',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23050814'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>MVN // MUSIC VIDEO NET</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
     videoUrl: '/masters/innova-sovereign-SubaruOutbackSeeTheWorld.mp4'
   },
   {
@@ -67,7 +67,7 @@ const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [
     duration: '5:00',
     status: 'syndicated',
     submittedAt: '2025-02-19',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23050814'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>MVN // MUSIC VIDEO NET</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
     videoUrl: '/masters/innova-sovereign-ForBiggerEscapes.mp4'
   },
   {
@@ -78,7 +78,7 @@ const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [
     duration: '3:30',
     status: 'qc_passed',
     submittedAt: '2025-02-20',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23050814'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>MVN // MUSIC VIDEO NET</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
     videoUrl: '/masters/innova-sovereign-ForBiggerFun.mp4'
   },
   {
@@ -89,7 +89,7 @@ const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [
     duration: '5:20',
     status: 'pending_qc',
     submittedAt: '2025-02-22',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23050814'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><rect width='800' height='450' fill='url(%23g)'/><text x='48' y='230' fill='%23ffffff' font-family='sans-serif' font-weight='900' font-size='26' letter-spacing='4'>MVN // MUSIC VIDEO NET</text></svg>',
+    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
     videoUrl: '/masters/innova-sovereign-WeAreGoingOnBullrun.mp4'
   }
 ];

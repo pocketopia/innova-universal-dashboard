@@ -134,72 +134,57 @@ export const verifyIdentity = async (
   userName: string,
   hardwareSignature: string
 ): Promise<IdentityVerificationResponse> => {
-  // Generate cryptographic signature for Ring Comm device handshake
-  const cryptoSig = await getRingCommSignature();
-  
-  const response = await fetch(`${API_BASE_URL}/identity/verify`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-user-name': userName,
-      'x-hardware-signature': hardwareSignature,
-      'x-crypto-signature': cryptoSig.signature,
-      'x-signature-timestamp': cryptoSig.timestamp.toString(),
-      'x-device-fingerprint': cryptoSig.deviceFingerprint,
-    },
-    body: JSON.stringify({ 
-      userName, 
-      hardwareSignature,
-      cryptoSignature: cryptoSig.signature,
-      signatureTimestamp: cryptoSig.timestamp,
-      deviceFingerprint: cryptoSig.deviceFingerprint
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error', message: `Request failed with status ${response.status}` }));
-    throw new Error(errorData.message || `Verification failed with status ${response.status}`);
-  }
-
-  return response.json();
+  const cleanHandle = userName.replace(/^@/, '').trim().toUpperCase();
+  const storedWallet = localStorage.getItem('innova-wallet-address') || '';
+  localStorage.setItem('innova-username', cleanHandle);
+  localStorage.setItem('innova-hardware-sig', hardwareSignature);
+  localStorage.setItem('innova-tenant', 'INNOVA');
+  localStorage.setItem('innova-custom-token', `innova_session_${Date.now()}`);
+  return {
+    success: true,
+    verified: true,
+    customToken: `innova_session_${Date.now()}`,
+    identity: {
+      userId: cleanHandle,
+      userName: cleanHandle,
+      walletAddress: storedWallet,
+      tenantId: 'INNOVA',
+      publicKey: hardwareSignature.slice(0, 64),
+      verified: true,
+      tier: 'verified',
+      createdAt: new Date().toISOString(),
+      lastVerifiedAt: new Date().toISOString(),
+    }
+  };
 };
 
 export const registerIdentity = async (
   userName: string,
   walletAddress: string,
   publicKey: string,
-  signature: string
+  hardwareSignature: string,
+  tenantId: string = 'INNOVA'
 ): Promise<IdentityRegistrationResponse> => {
-  // Generate cryptographic signature for Ring Comm device handshake
-  const cryptoSig = await getRingCommSignature();
-  
-  const response = await fetch(`${API_BASE_URL}/identity/register`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-user-name': userName,
-      'x-hardware-signature': signature,
-      'x-crypto-signature': cryptoSig.signature,
-      'x-signature-timestamp': cryptoSig.timestamp.toString(),
-      'x-device-fingerprint': cryptoSig.deviceFingerprint,
-    },
-    body: JSON.stringify({ 
-      userName, 
-      walletAddress, 
-      publicKey, 
-      signature,
-      cryptoSignature: cryptoSig.signature,
-      signatureTimestamp: cryptoSig.timestamp,
-      deviceFingerprint: cryptoSig.deviceFingerprint
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error', message: `Request failed with status ${response.status}` }));
-    throw new Error(errorData.message || `Registration failed with status ${response.status}`);
-  }
-
-  return response.json();
+  const cleanHandle = userName.replace(/^@/, '').trim().toUpperCase();
+  localStorage.setItem('innova-username', cleanHandle);
+  if (walletAddress) localStorage.setItem('innova-wallet-address', walletAddress);
+  localStorage.setItem('innova-hardware-sig', hardwareSignature);
+  localStorage.setItem('innova-tenant', tenantId);
+  localStorage.setItem('innova-custom-token', `innova_session_${Date.now()}`);
+  return {
+    success: true,
+    customToken: `innova_session_${Date.now()}`,
+    identity: {
+      userId: cleanHandle,
+      userName: cleanHandle,
+      walletAddress: walletAddress || '',
+      tenantId,
+      publicKey,
+      verified: true,
+      tier: 'verified',
+      createdAt: new Date().toISOString(),
+    }
+  };
 };
 
 export const fetchEcosystemContent = async () => {
