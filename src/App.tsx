@@ -1,3 +1,5 @@
+import InnovaTelegramModal from './components/InnovaTelegramModal';
+import { loadTelegramMessages, sendTelegramMessage, getTelegramNotificationsEnabled, setTelegramNotificationsEnabled } from './lib/innovaTelegramDb';
 import { subscribeToCrossDeviceBondSync, verifyOrClaimNodeOnDevice } from './lib/deviceBondRegistry';
 import { getStoredGlobalSubmissions, updateGlobalSubmissionStatus } from './lib/mediaVault';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -84,6 +86,16 @@ export default function App() {
   const [onboardingSlide, setOnboardingSlide] = useState(0);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showTelegram, setShowTelegram] = useState(false);
+  const [telegramUnread, setTelegramUnread] = useState<number>(() => loadTelegramMessages().filter(m => !m.trashed && !m.read).length);
+  useEffect(() => {
+    const syncTg = () => setTelegramUnread(loadTelegramMessages().filter(m => !m.trashed && !m.read).length);
+    window.addEventListener('storage', syncTg);
+    window.addEventListener('innova-telegram-updated', syncTg);
+    let bc: BroadcastChannel | null = null;
+    try { bc = new BroadcastChannel('innova_telegram_sync'); bc.onmessage = () => syncTg(); } catch {}
+    return () => { window.removeEventListener('storage', syncTg); window.removeEventListener('innova-telegram-updated', syncTg); if (bc) bc.close(); };
+  }, []);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [showLegal, setShowLegal] = useState(false);
   const [agreedToS, setAgreedToS] = useState(false);
@@ -435,6 +447,12 @@ export default function App() {
               </div>
               <div className="flex items-center gap-4">
 
+                <button onClick={() => setShowTelegram(true)} className="cursor-pointer bg-red-600/20 hover:bg-red-600 border-2 border-red-500/50 text-white px-4 py-2 rounded-xl text-xs font-black tracking-wider uppercase transition flex items-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.25)]">
+                  <span>✉️ Innova Telegram</span>
+                  {telegramUnread > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-black">{telegramUnread}</span>
+                  )}
+                </button>
                 <button onClick={() => setShowSettings(true)} className="cursor-pointer bg-gradient-to-r from-cyan-600/20 to-purple-600/20 border border-cyan-500/30 text-cyan-400 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition flex items-center gap-2">
                   <CreditCard className="w-3.5 h-3.5" /> Identity / Wallet & Billing Center
                 </button>
@@ -767,6 +785,16 @@ export default function App() {
 
       {appState === 'activate' && (
         <DeviceActivation />
+      )}
+
+      {showTelegram && (
+        <InnovaTelegramModal
+          currentUserHandle={displayUsername}
+          onClose={() => {
+            setShowTelegram(false);
+            setTelegramUnread(loadTelegramMessages().filter(m => !m.trashed && !m.read).length);
+          }}
+        />
       )}
 
       {showSettings && (

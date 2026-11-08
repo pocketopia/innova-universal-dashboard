@@ -21,6 +21,7 @@ const pairingRoutes = require('./routes/pairing');
 const subscriptionRoutes = require('./routes/subscriptions');
 const deletionRoutes = require('./routes/deletion');
 const submissionRoutes = require('./routes/submissions');
+const telegramRoutes = require('./routes/telegram');
 const adminRoutes = require('./routes/admin');
 const messageRoutes = require('./routes/messages');
 const streamshareRoutes = require('./routes/streamshare');
@@ -151,6 +152,7 @@ app.use('/api/device', deviceRoutes);
 // Submission routes (content submission and retrieval)
 // Note: /api/submissions/taxonomies is handled by the submissions router
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/telegram', telegramRoutes);
 
 // Message routes (real-time messaging REST API)
 app.use('/api/messages', messageRoutes);

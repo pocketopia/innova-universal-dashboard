@@ -1,14 +1,10 @@
 node_modules
-temp-capacitor-*
-.tmp_*
 dist-firetv
 dist-firetv-apk
 dist-lg-webos
-dist-samsung-tizen
 dist-roku
-distribution
+dist-samsung-tizen
+assets/tv-platform-edits
 *.apk
-*.zip
-*.wgt
 *.keystore
-.git
+*.db

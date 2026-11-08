@@ -13,6 +13,42 @@ const taxonomies = JSON.parse(fs.readFileSync(taxonomiesPath, 'utf8'));
 /**
  * Get platform configuration
  */
+
+/**
+ * Strict Format, Codec & Pre-Mounted Cloud Shard Gatekeeper
+ * Rejects unsupported video containers (.avi, .wmv, .mkv, .flv) and raw desktop binaries (.exe, .dmg, .pkg, .iso)
+ */
+function validateMediaFormatAndPayload(data, platform) {
+  const errors = [];
+  const p = (platform || '').toLowerCase();
+  const mediaUrl = String(data.videoUrl || data.media_url || data.streamUrl || data.playUrl || '').trim();
+  const thumbUrl = String(data.thumbnail || data.thumbnail_url || data.posterUrl || '').trim();
+
+  const forbiddenExts = /\.(exe|dmg|pkg|msi|bat|sh|iso|avi|wmv|flv|mkv|mov_raw)(\?.*)?$/i;
+  if (forbiddenExts.test(mediaUrl)) {
+    errors.push('FORMAT REJECTED: Unsupported binary or legacy video container. Video platforms require H.264/MP4, WebM, or HLS (.m3u8); Kreation requires a pre-mounted HTML5/WebGL2/WASM Cloud Shard URL.');
+  }
+
+  if (p === 'kreation') {
+    const validGameTarget = /^(https?:\/\/|vault:\/\/|blob:|data:|\/|\.\/).+/i;
+    if (mediaUrl && !validGameTarget.test(mediaUrl)) {
+      errors.push('KREATION SHARD REJECTED: Game must be a pre-hosted Cloud Shard URL (WebGL2/HTML5/WASM) for 0-download instant TV play.');
+    }
+  } else {
+    const validVideoExt = /\.(mp4|webm|m3u8|mov)(\?.*)?$/i;
+    const isStreamProtocol = /^(https?:\/\/|vault:\/\/|blob:|data:)/i.test(mediaUrl);
+    if (mediaUrl && !isStreamProtocol && !validVideoExt.test(mediaUrl)) {
+      errors.push('VIDEO FORMAT REJECTED: Must be a web-streamable MP4 (H.264/AAC), WebM, or HLS (.m3u8) stream.');
+    }
+  }
+
+  if (thumbUrl && /\.(exe|bmp|tiff|psd|ai)(\?.*)?$/i.test(thumbUrl)) {
+    errors.push('ARTWORK REJECTED: Cover art must be .png, .jpg, .jpeg, or .webp.');
+  }
+
+  return errors;
+}
+
 function getPlatformConfig(platform) {
   return taxonomies.platforms[platform.toLowerCase()];
 }

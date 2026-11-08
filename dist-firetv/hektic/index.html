@@ -1,14 +1,443 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
   <head>
+    <style id="firetv-angry-focus-style">
+      *:focus, *:focus-visible, [data-tv-focused="true"] {
+        outline: 3px solid #ef4444 !important;
+        outline-offset: 3px !important;
+        box-shadow: 0 0 26px rgba(239, 68, 68, 0.95), inset 0 0 12px rgba(239, 68, 68, 0.45) !important;
+        transition: outline 0.1s ease, box-shadow 0.15s ease, transform 0.15s ease !important;
+      }
+    </style>
+    <script id="firetv-boot-shield">
+      window.global = window;
+      window.process = window.process || { env: { NODE_ENV: 'production', API_KEY: '', GEMINI_API_KEY: '', VITE_API_URL: '' } };
+      
+      if (window.location.hash && window.location.hash.indexOf('/play/empty') !== -1) { window.location.hash = '#/'; }
+
+      (function() {
+        var SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [role="button"], .cursor-pointer';
+        var lastFocusedEl = null;
+
+        function setVisualFocus(el) {
+          var prev = document.querySelectorAll('[data-tv-focused="true"]');
+          for (var i = 0; i < prev.length; i++) {
+            if (prev[i] !== el) prev[i].removeAttribute('data-tv-focused');
+          }
+          if (el) {
+            lastFocusedEl = el;
+            el.setAttribute('data-tv-focused', 'true');
+            try { el.focus({ preventScroll: true }); } catch (e) {}
+            try { el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }); } catch (e) {}
+            reportFocusToSimulator(el);
+          }
+        }
+
+        function hydrateFocusableNodes() {
+          var rawNodes = Array.prototype.slice.call(document.querySelectorAll(SELECTOR));
+          var valid = [];
+
+          for (var i = 0; i < rawNodes.length; i++) {
+            var el = rawNodes[i];
+            var style = window.getComputedStyle(el);
+            if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity) === 0) continue;
+
+            // Skip container divs if they already contain a real focusable button/link child
+            if (el.tagName === 'DIV' || el.tagName === 'SECTION' || el.tagName === 'HEADER') {
+              var hasInteractiveChild = el.querySelector('a[href], button:not([disabled]), input:not([disabled]), [role="button"]');
+              if (hasInteractiveChild) continue;
+            }
+
+            var r = el.getBoundingClientRect();
+            if (r.width > 16 && r.height > 16) {
+              if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+              valid.push({
+                el: el,
+                rect: r,
+                cx: r.left + window.scrollX + r.width / 2,
+                cy: r.top + window.scrollY + r.height / 2
+              });
+            }
+          }
+
+          // Sort top-to-bottom, left-to-right in document coordinates so fallback order is always natural
+          valid.sort(function(a, b) {
+            if (Math.abs(a.cy - b.cy) > 18) return a.cy - b.cy;
+            return a.cx - b.cx;
+          });
+          return valid;
+        }
+
+        function reportFocusToSimulator(el) {
+          if (!el) return;
+          try {
+            var raw = (el.innerText || el.getAttribute('aria-label') || el.getAttribute('title') || el.id || el.tagName || 'ITEM').trim();
+            var label = raw.split('\n').join(' ').replace(/\s+/g, ' ').slice(0, 38);
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ type: 'FIRETV_FOCUS_UPDATE', label: label || el.tagName }, '*');
+            }
+          } catch (e) {}
+        }
+
+        function ensureInitialFocus() {
+          var items = hydrateFocusableNodes();
+          if (!items.length) return;
+          if (!lastFocusedEl || !document.body.contains(lastFocusedEl)) {
+            setVisualFocus(items[0].el);
+          }
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+          setTimeout(ensureInitialFocus, 300);
+          var obs = new MutationObserver(function() {
+            hydrateFocusableNodes();
+            if (!lastFocusedEl || !document.body.contains(lastFocusedEl)) {
+              ensureInitialFocus();
+            }
+          });
+          obs.observe(document.documentElement, { childList: true, subtree: true });
+        });
+
+        // Also update lastFocusedEl if the user clicks or tabs directly inside the page
+        window.addEventListener('focusin', function(e) {
+          if (e.target && e.target !== document.body && e.target !== document.documentElement) {
+            setVisualFocus(e.target);
+          }
+        }, true);
+
+        function findNext2D(items, curItem, dir) {
+          var best = null;
+          var bestScore = Infinity;
+
+          for (var i = 0; i < items.length; i++) {
+            var cand = items[i];
+            if (cand.el === curItem.el) continue;
+            if (cand.el.contains(curItem.el) || curItem.el.contains(cand.el)) continue;
+
+            var dx = cand.cx - curItem.cx;
+            var dy = cand.cy - curItem.cy;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 14) continue;
+
+            var inDir = false;
+            var primary = 0;
+            var secondary = 0;
+
+            if (dir === 'UP' && dy < -10) { inDir = true; primary = -dy; secondary = Math.abs(dx); }
+            else if (dir === 'DOWN' && dy > 10) { inDir = true; primary = dy; secondary = Math.abs(dx); }
+            else if (dir === 'LEFT' && dx < -10) { inDir = true; primary = -dx; secondary = Math.abs(dy); }
+            else if (dir === 'RIGHT' && dx > 10) { inDir = true; primary = dx; secondary = Math.abs(dy); }
+
+            if (!inDir) continue;
+
+            // For LEFT/RIGHT, prefer items on the same horizontal row; if none on same row, allow stepping to next/prev row
+            var crossWeight = (dir === 'LEFT' || dir === 'RIGHT') ? 3.5 : 1.35;
+            var score = primary + secondary * crossWeight;
+            if (score < bestScore) {
+              bestScore = score;
+              best = cand.el;
+            }
+          }
+
+          if (best) return best;
+
+          // Fallback: step through the top-to-bottom, left-to-right sorted array so focus NEVER gets stuck!
+          var idx = items.indexOf(curItem);
+          if (dir === 'DOWN' || dir === 'RIGHT') {
+            return items[(idx + 1) % items.length].el;
+          } else {
+            return items[(idx - 1 + items.length) % items.length].el;
+          }
+        }
+
+        function handleRemoteAction(action, origEvent) {
+          var items = hydrateFocusableNodes();
+          if (!items.length) return;
+
+          var active = (document.activeElement && document.activeElement !== document.body && document.activeElement !== document.documentElement)
+            ? document.activeElement
+            : lastFocusedEl;
+
+          var isTextInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
+
+          if (action === 'PLAY_PAUSE') {
+            if (origEvent) origEvent.preventDefault();
+            var vid = document.querySelector('video');
+            if (vid) {
+              if (vid.paused) vid.play().catch(function(){});
+              else vid.pause();
+            } else if (active && typeof active.click === 'function') {
+              active.click();
+            }
+            return;
+          }
+          if (action === 'REWIND' || action === 'FAST_FORWARD') {
+            if (origEvent) origEvent.preventDefault();
+            var v = document.querySelector('video');
+            if (v) {
+              v.currentTime = Math.max(0, v.currentTime + (action === 'FAST_FORWARD' ? 10 : -10));
+            }
+            return;
+          }
+
+          if (action === 'BACK') {
+            if (isTextInput) {
+              active.blur();
+              return;
+            }
+            if (origEvent) origEvent.preventDefault();
+            if (window.location.hash && window.location.hash !== '#/' && window.location.hash !== '#') {
+              window.location.hash = '#/';
+            } else {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              setVisualFocus(items[0].el);
+            }
+            return;
+          }
+
+          if (action === 'SELECT') {
+            if (active && document.body.contains(active)) {
+              if (origEvent && active.tagName !== 'INPUT' && active.tagName !== 'SELECT') {
+                origEvent.preventDefault();
+              }
+              if (typeof active.click === 'function') active.click();
+            } else {
+              setVisualFocus(items[0].el);
+            }
+            return;
+          }
+
+          if (['UP', 'DOWN', 'LEFT', 'RIGHT'].indexOf(action) !== -1) {
+            if (origEvent) origEvent.preventDefault();
+            var curItem = null;
+            for (var i = 0; i < items.length; i++) {
+              if (items[i].el === active || items[i].el === lastFocusedEl) {
+                curItem = items[i];
+                break;
+              }
+            }
+            if (!curItem) {
+              setVisualFocus(items[0].el);
+              return;
+            }
+            var nextEl = findNext2D(items, curItem, action);
+            if (nextEl) {
+              setVisualFocus(nextEl);
+            }
+          }
+        }
+
+        window.addEventListener('keydown', function(e) {
+          var k = e.key;
+          var c = e.keyCode || e.which;
+          if (k === 'ArrowUp' || c === 38 || c === 19) handleRemoteAction('UP', e);
+          else if (k === 'ArrowDown' || c === 40 || c === 20) handleRemoteAction('DOWN', e);
+          else if (k === 'ArrowLeft' || c === 37 || c === 21) handleRemoteAction('LEFT', e);
+          else if (k === 'ArrowRight' || c === 39 || c === 22) handleRemoteAction('RIGHT', e);
+          else if (k === 'Enter' || c === 13 || c === 23) handleRemoteAction('SELECT', e);
+          else if (k === 'Escape' || k === 'Backspace' || k === 'GoBack' || c === 4 || c === 27) handleRemoteAction('BACK', e);
+          else if (k === 'MediaPlayPause' || k === ' ' || c === 179 || c === 85) {
+            var act = document.activeElement;
+            if (act && (act.tagName === 'INPUT' || act.tagName === 'TEXTAREA')) return;
+            if (c === 179 || k === 'MediaPlayPause') handleRemoteAction('PLAY_PAUSE', e);
+          }
+          else if (k === 'MediaRewind' || c === 227 || c === 89) handleRemoteAction('REWIND', e);
+          else if (k === 'MediaFastForward' || c === 228 || c === 90) handleRemoteAction('FAST_FORWARD', e);
+        }, true);
+
+        window.addEventListener('message', function(e) {
+          
+        window.addEventListener('message', function(e) {
+          if (e.data && e.data.type === 'INNOVA_CONTENT_PUSH') {
+            try {
+              var cur = JSON.parse(localStorage.getItem('innova-global-media-submissions-v1') || '[]');
+              cur.unshift(e.data.item);
+              localStorage.setItem('innova-global-media-submissions-v1', JSON.stringify(cur));
+              if (e.data.item.tenant === 'Kreation') {
+                var kg = JSON.parse(localStorage.getItem('kreation_games') || '[]');
+                kg.unshift({
+                  id: e.data.item.id,
+                  title: e.data.item.title,
+                  category: e.data.item.genre || 'Adventure Open World',
+                  developer: e.data.item.creator || 'Kreation Cloud Studios',
+                  releaseDate: 'LIVE NOW',
+                  playUrl: '/play/' + e.data.item.id,
+                  description: e.data.item.synopsis,
+                  thumbnail: e.data.item.posterUrl || '',
+                  backdrop: e.data.item.posterUrl || '',
+                  videoUrl: e.data.item.videoUrl || '',
+                  engine: 'Kreation Cloud Shard v4.0 (0-Download Instant Play)',
+                  isFirstParty: true
+                });
+                localStorage.setItem('kreation_games', JSON.stringify(kg));
+              }
+              window.location.reload();
+            } catch (err) {}
+          } else if (e.data && e.data.type === 'INNOVA_CONTENT_CLEAR') {
+            try {
+              localStorage.removeItem('innova-global-media-submissions-v1');
+              localStorage.removeItem('kreation_games');
+              window.location.reload();
+            } catch (err) {}
+          }
+        });
+          
+        // INNOVA TELEGRAM LIVE TV NOTIFICATION ENGINE (RESPECTS ON/OFF USER TOGGLE)
+        function showInnovaTelegramTvToast(msg) {
+          try {
+            var enabled = localStorage.getItem('innova_telegram_notifications_enabled');
+            if (enabled === 'false') {
+              return; // User turned OFF platform notifications!
+            }
+            var existing = document.getElementById('innova-telegram-tv-toast');
+            if (existing) existing.remove();
+
+            var toast = document.createElement('div');
+            toast.id = 'innova-telegram-tv-toast';
+            toast.style.cssText = 'position:fixed;top:24px;right:24px;z-index:999999;background:linear-gradient(135deg,#11141f 0%,#090b10 100%);border:2px solid #ef4444;border-radius:16px;padding:14px 18px;box-shadow:0 15px 45px rgba(239,68,68,0.45);color:#fff;font-family:system-ui,-apple-system,sans-serif;max-width:380px;display:flex;align-items:flex-start;gap:12px;animation:fadeIn 0.25s ease-out;';
+            var sender = (msg && msg.senderHandle) ? msg.senderHandle : '@TICKER';
+            var subj = (msg && msg.subject) ? msg.subject : 'New Innova Telegram';
+            var bodyPreview = (msg && msg.body) ? msg.body : '';
+            toast.innerHTML = '<div style="width:38px;height:38px;border-radius:10px;background:#dc2626;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 15px rgba(239,68,68,0.6);">✉️</div>' +
+              '<div style="flex:1;min-width:0;">' +
+                '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
+                  '<span style="font-size:10px;font-weight:800;letter-spacing:0.12em;color:#f87171;text-transform:uppercase;">INNOVA TELEGRAM</span>' +
+                  '<span style="font-size:9px;color:#94a3b8;">LIVE NOW</span>' +
+                '</div>' +
+                '<div style="font-size:13px;font-weight:800;color:#fff;margin-top:2px;">' + sender + ' sent you a message</div>' +
+                '<div style="font-size:11px;font-weight:600;color:#e2e8f0;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + subj + '</div>' +
+                (bodyPreview ? '<div style="font-size:11px;color:#94a3b8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">"' + bodyPreview + '"</div>' : '') +
+              '</div>';
+            document.body.appendChild(toast);
+            setTimeout(function() {
+              if (toast && toast.parentNode) toast.remove();
+            }, 6000);
+          } catch (err) {}
+        }
+
+        try {
+          var tgBc = new BroadcastChannel('innova_telegram_sync');
+          tgBc.onmessage = function(ev) {
+            if (ev.data && ev.data.type === 'INNOVA_TELEGRAM_NEW_MESSAGE' && ev.data.message) {
+              showInnovaTelegramTvToast(ev.data.message);
+            } else if (ev.data && ev.data.type === 'INNOVA_TELEGRAM_PREF_CHANGED') {
+              try { localStorage.setItem('innova_telegram_notifications_enabled', ev.data.enabled ? 'true' : 'false'); } catch(e) {}
+            }
+          };
+        } catch (e) {}
+
+        window.addEventListener('message', function(e) {
+          if (e.data && e.data.type === 'INNOVA_TELEGRAM_NEW_MESSAGE' && e.data.message) {
+            try {
+              var curMsgs = JSON.parse(localStorage.getItem('innova_telegram_messages_v1') || '[]');
+              curMsgs.unshift(e.data.message);
+              localStorage.setItem('innova_telegram_messages_v1', JSON.stringify(curMsgs));
+            } catch(err) {}
+            showInnovaTelegramTvToast(e.data.message);
+          } else if (e.data && e.data.type === 'INNOVA_TELEGRAM_PREF_CHANGED') {
+            try { localStorage.setItem('innova_telegram_notifications_enabled', e.data.enabled ? 'true' : 'false'); } catch(err) {}
+          }
+        });
+
+          if (e.data && e.data.type === 'FIRETV_REMOTE_CMD') {
+            handleRemoteAction(e.data.action, null);
+          }
+        });
+      })();
+    </script>
+    
+    
+    
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Innova Ecosystem Universal Dashboard</title>
-    <script type="module" crossorigin src="/assets/index-DaX9KuoK.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CxgWuaBc.css">
+    <title>Hektic TV • Hektic Nation Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&family=Creepster&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+      body {
+        background-color: #000000;
+        color: #ffffff;
+        overflow-x: hidden;
+      }
+      .font-marker { font-family: 'Permanent Marker', cursive; }
+      .font-bangers { font-family: 'Bangers', system-ui; }
+      .font-elite { font-family: 'Special+Elite', cursive; }
+      
+      /* VHS Scanline Effect */
+      .vhs-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          rgba(18, 16, 16, 0) 50%, 
+          rgba(0, 0, 0, 0.25) 50%
+        ), linear-gradient(
+          90deg, 
+          rgba(255, 0, 0, 0.06), 
+          rgba(255, 255, 255, 0.02), 
+          rgba(0, 0, 0, 0.06)
+        );
+        background-size: 100% 2px, 3px 100%;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .vhs-jitter {
+        animation: jitter 0.2s infinite;
+      }
+
+      @keyframes jitter {
+        0% { transform: translate(0,0); }
+        25% { transform: translate(1px, -1px); }
+        50% { transform: translate(-1px, 1px); }
+        75% { transform: translate(1px, 1px); }
+        100% { transform: translate(0,0); }
+      }
+
+      /* Custom scrollbar for horizontal rows */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* Duct Tape Button Style - Changed to Grey/Red for the new theme */
+      .duct-tape {
+        background: #333333;
+        position: relative;
+        box-shadow: 3px 3px 0px #e11d48;
+        border: 1px solid #444;
+      }
+      .duct-tape::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 10px,
+          rgba(255,255,255,0.03) 10px,
+          rgba(255,255,255,0.03) 20px
+        );
+      }
+    </style>
+  
+
+    
+
+    <script type="module" crossorigin src="./assets/index-CIdi-dut.js"></script>
   </head>
   <body>
     <div id="root"></div>
-  </body>
+</body>
 </html>
-

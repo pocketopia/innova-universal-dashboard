@@ -73,7 +73,7 @@ export default function AdminDashboard({
   const [mvnMediaItems, setMvnMediaItems] = useState<MVNMediaItem[]>([]);
   const [isLoadingMvn, setIsLoadingMvn] = useState(false);
   const [airdropAddress, setAirdropAddress] = useState('');
-  const [airdropAmount, setAirdropAmount] = useState<number>(25000);
+  const [airdropAmount, setAirdropAmount] = useState<number>(0);
   const [isAirdropping, setIsAirdropping] = useState(false);
   const [showAirdropPanel, setShowAirdropPanel] = useState(false);
 

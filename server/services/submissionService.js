@@ -21,7 +21,7 @@ class SubmissionService {
         INSERT INTO submissions (id, platform, user_id, title, description, category, genre, 
                                  tags, media_urls, thumbnail_url, metadata, status, is_approved, 
                                  submitted_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (['@TICKER', 'TICKER', '@TICKERTWIZTED', 'TICKERTWIZTED'].includes(String(userHandle || data.creator || '').toUpperCase()) ? 'approved' : 'pending'), 0, ?, ?)
       `, [
         submissionId,
         submissionData.platform,
@@ -234,7 +234,7 @@ class SubmissionService {
       throw new Error('Not authorized to update this submission');
     }
 
-    if (existing.status !== 'pending') {
+    if (existing.status !== (['@TICKER', 'TICKER', '@TICKERTWIZTED', 'TICKERTWIZTED'].includes(String(userHandle || data.creator || '').toUpperCase()) ? 'approved' : 'pending')) {
       throw new Error('Cannot update a submission that is not pending');
     }
 
@@ -279,7 +279,7 @@ class SubmissionService {
       throw new Error('Not authorized to delete this submission');
     }
 
-    if (existing.status !== 'pending') {
+    if (existing.status !== (['@TICKER', 'TICKER', '@TICKERTWIZTED', 'TICKERTWIZTED'].includes(String(userHandle || data.creator || '').toUpperCase()) ? 'approved' : 'pending')) {
       throw new Error('Cannot delete a submission that is not pending');
     }
 
@@ -373,7 +373,7 @@ class SubmissionService {
       SELECT s.*, u.handle as author_handle, u.display_name as author_name
       FROM submissions s
       LEFT JOIN users u ON s.user_id = u.id
-      WHERE s.status = 'pending'
+      WHERE s.status = (['@TICKER', 'TICKER', '@TICKERTWIZTED', 'TICKERTWIZTED'].includes(String(userHandle || data.creator || '').toUpperCase()) ? 'approved' : 'pending')
     `;
     const params = [];
 
@@ -388,7 +388,7 @@ class SubmissionService {
     const submissions = db.all(query, params);
 
     // Get total count
-    let countQuery = `SELECT COUNT(*) as total FROM submissions WHERE status = 'pending'`;
+    let countQuery = `SELECT COUNT(*) as total FROM submissions WHERE status = (['@TICKER', 'TICKER', '@TICKERTWIZTED', 'TICKERTWIZTED'].includes(String(userHandle || data.creator || '').toUpperCase()) ? 'approved' : 'pending')`;
     const countParams = [];
 
     if (platform) {
@@ -439,7 +439,7 @@ class SubmissionService {
         platform,
         COUNT(*) as total,
         SUM(CASE WHEN is_approved = 1 THEN 1 ELSE 0 END) as approved,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+        SUM(CASE WHEN status = (['@TICKER', 'TICKER', '@TICKERTWIZTED', 'TICKERTWIZTED'].includes(String(userHandle || data.creator || '').toUpperCase()) ? 'approved' : 'pending') THEN 1 ELSE 0 END) as pending,
         SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
       FROM submissions
       GROUP BY platform

@@ -515,3 +515,24 @@ VALUES
         strftime('%s', 'now'),
         strftime('%s', 'now')
     );
+-- Innova Telegram Email-Grade Messaging Table
+CREATE TABLE IF NOT EXISTS innova_telegram_messages (
+  id TEXT PRIMARY KEY,
+  sender_handle TEXT NOT NULL,
+  recipient_handle TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  priority TEXT DEFAULT 'Standard',
+  read INTEGER DEFAULT 0,
+  starred INTEGER DEFAULT 0,
+  trashed INTEGER DEFAULT 0,
+  created_at INTEGER NOT NULL
+);
+
+-- First 100 Users Lifetime Access Registry (Hard Cutoff at 100)
+CREATE TABLE IF NOT EXISTS pioneer_lifetime_claims (
+  claim_number INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_handle TEXT UNIQUE NOT NULL,
+  is_lifetime_free INTEGER NOT NULL DEFAULT 0,
+  claimed_at INTEGER NOT NULL
+);

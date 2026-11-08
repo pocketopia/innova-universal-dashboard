@@ -164,6 +164,16 @@ export default function StreamShareDashboard({ userNode, onBack, projects, setPr
   
   // Live Messenger state
   const [activeChatThread, setActiveChatThread] = useState<string>('');
+  const [storageTier, setStorageTier] = useState<string>(() => localStorage.getItem('streamshare_storage_tier') || 'Starter Creator Vault (1 GB Free Included)');
+  const handleSelectStorageTier = (tierLabel: string) => {
+    setStorageTier(tierLabel);
+    try {
+      localStorage.setItem('streamshare_storage_tier', tierLabel);
+      const bc = new BroadcastChannel('innova_telegram_sync');
+      bc.postMessage({ type: 'STREAMSHARE_STORAGE_UPDATED', tier: tierLabel });
+      bc.close();
+    } catch {}
+  };
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({});
   
   // Live projects from Master Brain
@@ -200,7 +210,7 @@ export default function StreamShareDashboard({ userNode, onBack, projects, setPr
           deliveredAt: item.deliveredAt || new Date().toISOString(),
           handshakeCode: item.handshakeCode,
           duration: item.duration || '0:00',
-          thumbnail: item.thumbnail || 'https://picsum.photos/seed/ss/400/225',
+          thumbnail: item.thumbnail || '',
           videoUrl: item.videoUrl
         }));
         
@@ -280,7 +290,7 @@ export default function StreamShareDashboard({ userNode, onBack, projects, setPr
       creator: userNode.handle, // The videographer studio handle
       clientEmail: formData.clientEmail, // Tied explicitly to this client
       synopsis: formData.synopsis,
-      thumbnail: formData.bannerPreview || `https://picsum.photos/seed/ss${Date.now()}/800/450`,
+      thumbnail: formData.bannerPreview || ``,
       videoUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
       status: 'approved' // BYPASS PENDING MODERATION ENTRIES - GOES LIVE INSTANTLY
     };
@@ -328,7 +338,7 @@ export default function StreamShareDashboard({ userNode, onBack, projects, setPr
         deliveredAt: new Date().toISOString(),
         handshakeCode: deliveryCode,
         duration: '0:00',
-        thumbnail: formData.bannerPreview || `https://picsum.photos/seed/${Date.now()}/400/225`,
+        thumbnail: formData.bannerPreview || ``,
         videoUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
       };
       

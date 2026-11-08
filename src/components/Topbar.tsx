@@ -167,10 +167,10 @@ export default function Topbar({
 
           <div className="hidden md:block">
             <p className="text-xs font-sans font-bold text-white max-w-[140px] truncate">
-              {userEmail ? userEmail.split('@')[0].toUpperCase() : 'COSMIC_DEV'}
+              {userEmail ? userEmail.split('@')[0].toUpperCase() : 'MEMBER_NODE'}
             </p>
             <p className="text-[10px] font-sans text-white/40 truncate max-w-[140px]" title={userEmail}>
-              {userEmail || 'orchestraofdeath@gmail.com'}
+              {userEmail || 'Verified Innova Node'}
             </p>
           </div>
         </div>

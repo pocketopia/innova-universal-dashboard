@@ -1,3 +1,4 @@
+import { loadEcosystemLedger, saveEcosystemLedger, validateAbaRoutingNumber, adjustInvaBalance, recordCreatorSaleOrStream, executeCreatorAchPayout, ECOSYSTEM_PRICING_PLANS, EcosystemFinancialState } from '../lib/innovaEcosystemLedger';
 import { generateDeviceInviteForNode, verifyOrClaimNodeOnDevice, subscribeToCrossDeviceBondSync, persistMergedDevicesForHandle } from '../lib/deviceBondRegistry';
 import React, { useState, useEffect } from 'react';
 import { fetchWalletBalance, processEcosystemTransaction, API_BASE_URL } from '../lib/apiClient';
@@ -900,6 +901,120 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
       )}
 
       {/* Premium Payment Modal - Stripe-like UI */}
+      
+      {/* CREATOR ACH BANK ROUTING, SUBSCRIPTION TIER & ADJUSTABLE $INVA LEDGER PANEL */}
+      <div id="dash-ach-bank-panel" className="fixed bottom-4 right-4 z-[55] w-full max-w-xl p-5 rounded-2xl bg-[#0B0E17] border-2 border-red-500/60 shadow-[0_0_40px_rgba(239,68,68,0.3)] space-y-4">
+        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-white">
+              🏦 Creator ACH Bank Payouts, Plans &amp; Adjustable $INVA Ledger
+            </h3>
+            <p className="text-[10px] text-slate-400">
+              80/20 Direct Purchase Split &bull; $30 Kreation Exclusives &bull; 55% Subscription Pool
+            </p>
+          </div>
+          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${finState.bankConnected ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'}`}>
+            {finState.bankConnected ? `ACH Linked •••• ${finState.bankLast4}` : 'ACH Unlinked'}
+          </span>
+        </div>
+
+        {bankNotice && (
+          <div className="p-2 rounded-lg bg-red-950/80 border border-red-500/50 text-[11px] font-bold text-white text-center">
+            {bankNotice}
+          </div>
+        )}
+
+        <div className="p-3 rounded-xl bg-black/60 border border-amber-500/30 flex items-center justify-between gap-3">
+          <div>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-amber-400 block">$INVA Credits</span>
+            <span className="text-lg font-black text-white">{Number(finState.invaCredits || 0).toLocaleString()} <span className="text-amber-400 text-xs">$INVA</span></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={invaAdjustAmount}
+              onChange={(e) => setInvaAdjustAmount(e.target.value)}
+              className="w-20 bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-2.5 py-1.5 text-xs text-white font-bold outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const next = adjustInvaBalance(Number(invaAdjustAmount) || 0, 'ADD', 'Dashboard Credit');
+                setFinState(next);
+                setBankNotice(`+ Added ${Number(invaAdjustAmount) || 0} $INVA`);
+              }}
+              className="cursor-pointer px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase"
+            >
+              + Add
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const next = adjustInvaBalance(Number(invaAdjustAmount) || 0, 'SUBTRACT', 'Dashboard Debit');
+                setFinState(next);
+                setBankNotice(`- Subtracted ${Number(invaAdjustAmount) || 0} $INVA`);
+              }}
+              className="cursor-pointer px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px] uppercase"
+            >
+              - Sub
+            </button>
+          </div>
+        </div>
+
+        <form onSubmit={handleSaveBankAndPlan} className="space-y-2.5">
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="text"
+              value={finState.bankName}
+              onChange={(e) => setFinState({ ...finState, bankName: e.target.value })}
+              placeholder="Bank Name (e.g. Chase)"
+              className="bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-3 py-2 text-xs text-white outline-none"
+            />
+            <input
+              type="text"
+              value={finState.accountHolder}
+              onChange={(e) => setFinState({ ...finState, accountHolder: e.target.value })}
+              placeholder="Account Holder Name"
+              className="bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-3 py-2 text-xs text-white outline-none"
+            />
+            <input
+              type="text"
+              maxLength={9}
+              value={finState.routingNumber}
+              onChange={(e) => setFinState({ ...finState, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+              placeholder="9-Digit ABA Routing #"
+              className="bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none"
+            />
+            <input
+              type="text"
+              maxLength={17}
+              value={finState.accountNumber}
+              onChange={(e) => setFinState({ ...finState, accountNumber: e.target.value.replace(/\D/g, '').slice(0, 17) })}
+              placeholder="Account Number"
+              className="bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none"
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <button type="submit" className="cursor-pointer px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-black text-[11px] uppercase">
+              Connect ACH Bank
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const res = executeCreatorAchPayout();
+                setFinState(res.state);
+                setBankNotice(res.success ? `💸 ACH Cash Payout Executed to •••• ${res.state.bankLast4}!` : `❌ ${res.error}`);
+              }}
+              className="cursor-pointer px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] uppercase"
+            >
+              Withdraw Cash (${Number(finState.creatorEarnedUsd || 0).toFixed(2)})
+            </button>
+          </div>
+        </form>
+      </div>
+
       {showPaymentModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={closePaymentModal} />

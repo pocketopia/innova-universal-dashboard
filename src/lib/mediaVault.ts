@@ -99,3 +99,94 @@ export const updateGlobalSubmissionStatus = (id: string, newStatus: string): Glo
   window.dispatchEvent(new CustomEvent('innova-submissions-updated'));
   return list;
 };
+
+
+export const validateSubmissionFormat = (
+  tenant: 'MVN' | 'ArcHaven' | 'HekticTV' | 'Kreation' | 'StreamShare',
+  fileOrUrl: File | string,
+  artworkFileOrUrl?: File | string
+): { valid: boolean; error?: string } => {
+  const name = typeof fileOrUrl === 'string' ? fileOrUrl : fileOrUrl.name;
+  const mime = typeof fileOrUrl === 'string' ? '' : fileOrUrl.type;
+
+  if (/\.(exe|dmg|pkg|msi|iso|avi|wmv|flv|mkv)$/i.test(name)) {
+    return {
+      valid: false,
+      error: `REJECTED (${name}): Unsupported format. ${tenant === 'Kreation' ? 'Kreation requires a pre-mounted HTML5/WebGL2/WASM Cloud Shard.' : 'Streaming platforms require MP4 (H.264), WebM, or HLS (.m3u8).'}`
+    };
+  }
+
+  if (tenant !== 'Kreation' && typeof fileOrUrl !== 'string') {
+    const allowedVideoMimes = ['video/mp4', 'video/webm', 'video/quicktime', 'application/x-mpegURL', 'application/vnd.apple.mpegurl'];
+    if (mime && !allowedVideoMimes.includes(mime) && !/\.(mp4|webm|m3u8|mov)$/i.test(name)) {
+      return {
+        valid: false,
+        error: `REJECTED (${name}): Invalid video codec/container (${mime}). Only MP4, WebM, and HLS (.m3u8) are accepted.`
+      };
+    }
+  }
+
+  if (artworkFileOrUrl) {
+    const artName = typeof artworkFileOrUrl === 'string' ? artworkFileOrUrl : artworkFileOrUrl.name;
+    if (/\.(bmp|tiff|psd|exe|dmg|pdf)$/i.test(artName)) {
+      return {
+        valid: false,
+        error: `REJECTED (${artName}): Cover artwork must be PNG, JPG, or WEBP.`
+      };
+    }
+  }
+
+  return { valid: true };
+};
+
+export const broadcastApprovedContentLive = (items: any[]) => {
+  try {
+    localStorage.setItem('innova-global-media-submissions-v1', JSON.stringify(items));
+    const bc = new BroadcastChannel('innova_content_sync');
+    bc.postMessage({ type: 'INNOVA_CONTENT_UPDATED', submissions: items });
+    bc.close();
+  } catch (e) {}
+};
+
+
+export const isTickerAdminAccount = (handleOrCreator?: string): boolean => {
+  if (!handleOrCreator) return false;
+  const clean = String(handleOrCreator).trim().toUpperCase().replace(/^@/, '');
+  return clean === 'TICKER' || clean === 'TICKERTWIZTED';
+};
+
+export const submitProjectWithFormatAndAdminGatekeeper = (
+  item: Omit<GlobalMediaItem, 'status'> & { status?: 'pending' | 'approved' | 'rejected'; fileOrUrl?: File | string; artworkFileOrUrl?: File | string }
+): { accepted: boolean; autoPublishedByAdmin: boolean; error?: string; item?: GlobalMediaItem } => {
+  // 1. Always enforce strict format validation first (even for @TICKER!)
+  const targetMedia = item.fileOrUrl || item.videoUrl || '';
+  const formatCheck = validateSubmissionFormat(item.tenant, targetMedia, item.artworkFileOrUrl || item.posterUrl);
+  if (!formatCheck.valid) {
+    return {
+      accepted: false,
+      autoPublishedByAdmin: false,
+      error: formatCheck.error
+    };
+  }
+
+  // 2. Check if uploader is @TICKER Admin -> Auto-Approve & Push Live Immediately! Otherwise -> Pending Review
+  const activeUser = localStorage.getItem('innova-username') || item.creator || '';
+  const isAdmin = isTickerAdminAccount(activeUser) || isTickerAdminAccount(item.creator);
+  const finalStatus: 'approved' | 'pending' = isAdmin ? 'approved' : 'pending';
+
+  const savedItem: GlobalMediaItem = {
+    ...item,
+    status: finalStatus,
+    submittedAt: item.submittedAt || new Date().toLocaleString()
+  };
+
+  const existing = getStoredGlobalSubmissions().filter((x) => x.id !== savedItem.id);
+  const updated = [savedItem, ...existing];
+  broadcastApprovedContentLive(updated);
+
+  return {
+    accepted: true,
+    autoPublishedByAdmin: isAdmin,
+    item: savedItem
+  };
+};

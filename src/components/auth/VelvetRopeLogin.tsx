@@ -1,3 +1,4 @@
+import { registerAccountWithPioneerCutoff, getPioneerSlotsRemaining } from '../../lib/pioneerLifetimeRegistry';
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fingerprint, ArrowRight, Sparkles, AlertCircle, CheckCircle2, Key, ShieldCheck } from 'lucide-react';
