@@ -1,6 +1,7 @@
+import CreatorBankAndInvaHub from './components/CreatorBankAndInvaHub';
 import InnovaTelegramModal from './components/InnovaTelegramModal';
 import { loadTelegramMessages, sendTelegramMessage, getTelegramNotificationsEnabled, setTelegramNotificationsEnabled } from './lib/innovaTelegramDb';
-import { subscribeToCrossDeviceBondSync, verifyOrClaimNodeOnDevice } from './lib/deviceBondRegistry';
+import { subscribeToCrossDeviceBondSync, verifyOrClaimNodeOnDevice, purgeHenryForeverAndLockHost, revokeGuestHandshakeSessions } from './lib/deviceBondRegistry';
 import { getStoredGlobalSubmissions, updateGlobalSubmissionStatus } from './lib/mediaVault';
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
@@ -134,6 +135,7 @@ export default function App() {
 
   useEffect(() => {
     if (hasValidSession()) {
+      purgeHenryForeverAndLockHost();
       const storedUsername = localStorage.getItem('innova-username');
       const hasAcceptedLegal = localStorage.getItem('innova-legal-accepted') === 'true';
       if (storedUsername) setClaimedUsername(storedUsername);
@@ -199,12 +201,14 @@ export default function App() {
       const liveData = (res as any).content || Array.isArray(res) ? res : [];
 
       const vaultItems = getStoredGlobalSubmissions();
+      try { const bc = new BroadcastChannel('innova_global_media_sync'); bc.onmessage = () => syncEcosystemDataFeed(); } catch {}
       const combined = [...vaultItems, ...(Array.isArray(liveData) ? liveData : [])];
       setGames(combined.filter((item: any) => item.id?.startsWith('KR-') || item.tenant === 'Kreation') as any);
       setProjects(combined.filter((item: any) => item.id?.startsWith('SS-') || item.tenant === 'StreamShare') as any);
       setSubmissions(combined.filter((item: any) => item.id?.startsWith('MVN-') || item.id?.startsWith('HTV-') || item.id?.startsWith('ARCH-') || ['MVN', 'HekticTV', 'ArcHaven'].includes(item.tenant)) as any);
     } catch (err) {
       const vaultItems = getStoredGlobalSubmissions();
+      try { const bc = new BroadcastChannel('innova_global_media_sync'); bc.onmessage = () => syncEcosystemDataFeed(); } catch {}
       setGames(vaultItems.filter((item: any) => item.id?.startsWith('KR-') || item.tenant === 'Kreation') as any);
       setProjects(vaultItems.filter((item: any) => item.id?.startsWith('SS-') || item.tenant === 'StreamShare') as any);
       setSubmissions(vaultItems.filter((item: any) => item.id?.startsWith('MVN-') || item.id?.startsWith('HTV-') || item.id?.startsWith('ARCH-') || ['MVN', 'HekticTV', 'ArcHaven'].includes(item.tenant)) as any);
@@ -324,6 +328,19 @@ export default function App() {
       {appState === 'setup' && (
         <VelvetRopeLogin 
           onAuthenticated={(username) => {
+            const cleanCandidate = String(username || '').trim().replace(/^@+/, '').toUpperCase();
+            const isTicker = cleanCandidate === 'TICKER' || cleanCandidate === 'TICKERTWIZTED';
+            if (!isTicker) {
+              const rawShared = localStorage.getItem('innova_shared_device_permissions_v1');
+              const sharedList = rawShared ? JSON.parse(rawShared) : [];
+              const isApprovedFriend = Array.isArray(sharedList) && sharedList.some((p: any) => String(p.friendHandle || '').replace(/^@+/, '').toUpperCase() === cleanCandidate && p.status === 'approved');
+              if (!isApprovedFriend || cleanCandidate === 'HENRY') {
+                alert('HARDWARE ENCLAVE LOCK: @' + cleanCandidate + ' is blocked on @TICKER\'s laptop. Only @TICKER or a friend approved via Innova Telegram Handshake may log in on this device.');
+                localStorage.removeItem('innova-username');
+                setAppState('setup');
+                return;
+              }
+            }
             setClaimedUsername(username);
             executeConnectSetupWallet(username);
             setAppState('onboarding');
@@ -335,7 +352,7 @@ export default function App() {
         <div className="flex-1 flex flex-col justify-between items-center p-8 z-10 min-h-screen">
           <div className="w-full max-w-5xl mx-auto flex justify-between items-center py-4 border-b border-white/10">
             <span className="font-sans font-black text-xs tracking-wider text-cyan-400 uppercase">INNOVA INITIAL SYBASE BOOTSTRAP</span>
-            <span className="font-sans font-light text-xs text-white/60">@{claimedUsername.toUpperCase()} // STABLE</span>
+            
           </div>
           <div className="my-auto w-full max-w-3xl bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 flex flex-col md:flex-row gap-8 items-center justify-between">
             <div className="flex-1 space-y-6">
@@ -447,10 +464,10 @@ export default function App() {
               </div>
               <div className="flex items-center gap-4">
 
-                <button onClick={() => setShowTelegram(true)} className="cursor-pointer bg-red-600/20 hover:bg-red-600 border-2 border-red-500/50 text-white px-4 py-2 rounded-xl text-xs font-black tracking-wider uppercase transition flex items-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.25)]">
+                <button onClick={() => setShowTelegram(true)} className="cursor-pointer bg-gradient-to-r from-cyan-500/20 to-blue-600/20 hover:from-cyan-500/30 hover:to-blue-600/30 border border-cyan-400/40 text-cyan-300 px-4 py-2 rounded-xl text-xs font-black tracking-wider uppercase transition flex items-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
                   <span>✉️ Innova Telegram</span>
                   {telegramUnread > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-black">{telegramUnread}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-cyan-400 text-black text-[10px] font-black">{telegramUnread}</span>
                   )}
                 </button>
                 <button onClick={() => setShowSettings(true)} className="cursor-pointer bg-gradient-to-r from-cyan-600/20 to-purple-600/20 border border-cyan-500/30 text-cyan-400 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition flex items-center gap-2">
@@ -460,14 +477,29 @@ export default function App() {
               </div>
             </div>
 
-            {claimedUsername.toUpperCase() === '@TICKER' && (
+            {['TICKER', '@TICKER', 'TICKERTWIZTED', '@TICKERTWIZTED'].includes(claimedUsername.toUpperCase()) && (
               <button onClick={() => setAppState('admin')} className="w-full cursor-pointer bg-rose-500/20 hover:bg-rose-500/30 border-2 border-rose-500/50 text-rose-400 py-6 px-8 rounded-2xl text-sm font-black tracking-widest uppercase animate-pulse flex items-center justify-center gap-3">
                 <ShieldAlert className="w-6 h-6" /> ACCESS GLOBAL COMMAND DECK <ShieldAlert className="w-6 h-6" />
               </button>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* ACTIVE: KREATION GAMING (Indie Sandbox) */}
+              
+                  {/* ACTIVE: CREATOR BANK PAYOUTS & $INVA TREASURY (Cool Blue Command Hub Selection) */}
+                  <div onClick={() => { setActiveTab('treasury' as any); setAppState('platform'); }} className="group cursor-pointer bg-white/5 border border-cyan-500/30 hover:border-cyan-400 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] transition relative overflow-hidden shadow-[0_0_25px_rgba(6,182,212,0.1)]">
+                    <div className="absolute top-0 right-0 bg-cyan-500 text-black text-[8px] font-black px-3 py-1 rounded-bl-lg tracking-widest uppercase">ACH &amp; $INVA Treasury</div>
+                    <div>
+                      <CreditCard className="w-8 h-8 text-cyan-400 mb-4" />
+                      <h4 className="font-black text-lg text-white uppercase">CREATOR BANK &amp; $INVA LEDGER</h4>
+                      <p className="text-xs text-white/60 mt-2">Direct 9-digit ABA routing payouts, subscription tiers, adjustable $INVA credits, and Hardware Enclave security status.</p>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs font-semibold text-cyan-400">
+                      <span>Open Treasury &amp; Payouts</span>
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+                    </div>
+                  </div>
+
+                  {/* ACTIVE: KREATION GAMING (Indie Sandbox) */}
               <div onClick={() => { setActiveTab('kreation'); setAppState('platform'); }} className="group cursor-pointer bg-white/5 border border-white/10 hover:border-purple-500/40 p-6 rounded-2xl flex flex-col justify-between min-h-[220px] transition relative overflow-hidden">
                 <div className="absolute top-0 right-0 bg-purple-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-lg tracking-widest uppercase">Indie Sandbox Live</div>
                 <div><Gamepad2 className="w-8 h-8 text-purple-400 mb-4" /><h4 className="font-black text-lg text-white">KREATION GAMING</h4><p className="text-xs text-white/60 mt-2">WASM indie container execution matrix. (1st-party Originals coming soon).</p></div>
@@ -531,7 +563,7 @@ export default function App() {
         </div>
       )}
 
-      {appState === 'admin' && claimedUsername.toUpperCase() === '@TICKER' && (
+      {appState === 'admin' && ['TICKER', '@TICKER', 'TICKERTWIZTED', '@TICKERTWIZTED'].includes(claimedUsername.toUpperCase()) && (
         <div className="flex-1 flex flex-col p-8 z-10 overflow-y-auto bg-[#020205]">
           <div className="w-full max-w-7xl mx-auto space-y-8">
             <div className="flex items-center justify-between">
@@ -841,6 +873,7 @@ function PlatformRouter({
   if (platformId === 'hektic') return <HekticDashboard userNode={userNode} onBack={onBack} submissions={submissions} setSubmissions={setSubmissions} />;
   if (platformId === 'streamshare') return <StreamShareDashboard userNode={userNode} onBack={onBack} projects={projects} setProjects={setProjects} />;
   if (platformId === 'mvn') return <MVNDashboard userNode={userNode} onBack={onBack} submissions={submissions} setSubmissions={setSubmissions} />;
+  if (platformId === 'treasury') return <CreatorBankAndInvaHub userNode={userNode} onBack={onBack} />;
   if (platformId === 'kreation') return <KreationDashboard userNode={userNode} onBack={onBack} games={games} setGames={setGames} />;
   return null;
 }

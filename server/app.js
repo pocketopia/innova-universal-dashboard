@@ -6,6 +6,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const securityFortressMiddleware = require('./middleware/securityFortress');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');

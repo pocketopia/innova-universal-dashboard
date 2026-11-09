@@ -1,6 +1,49 @@
 <!doctype html>
 <html lang="en">
   <head>
+<script>
+  (function() {
+    try {
+      // 1. Scan EVERY key in localStorage and sessionStorage and annihilate HENRY / @HENRY
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i);
+        if (!k) continue;
+        var v = localStorage.getItem(k) || '';
+        if (k.toUpperCase().indexOf('HENRY') !== -1) {
+          localStorage.removeItem(k);
+          continue;
+        }
+        if (v.toUpperCase().indexOf('HENRY') !== -1) {
+          if (k === 'innova-username' || k === 'current_user' || k === 'node_handle') {
+            localStorage.removeItem(k);
+            localStorage.removeItem('innova-session-active');
+          } else {
+            try {
+              var parsed = JSON.parse(v);
+              if (Array.isArray(parsed)) {
+                var filtered = parsed.filter(function(item) {
+                  return JSON.stringify(item).toUpperCase().indexOf('HENRY') === -1;
+                });
+                localStorage.setItem(k, JSON.stringify(filtered));
+              } else if (parsed && typeof parsed === 'object') {
+                delete parsed['HENRY'];
+                delete parsed['@HENRY'];
+                delete parsed['henry'];
+                delete parsed['@henry'];
+                if (String(parsed.handle || '').toUpperCase().indexOf('HENRY') !== -1) {
+                  parsed.handle = '@TICKER';
+                }
+                localStorage.setItem(k, JSON.stringify(parsed));
+              }
+            } catch (e) {}
+          }
+        }
+      }
+      sessionStorage.clear();
+      localStorage.setItem('innova_primary_hardware_owner', 'TICKER');
+    } catch (err) {}
+  })();
+</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Innova Ecosystem Universal Dashboard</title>

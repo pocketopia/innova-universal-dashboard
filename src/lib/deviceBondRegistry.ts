@@ -1,3 +1,5 @@
+import { sanitizeAndRestorePioneerRegistry } from './pioneerLifetimeRegistry';
+import { ensureHardwareEnclaveKeyPair, recordBlockedIntrusionAttempt } from './innovaSecurityFortress';
 // Hardware-Bound Ring Comm Node Registry + Loop-Free Cross-Device Sync Engine
 
 export interface BoundDeviceRecord {
@@ -401,3 +403,336 @@ export const verifyOrClaimNodeOnDevice = (
   }
   return { allowed: true, entry: finalEntry };
 };
+
+
+export const computeLocationSignature = (): string => {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    const lang = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+    return `${tz}::${lang}`;
+  } catch {
+    return 'UTC::en-US';
+  }
+};
+
+export interface SharedDevicePermission {
+  id: string;
+  hostHandle: string;
+  friendHandle: string;
+  friendDisplayName: string;
+  hostDeviceName: string;
+  hostHardwareFp: string;
+  status: 'pending_friend_approval' | 'approved';
+  telegramMessageId?: string;
+  requestedAt: string;
+  approvedAt?: string;
+}
+
+export interface FriendConnection {
+  handle: string;
+  displayName: string;
+  status: 'friends';
+  addedAt: string;
+}
+
+const SHARED_DEVICE_KEY = 'innova_shared_device_permissions_v1';
+const FRIENDS_LIST_KEY = 'innova_ecosystem_friends_v1';
+
+// Permanently purges HENRY from all browser storage keys on every check and locks this laptop to @TICKER
+export const purgeHenryForeverAndLockHost = (): string => {
+  const fp = computeHardwareFingerprint();
+  const loc = computeLocationSignature();
+  const devInfo = parseLiveDeviceInfo();
+  try {
+    sanitizeAndRestorePioneerRegistry();
+
+    // If active session was HENRY, reset to TICKER
+    const activeU = (localStorage.getItem('innova-username') || '').replace(/^@+/, '').toUpperCase();
+    if (activeU === 'HENRY' || activeU === 'TEMPCREATOR') {
+      localStorage.removeItem('innova-username');
+      localStorage.removeItem('innova-session-active');
+    }
+
+    // Purge HENRY from node registry
+    const rawReg = localStorage.getItem('innova-ringcomm-node-registry-v1');
+    const registry: Record<string, NodeBondEntry> = rawReg ? JSON.parse(rawReg) : {};
+    delete registry['HENRY'];
+    delete registry['@HENRY'];
+    delete registry['TEMPCREATOR'];
+    delete registry['@TEMPCREATOR'];
+
+    // Ensure @TICKER is permanently bound as the Primary Hardware Owner of this laptop
+    registry['TICKER'] = {
+      handle: 'TICKER',
+      primaryFingerprint: fp,
+      authorizedFingerprints: [fp],
+      devices: [
+        {
+          id: `DEV-${fp}`,
+          name: devInfo.name,
+          type: devInfo.type,
+          browser: devInfo.browser,
+          os: devInfo.os,
+          fingerprint: fp,
+          lastActive: new Date().toISOString(),
+          isCurrent: true
+        }
+      ]
+    };
+    (registry['TICKER'] as any).locationSignature = loc;
+    localStorage.setItem('innova-ringcomm-node-registry-v1', JSON.stringify(registry));
+    localStorage.setItem('innova_primary_hardware_owner', 'TICKER');
+
+    // Purge HENRY from shared devices or friends if present
+    const rawShared = localStorage.getItem(SHARED_DEVICE_KEY);
+    if (rawShared) {
+      const list: SharedDevicePermission[] = JSON.parse(rawShared);
+      const cleaned = (Array.isArray(list) ? list : []).filter(
+        (x) => x.friendHandle.replace(/^@+/, '').toUpperCase() !== 'HENRY'
+      );
+      localStorage.setItem(SHARED_DEVICE_KEY, JSON.stringify(cleaned));
+    }
+  } catch {}
+  return 'TICKER';
+};
+
+export const getPrimaryOwnerOfCurrentHardware = (): string => {
+  return purgeHenryForeverAndLockHost();
+};
+
+// ============================================================================
+// FRIENDS & TELEGRAM SHARED-DEVICE HANDSHAKE FUNCTIONS
+// ============================================================================
+
+export const loadFriendsList = (): FriendConnection[] => {
+  try {
+    const raw = localStorage.getItem(FRIENDS_LIST_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((f) => f.handle.replace(/^@+/, '').toUpperCase() !== 'HENRY')
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+export const addFriendConnection = (rawHandle: string, displayName?: string): FriendConnection[] => {
+  const clean = String(rawHandle || '').trim().replace(/^@+/, '').toUpperCase();
+  if (!clean || clean === 'HENRY' || clean === 'TICKER') return loadFriendsList();
+  const formatted = `@${clean}`;
+  const current = loadFriendsList();
+  if (current.some((f) => f.handle.toUpperCase() === formatted)) {
+    return current;
+  }
+  const next: FriendConnection[] = [
+    {
+      handle: formatted,
+      displayName: displayName?.trim() || clean.replace(/[._-]/g, ' '),
+      status: 'friends',
+      addedAt: new Date().toLocaleDateString()
+    },
+    ...current
+  ];
+  try {
+    localStorage.setItem(FRIENDS_LIST_KEY, JSON.stringify(next));
+  } catch {}
+  window.dispatchEvent(new CustomEvent('innova-shared-devices-updated'));
+  return next;
+};
+
+export const removeFriendConnection = (rawHandle: string): FriendConnection[] => {
+  const formatted = `@${String(rawHandle || '').trim().replace(/^@+/, '').toUpperCase()}`;
+  const next = loadFriendsList().filter((f) => f.handle.toUpperCase() !== formatted);
+  try {
+    localStorage.setItem(FRIENDS_LIST_KEY, JSON.stringify(next));
+  } catch {}
+  // Also revoke any shared device access when removing a friend
+  revokeFriendFromMyDevice(formatted);
+  return next;
+};
+
+export const loadSharedDevicePermissions = (): SharedDevicePermission[] => {
+  try {
+    const raw = localStorage.getItem(SHARED_DEVICE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((x) => x.friendHandle.replace(/^@+/, '').toUpperCase() !== 'HENRY')
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveSharedDevicePermissions = (list: SharedDevicePermission[]): SharedDevicePermission[] => {
+  try {
+    localStorage.setItem(SHARED_DEVICE_KEY, JSON.stringify(list));
+  } catch {}
+  window.dispatchEvent(new CustomEvent('innova-shared-devices-updated'));
+  return list;
+};
+
+// Triggered from a Friend's Profile inside Innova Telegram: "Allow User to Use My Device"
+export const grantFriendDevicePermissionRequest = (
+  hostHandle: string,
+  friendHandle: string,
+  friendDisplayName?: string,
+  telegramMessageId?: string
+): SharedDevicePermission => {
+  const cleanHost = `@${String(hostHandle || 'TICKER').trim().replace(/^@+/, '').toUpperCase()}`;
+  const cleanFriend = `@${String(friendHandle || '').trim().replace(/^@+/, '').toUpperCase()}`;
+  const fp = computeHardwareFingerprint();
+  const devInfo = parseLiveDeviceInfo();
+
+  const existing = loadSharedDevicePermissions().filter(
+    (p) => p.friendHandle.toUpperCase() !== cleanFriend
+  );
+
+  const perm: SharedDevicePermission = {
+    id: 'shd-' + Date.now(),
+    hostHandle: cleanHost,
+    friendHandle: cleanFriend,
+    friendDisplayName: friendDisplayName || cleanFriend.replace(/^@/, ''),
+    hostDeviceName: devInfo.name,
+    hostHardwareFp: fp,
+    status: 'pending_friend_approval',
+    telegramMessageId,
+    requestedAt: new Date().toLocaleString()
+  };
+
+  saveSharedDevicePermissions([perm, ...existing]);
+  return perm;
+};
+
+// Triggered when the Friend clicks "Approve" inside the Innova Telegram message:
+// ("@TICKER wants to grant @JON_DOE permission to login on his device" -> [Approve])
+export const approveFriendDevicePermission = (friendHandleOrMsgId: string): SharedDevicePermission | null => {
+  const cleanTarget = String(friendHandleOrMsgId || '').trim().toUpperCase();
+  const formattedTarget = cleanTarget.startsWith('@') ? cleanTarget : `@${cleanTarget}`;
+  const list = loadSharedDevicePermissions();
+  let matched: SharedDevicePermission | null = null;
+
+  const updated = list.map((p) => {
+    if (
+      p.friendHandle.toUpperCase() === formattedTarget ||
+      p.id.toUpperCase() === cleanTarget ||
+      (p.telegramMessageId && p.telegramMessageId.toUpperCase() === cleanTarget)
+    ) {
+      matched = {
+        ...p,
+        status: 'approved',
+        approvedAt: new Date().toLocaleString()
+      };
+      return matched;
+    }
+    return p;
+  });
+
+  saveSharedDevicePermissions(updated);
+  return matched;
+};
+
+// Triggered from Identity -> Shared Devices -> "Remove from My Device" button
+export const revokeFriendFromMyDevice = (friendHandle: string): SharedDevicePermission[] => {
+  const cleanFriend = `@${String(friendHandle || '').trim().replace(/^@+/, '').toUpperCase()}`;
+  const remaining = loadSharedDevicePermissions().filter(
+    (p) => p.friendHandle.toUpperCase() !== cleanFriend
+  );
+  return saveSharedDevicePermissions(remaining);
+};
+
+export interface NodeRecognitionCheck {
+  status:
+    | 'AUTHORIZED_OWNER'
+    | 'AUTHORIZED_SHARED_FRIEND'
+    | 'PENDING_TELEGRAM_APPROVAL'
+    | 'BLOCKED_UNAUTHORIZED_ON_HOST_DEVICE';
+  normalizedHandle: string;
+  primaryHardwareOwner: string;
+  deviceFingerprint: string;
+  locationSignature: string;
+  deviceName: string;
+  entry?: NodeBondEntry;
+  message?: string;
+}
+
+export const checkNodeRegistrationStatus = (rawHandle: string): NodeRecognitionCheck => {
+  const hostOwner = purgeHenryForeverAndLockHost(); // Always 'TICKER' on this laptop
+  const clean = String(rawHandle || '').trim().replace(/^@+/, '').toUpperCase();
+  const formatted = `@${clean}`;
+  const fp = computeHardwareFingerprint();
+  const loc = computeLocationSignature();
+  const devInfo = parseLiveDeviceInfo();
+
+  // 1. Explicitly block HENRY forever
+  if (clean === 'HENRY') {
+    return {
+      status: 'BLOCKED_UNAUTHORIZED_ON_HOST_DEVICE',
+      normalizedHandle: '@HENRY',
+      primaryHardwareOwner: hostOwner,
+      deviceFingerprint: fp,
+      locationSignature: loc,
+      deviceName: devInfo.name,
+      message: `ACCESS DENIED: @HENRY has been permanently purged. This ${devInfo.name} is cryptographically bonded to @${hostOwner}. Nobody can create an account or log in on @${hostOwner}'s laptop without an approved Innova Telegram Friend Handshake.`
+    };
+  }
+
+  // 2. Primary Hardware Owner (@TICKER) -> Immediate Authorized Login
+  if (clean === hostOwner || (hostOwner === 'TICKER' && clean === 'TICKERTWIZTED')) {
+    const claim = verifyOrClaimNodeOnDevice('TICKER');
+    return {
+      status: 'AUTHORIZED_OWNER',
+      normalizedHandle: `@${clean}`,
+      primaryHardwareOwner: hostOwner,
+      deviceFingerprint: fp,
+      locationSignature: loc,
+      deviceName: devInfo.name,
+      entry: claim.entry
+    };
+  }
+
+  // 3. Check if this user is a Friend who has an APPROVED Innova Telegram Shared-Device Handshake from @TICKER!
+  const sharedPerms = loadSharedDevicePermissions();
+  const friendPerm = sharedPerms.find(
+    (p) => p.friendHandle.toUpperCase() === formatted && p.hostHardwareFp === fp
+  );
+
+  if (friendPerm && friendPerm.status === 'approved') {
+    return {
+      status: 'AUTHORIZED_SHARED_FRIEND',
+      normalizedHandle: formatted,
+      primaryHardwareOwner: hostOwner,
+      deviceFingerprint: fp,
+      locationSignature: loc,
+      deviceName: devInfo.name,
+      message: `✓ Shared Device Access Verified via Innova Telegram Handshake with Host @${hostOwner}.`
+    };
+  }
+
+  if (friendPerm && friendPerm.status === 'pending_friend_approval') {
+    return {
+      status: 'PENDING_TELEGRAM_APPROVAL',
+      normalizedHandle: formatted,
+      primaryHardwareOwner: hostOwner,
+      deviceFingerprint: fp,
+      locationSignature: loc,
+      deviceName: devInfo.name,
+      message: `HANDSHAKE PENDING APPROVAL: Host @${hostOwner} sent a device permission invite to ${formatted} in Innova Telegram ("@${hostOwner} wants to grant ${formatted} permission to login on his device"). ${formatted} must click "Approve" in Innova Telegram before logging in.`
+    };
+  }
+
+  // 4. ALL OTHER ACCOUNTS / NEW NODES ARE STRICTLY BLOCKED ON @TICKER'S LAPTOP!
+  return {
+    status: 'BLOCKED_UNAUTHORIZED_ON_HOST_DEVICE',
+    normalizedHandle: formatted,
+    primaryHardwareOwner: hostOwner,
+    deviceFingerprint: fp,
+    locationSignature: loc,
+    deviceName: devInfo.name,
+    message: `HARDWARE ENCLAVE LOCKED TO @${hostOwner}: Nobody can create a new account or log into ${formatted} on @${hostOwner}'s ${devInfo.name}. To allow a friend to use this laptop, @${hostOwner} must open that friend's profile in Innova Telegram, click "Allow User to Use My Device", and the friend must click "Approve".`
+  };
+};
+
+
+export const revokeGuestHandshakeSessions = (): void => { try { localStorage.removeItem('innova_full_circle_handshakes_v1'); } catch {} };

@@ -26,74 +26,7 @@ interface MusicVideoSubmission {
   videoUrl?: string;
 }
 
-const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [
-  {
-    id: 'mvn-master-01',
-    songTitle: 'Neon Lights (4K Broadcast Master)',
-    primaryArtist: 'Starlight Synthesis',
-    genre: 'Pop Hits',
-    duration: '3:00',
-    status: 'syndicated',
-    submittedAt: '2025-02-14',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
-    videoUrl: '/masters/innova-sovereign-ForBiggerBlazes.mp4'
-  },
-  {
-    id: 'mvn-master-02',
-    songTitle: 'City Streets (Director Cut)',
-    primaryArtist: 'MC Flow',
-    genre: 'Hip Hop & R&B',
-    duration: '4:00',
-    status: 'syndicated',
-    submittedAt: '2025-02-16',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
-    videoUrl: '/masters/innova-sovereign-ForBiggerJoy.mp4'
-  },
-  {
-    id: 'mvn-master-03',
-    songTitle: 'Thunderstruck Odyssey',
-    primaryArtist: 'High Voltage',
-    genre: 'Rock',
-    duration: '4:10',
-    status: 'qc_passed',
-    submittedAt: '2025-02-18',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
-    videoUrl: '/masters/innova-sovereign-SubaruOutbackSeeTheWorld.mp4'
-  },
-  {
-    id: 'mvn-master-04',
-    songTitle: 'Cyberpunk City',
-    primaryArtist: 'Synthwave Boy',
-    genre: 'Electronic / Dance',
-    duration: '5:00',
-    status: 'syndicated',
-    submittedAt: '2025-02-19',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
-    videoUrl: '/masters/innova-sovereign-ForBiggerEscapes.mp4'
-  },
-  {
-    id: 'mvn-master-05',
-    songTitle: 'Fiesta Solar',
-    primaryArtist: 'Ritmo Caliente',
-    genre: 'Latin Vibes',
-    duration: '3:30',
-    status: 'qc_passed',
-    submittedAt: '2025-02-20',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
-    videoUrl: '/masters/innova-sovereign-ForBiggerFun.mp4'
-  },
-  {
-    id: 'mvn-master-06',
-    songTitle: 'Midnight Sax Sessions',
-    primaryArtist: 'Blue Note Collective',
-    genre: 'Smooth Jazz',
-    duration: '5:20',
-    status: 'pending_qc',
-    submittedAt: '2025-02-22',
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MUSIC VIDEO NET</text></svg>',
-    videoUrl: '/masters/innova-sovereign-WeAreGoingOnBullrun.mp4'
-  }
-];
+const VERIFIED_MVN_BROADCASTS: MusicVideoSubmission[] = [];
 
 type TabType = 'dashboard' | 'vault';
 

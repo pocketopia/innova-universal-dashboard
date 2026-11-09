@@ -1,3 +1,4 @@
+import { updateStateIntegritySeal } from './innovaSecurityFortress';
 // Innova Universal Dashboard — Real Creator ACH Banking, Pricing Tiers, Commission Split & Adjustable $INVA Ledger
 // 100% Zero-Mock Baseline: All balances, submissions, points, and credits start at 0 until real actions occur.
 
@@ -131,7 +132,9 @@ export function saveEcosystemLedger(next: EcosystemFinancialState): EcosystemFin
     updatedAt: new Date().toLocaleString()
   };
   try {
-    localStorage.setItem('innova_user_profile', JSON.stringify(payload));
+    const serialized = JSON.stringify(payload);
+    localStorage.setItem('innova_user_profile', serialized);
+    updateStateIntegritySeal(serialized);
     if (cleanHandle) localStorage.setItem('innova-username', cleanHandle);
     localStorage.setItem('archaven_alias', payload.displayName);
     localStorage.setItem('hnn_rider_name', payload.displayName);

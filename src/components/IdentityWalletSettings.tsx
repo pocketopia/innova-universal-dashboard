@@ -1,3 +1,4 @@
+import { loadSharedDevicePermissions, revokeFriendFromMyDevice, SharedDevicePermission } from '../lib/deviceBondRegistry';
 import { loadEcosystemLedger, saveEcosystemLedger, validateAbaRoutingNumber, adjustInvaBalance, recordCreatorSaleOrStream, executeCreatorAchPayout, ECOSYSTEM_PRICING_PLANS, EcosystemFinancialState } from '../lib/innovaEcosystemLedger';
 import { generateDeviceInviteForNode, verifyOrClaimNodeOnDevice, subscribeToCrossDeviceBondSync, persistMergedDevicesForHandle } from '../lib/deviceBondRegistry';
 import React, { useState, useEffect } from 'react';
@@ -207,6 +208,48 @@ const registerCurrentDevice = (): RecognizedDevice => {
 };
 
 export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpdate }: IdentityWalletSettingsProps) {
+  const [finState, setFinState] = useState<EcosystemFinancialState>(() => loadEcosystemLedger());
+  const [invaAdjustAmount, setInvaAdjustAmount] = useState<string>('100');
+  const [bankNotice, setBankNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    const sync = () => setFinState(loadEcosystemLedger());
+    window.addEventListener('storage', sync);
+    window.addEventListener('innova-profile-updated', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('innova-profile-updated', sync);
+    };
+  }, []);
+
+  const handleSaveBankAndPlan = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (finState.routingNumber && finState.routingNumber.trim()) {
+      const check = validateAbaRoutingNumber(finState.routingNumber);
+      if (!check.valid) {
+        setBankNotice('❌ ' + check.error);
+        return;
+      }
+    }
+    const connected = Boolean(
+      finState.bankName &&
+      finState.bankName.trim() &&
+      finState.routingNumber &&
+      finState.routingNumber.replace(/\D/g, '').length === 9 &&
+      finState.accountNumber &&
+      finState.accountNumber.replace(/\D/g, '').length >= 4
+    );
+    const saved = saveEcosystemLedger({
+      ...finState,
+      handle: userNode?.handle || finState.handle,
+      displayName: userNode?.name || finState.displayName,
+      bankConnected: connected
+    });
+    setFinState(saved);
+    setBankNotice(connected ? '✓ Working ACH Bank Routing & Account Connected & Synced!' : '✓ Profile & Plan Settings Saved!');
+    setTimeout(() => setBankNotice(null), 3500);
+  };
+
   const [activeTab, setActiveTab] = useState<'identity' | 'wallet' | 'security'>('identity');
   const [showSeedPhrase, setShowSeedPhrase] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -222,7 +265,14 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
   const [paymentStep, setPaymentStep] = useState<'input' | 'processing' | 'success'>('input');
   const [showQR, setShowQR] = useState(false);
   const [recognizedDevices, setRecognizedDevices] = useState<RecognizedDevice[]>([]);
-  const [avatarUrl, setAvatarUrl] = useState<string>(userNode.avatarUrl || '');
+  const [sharedFriendsOnDevice, setSharedFriendsOnDevice] = useState<SharedDevicePermission[]>(() => loadSharedDevicePermissions());
+  useEffect(() => {
+    const syncShared = () => setSharedFriendsOnDevice(loadSharedDevicePermissions());
+    window.addEventListener('storage', syncShared);
+    window.addEventListener('innova-shared-devices-updated', syncShared);
+    return () => { window.removeEventListener('storage', syncShared); window.removeEventListener('innova-shared-devices-updated', syncShared); };
+  }, []);
+  const [avatarUrl, setAvatarUrl] = useState<string>(userNode?.avatarUrl || '');
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
   const [avatarInputUrl, setAvatarInputUrl] = useState('');
   const [activeWallet, setActiveWallet] = useState<string>(() => userNode?.wallet || localStorage.getItem('innova-wallet-address') || '');
@@ -420,6 +470,75 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
         {/* Dynamic Display Panes */}
         <div className="flex-1 p-8 overflow-y-auto">
           {activeTab === 'identity' && (
+              <>
+
+                {/* SHARED DEVICES (FRIENDS APPROVED VIA INNOVA TELEGRAM HANDSHAKE TO USE THIS LAPTOP) */}
+                <div className="bg-cyan-950/20 border border-cyan-500/30 rounded-2xl p-6 space-y-4 mt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center">
+                        <Laptop className="w-5 h-5 text-cyan-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-white uppercase tracking-wider">
+                          Shared Devices (Approved Friends on This Computer)
+                        </h4>
+                        <p className="text-[11px] text-white/50">
+                          Friends you granted permission via Innova Telegram to log in on your device
+                        </p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-[10px] font-black text-cyan-300 uppercase">
+                      {sharedFriendsOnDevice.filter(x => x.status === 'approved').length} Approved
+                    </span>
+                  </div>
+
+                  {sharedFriendsOnDevice.length === 0 ? (
+                    <div className="p-4 rounded-xl bg-black/50 border border-white/5 text-xs text-white/50">
+                      No external users currently have permission to use your device. To grant a friend access, open <strong className="text-cyan-300">✉️ Innova Telegram &rarr; Friends &amp; Profiles</strong>, select your friend, and click <strong className="text-white">Allow User to Use My Device</strong>.
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {sharedFriendsOnDevice.map((perm) => (
+                        <div
+                          key={perm.id}
+                          className="p-4 rounded-xl bg-black/60 border border-cyan-500/30 flex flex-wrap items-center justify-between gap-4"
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-black text-white">{perm.friendDisplayName}</span>
+                              <span className="text-xs font-mono text-cyan-400">{perm.friendHandle}</span>
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                                  perm.status === 'approved'
+                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                }`}
+                              >
+                                {perm.status === 'approved' ? 'Approved to Login' : 'Awaiting Friend Approval'}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-white/40">
+                              Host Device: {perm.hostDeviceName} &bull; {perm.approvedAt ? `Approved: ${perm.approvedAt}` : `Invited: ${perm.requestedAt}`}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = revokeFriendFromMyDevice(perm.friendHandle);
+                              setSharedFriendsOnDevice(next);
+                            }}
+                            className="cursor-pointer px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider transition"
+                          >
+                            Remove from My Device
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
             <div className="space-y-6 animate-in fade-in duration-200">
               <div><h3 className="text-xl font-black text-white uppercase">Universal Shard Node</h3><p className="text-xs text-white/50 mt-1">Immutable decentralized ledger routing state configuration parameters.</p></div>
               
@@ -511,10 +630,10 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                 dlAnchorElem.setAttribute("download", `${userNode.handle.replace('@', '')}_identity.json`);
                 dlAnchorElem.click();
               }} className="w-full py-3 border border-white/10 hover:bg-white/5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2"><Download className="w-4 h-4" /> Export Cryptographic Key</button>
-            </div>
-          )}
-
-          {activeTab === 'wallet' && (
+              </div>
+              </>
+            )}
+            {activeTab === 'wallet' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <div className="bg-white/[0.02] border border-white/10 p-5 rounded-xl space-y-3">
                 <div className="flex items-center justify-between">
@@ -902,118 +1021,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
 
       {/* Premium Payment Modal - Stripe-like UI */}
       
-      {/* CREATOR ACH BANK ROUTING, SUBSCRIPTION TIER & ADJUSTABLE $INVA LEDGER PANEL */}
-      <div id="dash-ach-bank-panel" className="fixed bottom-4 right-4 z-[55] w-full max-w-xl p-5 rounded-2xl bg-[#0B0E17] border-2 border-red-500/60 shadow-[0_0_40px_rgba(239,68,68,0.3)] space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-white">
-              🏦 Creator ACH Bank Payouts, Plans &amp; Adjustable $INVA Ledger
-            </h3>
-            <p className="text-[10px] text-slate-400">
-              80/20 Direct Purchase Split &bull; $30 Kreation Exclusives &bull; 55% Subscription Pool
-            </p>
-          </div>
-          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${finState.bankConnected ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'}`}>
-            {finState.bankConnected ? `ACH Linked •••• ${finState.bankLast4}` : 'ACH Unlinked'}
-          </span>
-        </div>
-
-        {bankNotice && (
-          <div className="p-2 rounded-lg bg-red-950/80 border border-red-500/50 text-[11px] font-bold text-white text-center">
-            {bankNotice}
-          </div>
-        )}
-
-        <div className="p-3 rounded-xl bg-black/60 border border-amber-500/30 flex items-center justify-between gap-3">
-          <div>
-            <span className="text-[9px] font-bold uppercase tracking-wider text-amber-400 block">$INVA Credits</span>
-            <span className="text-lg font-black text-white">{Number(finState.invaCredits || 0).toLocaleString()} <span className="text-amber-400 text-xs">$INVA</span></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={invaAdjustAmount}
-              onChange={(e) => setInvaAdjustAmount(e.target.value)}
-              className="w-20 bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-2.5 py-1.5 text-xs text-white font-bold outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const next = adjustInvaBalance(Number(invaAdjustAmount) || 0, 'ADD', 'Dashboard Credit');
-                setFinState(next);
-                setBankNotice(`+ Added ${Number(invaAdjustAmount) || 0} $INVA`);
-              }}
-              className="cursor-pointer px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase"
-            >
-              + Add
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const next = adjustInvaBalance(Number(invaAdjustAmount) || 0, 'SUBTRACT', 'Dashboard Debit');
-                setFinState(next);
-                setBankNotice(`- Subtracted ${Number(invaAdjustAmount) || 0} $INVA`);
-              }}
-              className="cursor-pointer px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px] uppercase"
-            >
-              - Sub
-            </button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSaveBankAndPlan} className="space-y-2.5">
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              value={finState.bankName}
-              onChange={(e) => setFinState({ ...finState, bankName: e.target.value })}
-              placeholder="Bank Name (e.g. Chase)"
-              className="bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-3 py-2 text-xs text-white outline-none"
-            />
-            <input
-              type="text"
-              value={finState.accountHolder}
-              onChange={(e) => setFinState({ ...finState, accountHolder: e.target.value })}
-              placeholder="Account Holder Name"
-              className="bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-3 py-2 text-xs text-white outline-none"
-            />
-            <input
-              type="text"
-              maxLength={9}
-              value={finState.routingNumber}
-              onChange={(e) => setFinState({ ...finState, routingNumber: e.target.value.replace(/\D/g, '').slice(0, 9) })}
-              placeholder="9-Digit ABA Routing #"
-              className="bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none"
-            />
-            <input
-              type="text"
-              maxLength={17}
-              value={finState.accountNumber}
-              onChange={(e) => setFinState({ ...finState, accountNumber: e.target.value.replace(/\D/g, '').slice(0, 17) })}
-              placeholder="Account Number"
-              className="bg-[#090B10] border border-white/15 focus:border-red-500 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none"
-            />
-          </div>
-          <div className="flex items-center justify-between gap-2 pt-1">
-            <button type="submit" className="cursor-pointer px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-black text-[11px] uppercase">
-              Connect ACH Bank
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const res = executeCreatorAchPayout();
-                setFinState(res.state);
-                setBankNotice(res.success ? `💸 ACH Cash Payout Executed to •••• ${res.state.bankLast4}!` : `❌ ${res.error}`);
-              }}
-              className="cursor-pointer px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] uppercase"
-            >
-              Withdraw Cash (${Number(finState.creatorEarnedUsd || 0).toFixed(2)})
-            </button>
-          </div>
-        </form>
-      </div>
+      
 
       {showPaymentModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">

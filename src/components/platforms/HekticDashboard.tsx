@@ -62,52 +62,7 @@ interface HekticSubmission {
   videoUrl?: string;
 }
 
-const VERIFIED_HEKTIC_BROADCASTS: HekticSubmission[] = [
-  {
-    id: 'HEK-904112',
-    title: 'CYBER ARENA: ZERO PING FINALS',
-    status: 'live',
-    submittedBy: '@HEKTICNATION',
-    submittedAt: '2026-02-20T18:00:00.000Z',
-    category: 'Esports',
-    viewers: 18420,
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23120b04%22/><stop offset=%22100%%22 stop-color=%22%23f59e0b%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>HEKTIC // LIVE STREAM</text></svg>',
-    videoUrl: '/masters/innova-sovereign-TearsOfSteel.mp4'
-  },
-  {
-    id: 'HEK-883201',
-    title: 'CONCRETE VERT: ROOFTOP DROP-IN',
-    status: 'live',
-    submittedBy: '@HEKTICSKATE',
-    submittedAt: '2026-02-21T19:30:00.000Z',
-    category: 'Extreme Sports',
-    viewers: 24800,
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23120b04%22/><stop offset=%22100%%22 stop-color=%22%23f59e0b%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>HEKTIC // LIVE STREAM</text></svg>',
-    videoUrl: '/masters/innova-sovereign-WeAreGoingOnBullrun.mp4'
-  },
-  {
-    id: 'HEK-772190',
-    title: 'BAND WARS FINALS: VOLTAGE IN THE PIT',
-    status: 'live',
-    submittedBy: '@HEKTICMUSIC',
-    submittedAt: '2026-02-22T21:15:00.000Z',
-    category: 'Music',
-    viewers: 31200,
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23120b04%22/><stop offset=%22100%%22 stop-color=%22%23f59e0b%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>HEKTIC // LIVE STREAM</text></svg>',
-    videoUrl: '/masters/innova-sovereign-ForBiggerBlazes.mp4'
-  },
-  {
-    id: 'HEK-661049',
-    title: 'TOUR BUS CONFIDENTIAL: STATE 09',
-    status: 'pending',
-    submittedBy: '@HEKTICTOURBUS',
-    submittedAt: '2026-02-23T14:00:00.000Z',
-    category: 'Reality TV',
-    viewers: 19200,
-    thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23120b04%22/><stop offset=%22100%%22 stop-color=%22%23f59e0b%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>HEKTIC // LIVE STREAM</text></svg>',
-    videoUrl: '/masters/innova-sovereign-ForBiggerFun.mp4'
-  }
-];
+const VERIFIED_HEKTIC_BROADCASTS: HekticSubmission[] = [];
 
 type TabType = 'dashboard' | 'ingest' | 'analytics' | 'admin';
 type IngestStep = 1 | 2 | 3;
