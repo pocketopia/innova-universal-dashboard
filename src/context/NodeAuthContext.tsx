@@ -104,34 +104,10 @@ export function NodeAuthProvider({ children }: NodeAuthProviderProps) {
       setIsAuthenticated(true);
       return { success: true };
     } catch (error) {
-      // Seamless Node Creation on First Login (no 404 blocker, wallet is forged/linked inside the dashboard!)
-      const cleanHandle = userName.replace(/^@/, '').trim().toUpperCase();
-      const storedWallet = localStorage.getItem('innova-wallet-address') || '';
-      localStorage.setItem('innova-username', cleanHandle);
-      localStorage.setItem('innova-hardware-sig', hardwareSignature);
-      localStorage.setItem('innova-tenant', 'INNOVA');
-      localStorage.setItem('innova-custom-token', `ringcomm_${Date.now()}`);
-      setUserNode({
-        handle: cleanHandle,
-        userId: cleanHandle,
-        walletAddress: storedWallet,
-        tenantId: 'INNOVA',
-        tier: 'verified',
-        publicKey: hardwareSignature.slice(0, 64),
-        verified: true,
-        createdAt: new Date().toISOString(),
-        lastVerifiedAt: new Date().toISOString(),
-      });
-      setIsAuthenticated(true);
-      return { success: true };
-      if (error instanceof Error) {
-        const msg = error.message.toLowerCase();
-        // Catch all lexical indicators of a missing node identity
-        if (msg.includes('404') || msg.includes('not found') || msg.includes('no identity found') || msg.includes('no registered identity')) {
-          return { success: false, requiresRegistration: true };
-        }
-      }
-      return { success: false, error: error instanceof Error ? error.message : 'Verification failed' };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Node verification failed'
+      };
     }
   }, []);
 

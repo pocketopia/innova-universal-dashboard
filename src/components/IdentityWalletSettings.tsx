@@ -2,7 +2,7 @@ import { loadSharedDevicePermissions, revokeFriendFromMyDevice, SharedDevicePerm
 import { loadEcosystemLedger, saveEcosystemLedger, validateAbaRoutingNumber, adjustInvaBalance, recordCreatorSaleOrStream, executeCreatorAchPayout, ECOSYSTEM_PRICING_PLANS, EcosystemFinancialState } from '../lib/innovaEcosystemLedger';
 import { generateDeviceInviteForNode, verifyOrClaimNodeOnDevice, subscribeToCrossDeviceBondSync, persistMergedDevicesForHandle } from '../lib/deviceBondRegistry';
 import React, { useState, useEffect } from 'react';
-import { fetchWalletBalance, processEcosystemTransaction, API_BASE_URL } from '../lib/apiClient';
+import { fetchWalletBalance, processEcosystemTransaction, syncIdentityAndWalletWithMasterBrain, API_BASE_URL } from '../lib/apiClient';
 import { 
   X, 
   User, 
@@ -27,7 +27,7 @@ import {
   QrCode,
   Film,
   Gamepad2,
-  Tv,
+  MonitorPlay,
   Share2,
   Camera,
   Upload,
@@ -301,6 +301,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
       }
       setActiveWallet(forged);
       localStorage.setItem('innova-wallet-address', forged);
+      await syncIdentityAndWalletWithMasterBrain(clean, forged).catch(() => {});
     } finally {
       setForgingWallet(false);
     }
@@ -314,6 +315,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
         if (accounts && accounts[0]) {
           setActiveWallet(accounts[0]);
           localStorage.setItem('innova-wallet-address', accounts[0]);
+          await syncIdentityAndWalletWithMasterBrain(userNode?.handle || localStorage.getItem('innova-username') || 'NODE', accounts[0]).catch(() => {});
           return;
         }
       } catch {}
@@ -648,7 +650,9 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
                     value={activeWallet}
                     onChange={(e) => {
                       setActiveWallet(e.target.value);
-                      localStorage.setItem('innova-wallet-address', e.target.value.trim());
+                      const val = e.target.value.trim();
+                        localStorage.setItem('innova-wallet-address', val);
+                        if (/^0x[a-fA-F0-9]{40}$/.test(val)) { syncIdentityAndWalletWithMasterBrain(userNode?.handle || 'NODE', val).catch(() => {}); }
                     }}
                     placeholder="0x... (Auto-Forge below or paste your EVM wallet address)"
                     className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white font-mono outline-none focus:border-purple-500/50 transition"
@@ -822,7 +826,7 @@ export default function IdentityWalletSettings({ userNode, onClose, onAvatarUpda
 
               {/* ArcHaven / Hektic / MVN Viewer Pass */}
               <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-xl p-5 space-y-4 mb-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10"><Tv className="w-24 h-24" /></div>
+                <div className="absolute top-0 right-0 p-4 opacity-10"><MonitorPlay className="w-24 h-24" /></div>
                 <div className="relative z-10">
                   <span className="text-xs font-bold text-amber-400 tracking-widest block uppercase mb-1">// ENTERTAINMENT VIEWER PASS</span>
                   <p className="text-[10px] text-white/50 mb-4">ArcHaven Cinema, Hektic TV & MVN Music - ad-free 8K streaming with priority routing paths.</p>

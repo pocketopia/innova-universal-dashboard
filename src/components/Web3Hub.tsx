@@ -1,3 +1,4 @@
+import { syncIdentityAndWalletWithMasterBrain } from '../lib/apiClient';
 import React, { useState } from 'react';
 import { 
   Cpu, 
@@ -126,6 +127,9 @@ export default function Web3Hub({ node, setNode, wallet, setWallet, userEmail }:
       ((seedJoined.charCodeAt(idx % seedJoined.length) * (idx + 17)) % 16).toString(16)
     ).join('');
 
+    localStorage.setItem('innova-wallet-address', derivedAddress);
+    const activeU = localStorage.getItem('innova-username') || 'NODE';
+    syncIdentityAndWalletWithMasterBrain(activeU, derivedAddress).catch(() => {});
     setWallet({
       connected: true,
       address: derivedAddress,

@@ -33,7 +33,7 @@ import {
 import { 
   Gamepad2, 
   Film, 
-  Tv, 
+  MonitorPlay, 
   Share2, 
   ChevronRight, 
   ArrowLeft, 
@@ -165,7 +165,9 @@ export default function App() {
       setAppState('landing');
     };
     window.addEventListener('innova-auth-error', handleAuthError);
-    return () => window.removeEventListener('innova-auth-error', handleAuthError);
+    const onWal = () => executeConnectSetupWallet();
+    window.addEventListener('innova-wallet-updated', onWal);
+    return () => { window.removeEventListener('innova-auth-error', handleAuthError); window.removeEventListener('innova-wallet-updated', onWal); };
   }, []);
 
   // Trigger legal modal when entering hub (only if not already accepted)
@@ -198,7 +200,7 @@ export default function App() {
     setIsLoadingContent(true);
     try {
       const res = await fetchEcosystemContent();
-      const liveData = (res as any).content || Array.isArray(res) ? res : [];
+      const liveData = Array.isArray(res) ? res : ((res as any)?.content || []);
 
       const vaultItems = getStoredGlobalSubmissions();
       try { const bc = new BroadcastChannel('innova_global_media_sync'); bc.onmessage = () => syncEcosystemDataFeed(); } catch {}
@@ -250,6 +252,7 @@ export default function App() {
 
   const handleGlobalStatusUpdate = async (id: string, type: 'game' | 'video' | 'project', newStatus: string) => {
     updateGlobalSubmissionStatus(id, newStatus);
+    await updateContentStatus(id, newStatus, type).catch(() => {});
     if (type === 'game') {
       setGames(prev => prev.map(g => g.id === id ? { ...g, status: newStatus as any } : g));
     } else if (type === 'video') {

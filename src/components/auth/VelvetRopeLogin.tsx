@@ -39,7 +39,7 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
   const currentLoc = useMemo(() => computeLocationSignature(), []);
   const deviceInfo = useMemo(() => parseLiveDeviceInfo(), []);
   const primaryHardwareOwner = useMemo(() => {
-    return purgeHenryForeverAndLockHost() || 'TICKER';
+    return purgeHenryForeverAndLockHost();
   }, []);
   const pioneerStats = useMemo(() => getPioneerSlotsRemaining(), [accessCode, blockedTarget]);
 
@@ -47,7 +47,7 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
     purgeHenryForeverAndLockHost();
   }, []);
 
-  const finalizeAuthentication = (rawHandle: string) => {
+  const finalizeAuthentication = async (rawHandle: string) => {
     const clean = cleanHandleInput(rawHandle);
     if (!clean || clean === 'HENRY') return;
     setIsAuthenticating(true);
@@ -60,7 +60,12 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
         registerAccountWithPioneerCutoff('TICKER', currentFp);
       }
       if (nodeAuth && typeof nodeAuth.login === 'function') {
-        Promise.resolve(nodeAuth.login(clean)).catch(() => {});
+        const res = await nodeAuth.login(clean);
+        if (!res.success && res.error) {
+          setIsAuthenticating(false);
+          setError(res.error);
+          return;
+        }
       }
     } catch {}
 
@@ -115,10 +120,14 @@ export default function VelvetRopeLogin({ onAuthenticated }: VelvetRopeLoginProp
                   Innova Ecosystem
                 </h1>
                 <p className="text-xs text-cyan-300/80 tracking-widest uppercase font-bold">
-                  Hardware &amp; Location Enclave &bull; Bonded to @{primaryHardwareOwner}
+                  {primaryHardwareOwner ? `Hardware & Location Enclave • Bonded to @${primaryHardwareOwner}` : 'Sovereign Hardware Enclave • Ready to Claim @USER.NAME'}
                 </p>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
-                  This device is locked to <strong className="text-cyan-300">@{primaryHardwareOwner}</strong>. Only @{primaryHardwareOwner} or a friend approved via <strong className="text-white">Innova Telegram Device Handshake</strong> may sign in here.
+                  {primaryHardwareOwner ? (
+                    <>This device is locked to <strong className="text-cyan-300">@{primaryHardwareOwner}</strong>. Only @{primaryHardwareOwner} or an approved <strong className="text-white">Innova Telegram Handshake</strong> guest may sign in here.</>
+                  ) : (
+                    <>Enter your <strong className="text-cyan-300">@USER.NAME</strong> to create or unlock your Node and cryptographically bind it to this device.</>
+                  )}
                 </p>
               </div>
 

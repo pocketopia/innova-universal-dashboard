@@ -190,3 +190,66 @@ export const submitProjectWithFormatAndAdminGatekeeper = (
     item: savedItem
   };
 };
+
+
+export const uploadFileToCloudOrDataUrl = async (
+  file: File,
+  tenant: 'MVN' | 'ArcHaven' | 'HekticTV' | 'Kreation' | 'StreamShare'
+): Promise<string> => {
+  const rawApi = (import.meta as any).env?.VITE_API_URL || 'https://innova-master-brain-api.onrender.com/api';
+  const apiBase = String(rawApi).replace(/\/+$/, '').endsWith('/api')
+    ? String(rawApi).replace(/\/+$/, '')
+    : `${String(rawApi).replace(/\/+$/, '')}/api`;
+
+  try {
+    const signRes = await fetch(`${apiBase}/device/upload-url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: file.type || 'application/octet-stream',
+        tenant
+      })
+    });
+    if (signRes.ok) {
+      const { uploadUrl, publicUrl, signedReadUrl } = await signRes.json();
+      const putRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        body: file
+      });
+      if (putRes.ok) {
+        return signedReadUrl || publicUrl;
+      }
+    }
+  } catch {}
+
+  if (file.type.startsWith('image/') && file.size <= 750 * 1024) {
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Failed reading image file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  return await storeMediaFileInVault(file);
+};
+
+export const uploadOrResolveProductionMedia = async (
+  tenant: 'MVN' | 'ArcHaven' | 'HekticTV' | 'Kreation' | 'StreamShare',
+  directHttpsUrl?: string,
+  file?: File | null
+): Promise<string> => {
+  const trimmedUrl = String(directHttpsUrl || '').trim();
+  if (trimmedUrl) {
+    if (/test-streams\.mux\.dev|ForBiggerBlazes|TearsOfSteel|BigBuckBunny/i.test(trimmedUrl)) {
+      throw new Error('Sample/mock test video URLs are blocked in production. Please enter your real HTTPS media stream URL.');
+    }
+    return trimmedUrl;
+  }
+  if (file) {
+    return await uploadFileToCloudOrDataUrl(file, tenant);
+  }
+  return '';
+};

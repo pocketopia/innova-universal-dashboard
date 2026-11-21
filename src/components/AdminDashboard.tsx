@@ -26,7 +26,7 @@ import {
   Zap
 } from 'lucide-react';
 import { IndieGame, VideoSubmission } from '../types';
-import { API_BASE_URL } from '../lib/apiClient';
+import { API_BASE_URL, updateContentStatus } from '../lib/apiClient';
 
 interface AdminDashboardProps {
   userNode: { handle: string; id: string; name: string; wallet: string };
@@ -117,11 +117,9 @@ export default function AdminDashboard({
           throw new Error(`Failed to fetch MVN items: ${response.status}`);
         }
         
-        const data = await response.json();
-        
-        // Parse items where status === 'pending' and match MVN criteria
-        // Match both text formats: tenant === 'MVN' or ID prefix starting with 'MVN-'
-        const mvnItems = data.filter((item: any) => {
+        const rawData = await response.json();
+        const list = Array.isArray(rawData) ? rawData : (rawData?.content || []);
+        const mvnItems = list.filter((item: any) => {
           const isPending = item.status === 'pending' || item.status === 'Pending';
           const isMvnTenant = item.tenant === 'MVN' || item.tenant === 'Mvn';
           const hasMvnPrefix = item.id && item.id.startsWith('MVN-');
@@ -213,7 +211,8 @@ export default function AdminDashboard({
     triggerNotification(`Inbox created for ${platformName}!`);
   };
 
-  const handleVerifyGame = (gameId: string, name: string, approve: boolean) => {
+  const handleVerifyGame = async (gameId: string, name: string, approve: boolean) => {
+    await updateContentStatus(gameId, approve ? 'approved' : 'rejected', 'game').catch(() => {});
     setGames(prev => prev.map(g => {
       if (g.id === gameId) {
         return { 
@@ -228,7 +227,8 @@ export default function AdminDashboard({
     triggerNotification(`Game ${approve ? 'approved' : 'denied'} successfully.`);
   };
 
-  const handleVerifySubmission = (subId: string, title: string, approve: boolean) => {
+  const handleVerifySubmission = async (subId: string, title: string, approve: boolean) => {
+    await updateContentStatus(subId, approve ? 'approved' : 'rejected', 'video').catch(() => {});
     setSubmissions(prev => prev.map(s => {
       if (s.id === subId) {
         return {
@@ -251,7 +251,7 @@ export default function AdminDashboard({
     { id: 'kreation', name: 'Kreation Gaming', label: 'Games', color: '#A855F7', icon: Gamepad2 },
     { id: 'hektic', name: 'Hektic TV', label: 'Broadcasts', color: '#4F46E5', icon: Database },
     { id: 'archaven', name: 'ArcHaven Cinema', label: 'Cinematic', color: '#06B6D4', icon: Film },
-    { id: 'mvn', name: 'Music Video Network', label: 'Acoustics', color: '#F59E0B', icon: Tv }
+    { id: 'mvn', name: 'Music Video Network', label: 'Acoustics', color: '#F59E0B', icon: Music }
   ];
 
   return (
@@ -534,7 +534,7 @@ export default function AdminDashboard({
 
                 // Match submissions belonging to this platform's channel
                 const matchedSubs = submissions.filter(s => {
-                  return s.selectedChannels.some(channel => {
+                  return (Array.isArray(s.selectedChannels) ? s.selectedChannels : [String((s as any).tenant || '')]).some(channel => {
                     const cleanChannel = channel.toUpperCase().replace(' ', '');
                     const cleanPlatName = plat.name.toUpperCase().replace(' ', '');
                     return cleanChannel.includes(plat.id.toUpperCase()) || cleanChannel.includes(cleanPlatName);
@@ -567,7 +567,7 @@ export default function AdminDashboard({
                               <div>Submitted: <strong className="text-white font-medium">{sub.submittedAt}</strong></div>
                             </div>
                             <div className="text-[10px] font-mono text-white/40">
-                              CHANNELS TARGETED: <strong className="text-indigo-300 font-semibold">{sub.selectedChannels.join(' & ')}</strong>
+                              CHANNELS TARGETED: <strong className="text-indigo-300 font-semibold">{(Array.isArray(sub.selectedChannels) ? sub.selectedChannels : [(sub as any).tenant || plat.name]).join(' & ')}</strong>
                             </div>
                           </div>
 

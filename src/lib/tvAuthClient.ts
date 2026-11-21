@@ -7,7 +7,7 @@
  * for the access token.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://innova-master-brain-api.onrender.com';
+const API_BASE_URL = String(import.meta.env.VITE_API_URL || 'https://innova-master-brain-api.onrender.com').replace(/\/api\/?$/, '').replace(/\/+$/, '');
 
 // Types for Device Authorization Flow
 export interface DeviceAuthorizationResponse {
@@ -80,7 +80,7 @@ export async function requestDeviceAuthorization(
   clientName: string
 ): Promise<DeviceAuthorizationResponse> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 900); // Fast fallback for standalone TV devices
+  const timeoutId = setTimeout(() => controller.abort(), 4500); // Fast fallback for standalone TV devices
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/device/authorize`, {

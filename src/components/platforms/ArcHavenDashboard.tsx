@@ -1,6 +1,7 @@
 import { storeMediaFileInVault, resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions } from '../../lib/mediaVault';
 import React, { useState } from 'react';
-import { submitContent } from '../../lib/apiClient';
+import { submitContent, updateContentStatus } from '../../lib/apiClient';
+import { uploadOrResolveProductionMedia } from '../../lib/mediaVault';
 import {
   Film,
   UploadCloud,
@@ -271,48 +272,55 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
 
   const handleFinalSubmit = async () => {
     const posterUrl = formData.posterFile
-      ? URL.createObjectURL(formData.posterFile)
-      : 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23090514%22/><stop offset=%22100%%22 stop-color=%22%23a855f7%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>ARCHAVEN // AI CINEMA</text></svg>';
-    const trailerUrl = formData.trailerFile
-      ? '/masters/innova-sovereign-TearsOfSteel.mp4'
-      : null;
+      ? await uploadOrResolveProductionMedia('ArcHaven', '', formData.posterFile)
+      : '';
+    const masterVideoUrl = await uploadOrResolveProductionMedia(
+      'ArcHaven',
+      (formData as any).videoUrlInput || '',
+      formData.videoFile || formData.trailerFile
+    );
+    if (!masterVideoUrl) {
+      alert('Attach a real AI Series/Film MP4 master before submitting to ArcHaven.');
+      return;
+    }
 
+    const generatedId = `ARCH-${Date.now().toString().slice(-6)}`;
+    const initialStatus = isAdmin ? 'approved' : 'admin_review';
     let remoteResult: any = null;
     try {
       const payload = {
+        id: generatedId,
+        tenant: 'ArcHaven',
+        type: formData.isSeries ? 'Series' : 'Film',
+        isSeries: formData.isSeries,
         title: formData.title,
+        synopsis: formData.synopsis,
+        description: formData.synopsis,
+        genre: formData.genre,
         creator: userNode.handle,
-        camera: 'ProRes 422 HQ',
+        director: formData.directors?.[0] || userNode.handle,
         resolution: '4K UHD',
-        audioFormat: 'WAV',
-        selectedChannels: ['5.1', 'Stereo'],
-        licensingTerms: true,
         posterUrl,
-        trailerUrl
+        thumbnailUrl: posterUrl,
+        videoUrl: masterVideoUrl,
+        status: initialStatus
       };
       remoteResult = await submitContent(payload);
-    } catch {
-      // Offline / standalone fallback: persist locally in dashboard state
+    } catch (err: any) {
+      alert(err?.message || 'Failed submitting to ArcHaven Master Brain.');
+      return;
     }
 
-    let vaultVideoUrl = '/masters/innova-sovereign-TearsOfSteel.mp4';
-      if (formData.videoFile) {
-        vaultVideoUrl = await storeMediaFileInVault(formData.videoFile);
-      }
-      let vaultPosterUrl = 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23090514%22/><stop offset=%22100%%22 stop-color=%22%23a855f7%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>ARCHAVEN // AI CINEMA</text></svg>';
-      if (formData.posterFile) {
-        vaultPosterUrl = await storeMediaFileInVault(formData.posterFile);
-      }
-      const newSubmission: ArcHavenSubmission = {
-      id: remoteResult?.id || `ARCH-${Date.now().toString().slice(-6)}`,
+    const newSubmission: ArcHavenSubmission = {
+      id: remoteResult?.id || generatedId,
       title: formData.title,
-      status: 'admin_review',
+      status: initialStatus,
       submittedBy: userNode.handle,
-      submittedAt: remoteResult?.submittedAt || new Date().toISOString(),
+      submittedAt: new Date().toISOString(),
       genre: formData.genre,
       synopsis: formData.synopsis,
       posterUrl,
-      videoUrl: trailerUrl || '/masters/innova-sovereign-TearsOfSteel.mp4'
+      videoUrl: masterVideoUrl
     };
     setSubmissions((prev: ArcHavenSubmission[]) => [
       newSubmission,
@@ -325,8 +333,9 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
     setActiveTab('dashboard');
   };
 
-  const handleApproveSubmission = (id: string) => {
-    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: 'approved' } : s));
+  const handleApproveSubmission = async (id: string) => {
+    await updateContentStatus(id, 'approved', 'archaven').catch(() => {});
+    setSubmissions((prev: any[]) => prev.map(s => s.id === id ? { ...s, status: 'approved' } : s));
   };
 
   const handleDeclineSubmission = (id: string) => {
@@ -1410,7 +1419,7 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
             </div>
             <div className="aspect-video bg-black relative">
               <video
-                src={previewSubmission.videoUrl || '/masters/innova-sovereign-TearsOfSteel.mp4'}
+                src={previewSubmission.videoUrl || ''}
                 poster={previewSubmission.posterUrl}
                 controls
                 autoPlay

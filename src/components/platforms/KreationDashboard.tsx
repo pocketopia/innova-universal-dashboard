@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { submitGame, processEcosystemTransaction } from '../../lib/apiClient';
+import { submitGame, updateContentStatus, processEcosystemTransaction } from '../../lib/apiClient';
+import { uploadOrResolveProductionMedia, saveGlobalSubmission } from '../../lib/mediaVault';
 import {
   Gamepad2,
   Play,
@@ -142,10 +143,10 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
       developerStudio: formData.developerStudio || userNode?.handle || '@CREATOR',
       genre: formData.genre || 'Action',
       systemRequirements: formData.systemRequirements || 'Kreation Cloud Shard v4.0 • 16GB Virtual VRAM',
-      status: 'pending_review',
+      status: isAdmin ? 'approved' : 'pending_review',
       submittedAt: new Date().toISOString(),
       thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%2304120e%22/><stop offset=%22100%%22 stop-color=%22%2310b981%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>KREATION // GAMING</text></svg>',
-      videoUrl: '/masters/innova-sovereign-TearsOfSteel.mp4',
+      videoUrl: await uploadOrResolveProductionMedia('Kreation', (formData as any).gameUrlInput, formData.trailerFile || formData.buildFile),
       rating: 4.9,
       downloads: 1
     };
@@ -166,7 +167,8 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
     setActiveTab('hub');
   };
 
-  const handleApprove = (id: string) => {
+  const handleApprove = async (id: string) => {
+    await updateContentStatus(id, 'approved', 'kreation').catch(() => {});
     setGames((prev: any) => {
       const base = Array.isArray(prev) && prev.length > 0 ? prev : VERIFIED_KREATION_GAMES;
       return base.map((game: any) => game.id === id ? { ...game, status: 'approved' } : game);
@@ -174,7 +176,8 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
     setStatusBanner(`Container ${id} approved for Kreation Storefront.`);
   };
 
-  const handleDeny = (id: string) => {
+  const handleDeny = async (id: string) => {
+    await updateContentStatus(id, 'rejected', 'kreation').catch(() => {});
     setGames((prev: any) => {
       const base = Array.isArray(prev) && prev.length > 0 ? prev : VERIFIED_KREATION_GAMES;
       return base.map((game: any) => game.id === id ? { ...game, status: 'rejected' } : game);
@@ -453,7 +456,7 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
             </div>
             <div className="aspect-video bg-black">
               <video
-                src={selectedGame.videoUrl || '/masters/innova-sovereign-TearsOfSteel.mp4'}
+                src={selectedGame.videoUrl || ''}
                 poster={selectedGame.thumbnail}
                 autoPlay
                 controls

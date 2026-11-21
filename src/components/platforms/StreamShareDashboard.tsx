@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { submitContent, fetchEcosystemContent } from '../../lib/apiClient';
+import { uploadOrResolveProductionMedia, saveGlobalSubmission } from '../../lib/mediaVault';
 import {
   Share2,
   MessageSquare,
@@ -56,6 +57,8 @@ interface ProjectFormData {
   synopsis: string;
   category: string;
   bannerPreview: string;
+  videoUrlInput?: string;
+  isPublicShowcase?: boolean;
   videoFile: File | null;
   chapterMarks: { time: string; title: string }[];
 }
@@ -119,6 +122,8 @@ const initialFormData: ProjectFormData = {
   synopsis: '',
   category: 'Cinematic Weddings',
   bannerPreview: '',
+  videoUrlInput: '',
+  isPublicShowcase: true,
   videoFile: null,
   chapterMarks: []
 };
@@ -281,82 +286,97 @@ export default function StreamShareDashboard({ userNode, onBack, projects, setPr
   };
 
   const handleSubmitToRegistry = () => {
-    // BYPASS GOD MODE APPROVAL - IMMEDIATE LIFECYCLE ACTIVATION
-    // Payload explicitly sets status to 'approved'/'live' right out of the gate
-    const payload = {
+    return {
       id: "SS-" + Date.now().toString().slice(-6),
       title: formData.title,
-      genre: formData.category || 'Cinematic Weddings',
-      creator: userNode.handle, // The videographer studio handle
-      clientEmail: formData.clientEmail, // Tied explicitly to this client
+      genre: formData.category || 'Premiere Showcase',
+      creator: userNode.handle,
+      clientEmail: formData.clientEmail,
       synopsis: formData.synopsis,
-      thumbnail: formData.bannerPreview || ``,
-      videoUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-      status: 'approved' // BYPASS PENDING MODERATION ENTRIES - GOES LIVE INSTANTLY
+      thumbnail: formData.bannerPreview || '',
+      videoUrl: formData.videoUrlInput || '',
+      status: 'approved'
     };
-    
-    // Register with the shared backend
-    console.log('[STREAMSHARE] Submitting to registry with immediate approval:', payload);
-    
-    return payload;
   };
 
   const handleFinalDeliver = async () => {
     try {
+      const resolvedVideoUrl = await uploadOrResolveProductionMedia('StreamShare', formData.videoUrlInput, formData.videoFile);
+      if (!resolvedVideoUrl) {
+        alert('Please attach a real MP4/MOV master file or enter a direct HTTPS stream URL (.mp4 / .m3u8) before dispatching.');
+        return;
+      }
+
       const generatedId = "SS-" + Date.now().toString().slice(-6);
-      
+      const isPublic = formData.isPublicShowcase !== false || !formData.clientHandle?.trim();
+      const finalStatus = isPublic ? 'approved' : 'delivered';
+
       const payload = {
         id: generatedId,
+        tenant: 'StreamShare',
+        type: 'project',
         title: formData.title,
-        genre: formData.category || 'Cinematic Weddings',
+        description: formData.description || formData.synopsis,
+        genre: formData.category || 'Premiere Showcase',
         creator: userNode.handle,
         clientCompany: formData.clientCompany,
         clientEmail: formData.clientEmail,
         clientHandle: formData.clientHandle,
-        synopsis: formData.synopsis || 'Your exclusive digital premiere lounge.',
-        thumbnail: formData.bannerPreview || 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23080716%22/><stop offset=%22100%%22 stop-color=%22%236366f1%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>STREAMSHARE // PIPELINE</text></svg>',
-        videoUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-        status: 'approved', // BYPASS GATED MODERATION - LIVE INSTANTLY ON DISPATCH
-        handshakeCode: deliveryCode // ADDED SECURE KEY FOR CLIENT UNLOCK
+        isPublicShowcase: isPublic,
+        synopsis: formData.synopsis || formData.description || 'Exclusive 4K Ring Comm Master Delivery.',
+        thumbnail: formData.bannerPreview || '',
+        posterUrl: formData.bannerPreview || '',
+        videoUrl: resolvedVideoUrl,
+        status: finalStatus,
+        handshakeCode: deliveryCode
       };
 
-      // Execute live database record injection via Master Brain API
       await submitContent(payload);
-      
-      // Create local project object for immediate UI update
+      saveGlobalSubmission({
+        id: generatedId,
+        tenant: 'StreamShare',
+        type: 'project',
+        title: formData.title,
+        creator: userNode.handle,
+        genre: payload.genre,
+        synopsis: payload.synopsis,
+        status: finalStatus,
+        submittedAt: new Date().toISOString(),
+        thumbnail: payload.thumbnail,
+        posterUrl: payload.posterUrl,
+        videoUrl: resolvedVideoUrl,
+        extra: { handshakeCode: deliveryCode, clientHandle: formData.clientHandle, isPublicShowcase: isPublic }
+      });
+
       const newProject: StreamShareProject = {
         id: generatedId,
         title: formData.title,
         description: formData.description,
         synopsis: formData.synopsis,
-        genre: formData.category || 'Cinematic Weddings',
+        genre: payload.genre,
         clientCompany: formData.clientCompany,
         clientEmail: formData.clientEmail,
         clientHandle: formData.clientHandle,
         creatorHandle: userNode.handle,
-        status: 'approved',
+        status: finalStatus as any,
         deliveredAt: new Date().toISOString(),
         handshakeCode: deliveryCode,
-        duration: '0:00',
-        thumbnail: formData.bannerPreview || ``,
-        videoUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+        duration: '4K Master',
+        thumbnail: formData.bannerPreview || '',
+        videoUrl: resolvedVideoUrl
       };
-      
-      // Force sync update to local view states
+
       setLiveProjects(prev => [newProject, ...prev]);
-      
-      // Reset form states cleanly
       setFormData(initialFormData);
       setIngestStep(1);
       setDeliveryCode('');
       setActiveTab('roster');
-    } catch (err) {
+    } catch (err: any) {
       console.error("StreamShare upload failure:", err);
-      alert("Asset dispatch failed. Check network link lines.");
+      alert(err?.message || "Asset dispatch failed. Verify your video URL or Firebase Storage bucket.");
     }
   };
 
-  // Live Messenger Node Framework - sends messages to shared backend
   const handleSendMessage = useCallback((projectId: string, to: string, threadId?: string) => {
     if (!messageText.trim()) return;
     
@@ -866,7 +886,7 @@ export default function StreamShareDashboard({ userNode, onBack, projects, setPr
               type="text"
               value={formData.bannerPreview}
               onChange={(e) => setFormData(prev => ({ ...prev, bannerPreview: e.target.value }))}
-              placeholder="https://example.com/image.jpg"
+              placeholder="https://... (Cover / Banner Image URL)"
               className="flex-1 bg-slate-900/80 text-white rounded-xl border border-white/10 p-3 font-mono text-xs focus:outline-none focus:border-emerald-400 transition"
             />
           </div>

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { submitContent } from '../../lib/apiClient';
+import { submitContent, updateContentStatus } from '../../lib/apiClient';
+import { uploadOrResolveProductionMedia, saveGlobalSubmission } from '../../lib/mediaVault';
 import {
   Radio,
   Activity,
@@ -201,7 +202,12 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
   const handleSubmitToRegistry = async () => {
     const generatedId = "HEK-" + Date.now().toString().slice(-6);
     const thumbnail = formData.bannerPreview || "data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23120b04%22/><stop offset=%22100%%22 stop-color=%22%23f59e0b%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>HEKTIC // LIVE STREAM</text></svg>";
-    const videoUrl = "/masters/innova-sovereign-ForBiggerBlazes.mp4";
+    const videoUrl = await uploadOrResolveProductionMedia('HekticTV', (formData as any).videoUrlInput, formData.mediaFile || formData.trailerFile);
+    if (!videoUrl) {
+      alert('Attach a real episode MP4/MOV file before submitting to Hektic TV.');
+      return;
+    }
+    const initialStatus = isAdmin ? 'approved' : 'pending';
 
     try {
       const payload = {
@@ -212,9 +218,10 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
         synopsis: formData.synopsis || 'Live Hektic Nation transmission.',
         thumbnail,
         videoUrl,
-        status: 'pending'
+        status: initialStatus
       };
       await submitContent(payload);
+      saveGlobalSubmission({ id: generatedId, tenant: 'HekticTV', type: 'video', title: formData.title, creator: userNode.handle, genre: formData.category, synopsis: formData.synopsis, status: initialStatus, submittedAt: new Date().toISOString(), thumbnail, videoUrl });
     } catch {
       // Offline / standalone fallback: persist locally in dashboard state
     }
@@ -222,7 +229,7 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
     const newSubmission: HekticSubmission = {
       id: generatedId,
       title: formData.title,
-      status: 'pending',
+      status: (initialStatus === 'approved' ? 'live' : 'pending') as any,
       submittedBy: userNode.handle,
       submittedAt: new Date().toISOString(),
       category: formData.category,
@@ -240,12 +247,14 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
     setActiveTab('dashboard');
   };
 
-  const handleApproveSubmission = (id: string) => {
-    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: 'approved' } : s));
+  const handleApproveSubmission = async (id: string) => {
+    await updateContentStatus(id, 'approved', 'hektic').catch(() => {});
+    setSubmissions((prev: any[]) => prev.map(s => s.id === id ? { ...s, status: 'live' } : s));
   };
 
-  const handleTerminateSubmission = (id: string) => {
-    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: 'terminated' } : s));
+  const handleTerminateSubmission = async (id: string) => {
+    await updateContentStatus(id, 'rejected', 'hektic').catch(() => {});
+    setSubmissions((prev: any[]) => prev.map(s => s.id === id ? { ...s, status: 'terminated' } : s));
   };
 
   const getStatusColor = (status?: string) => {
@@ -1101,7 +1110,7 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
             </div>
             <div className="aspect-video bg-black relative">
               <video
-                src={previewBroadcast.videoUrl || '/masters/innova-sovereign-ForBiggerBlazes.mp4'}
+                src={previewBroadcast.videoUrl || ''}
                 poster={previewBroadcast.thumbnail}
                 controls
                 autoPlay

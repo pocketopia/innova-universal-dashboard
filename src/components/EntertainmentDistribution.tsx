@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Film, 
-  Tv, 
+  MonitorPlay, 
   Music, 
   Upload, 
   ShieldCheck, 
@@ -44,7 +44,7 @@ export default function EntertainmentDistribution({
   const theme = {
     mvn: { title: "MUSIC VIDEO NETWORK", color: "text-rose-400", bg: "bg-rose-500/10", border: "border-rose-500/20", icon: Music },
     archaven: { title: "ARCHAVEN CINEMA", color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20", icon: Film },
-    hektic: { title: "HEKTIC TV BROADCASTS", color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20", icon: Tv }
+    hektic: { title: "HEKTIC TV BROADCASTS", color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20", icon: MonitorPlay }
   }[subPlatform || 'archaven'];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

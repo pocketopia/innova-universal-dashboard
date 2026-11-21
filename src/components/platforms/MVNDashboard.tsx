@@ -1,4 +1,5 @@
-import { storeMediaFileInVault, resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions } from '../../lib/mediaVault';
+import { resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions, uploadOrResolveProductionMedia } from '../../lib/mediaVault';
+import { submitContent } from '../../lib/apiClient';
 import React, { useState } from 'react';
 import {
   Music,
@@ -63,10 +64,12 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
     if (!uploadTitle.trim() || !uploadArtist.trim()) return;
     setIsUploading(true);
     try {
-      let finalVideoUrl = uploadVideoUrlInput.trim();
-      if (uploadVideoFile) {
-        finalVideoUrl = await storeMediaFileInVault(uploadVideoFile);
+      const finalVideoUrl = await uploadOrResolveProductionMedia('MVN', uploadVideoUrlInput, uploadVideoFile);
+      if (!finalVideoUrl) {
+        setUploadSuccessMsg('Error: Attach an MP4 music video file or paste a direct HTTPS stream URL.');
+        return;
       }
+      const isOperator = /^@?TICKER(TWIZTED)?$/i.test(userNode?.handle || '');
       const newId = `MVN-${Date.now().toString().slice(-6)}`;
       const newItem: any = {
         id: newId,
@@ -78,11 +81,12 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
         primaryArtist: uploadArtist.trim(),
         genre: uploadGenre,
         duration: '3:45',
-        status: 'pending_qc',
-        submittedAt: new Date().toISOString().split('T')[0],
-        thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23050814%22/><stop offset=%22100%%22 stop-color=%22%2306b6d4%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>MVN // MASTER UPLOAD</text></svg>',
-        videoUrl: finalVideoUrl || '/masters/innova-sovereign-ForBiggerBlazes.mp4'
+        status: isOperator ? 'approved' : 'pending',
+        submittedAt: new Date().toISOString(),
+        thumbnail: '',
+        videoUrl: finalVideoUrl
       };
+      await submitContent(newItem);
       saveGlobalSubmission(newItem);
       if (typeof setSubmissions === 'function') {
         setSubmissions((prev: any[]) => [newItem, ...(Array.isArray(prev) ? prev : [])]);
@@ -91,7 +95,9 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
       setUploadArtist('');
       setUploadVideoFile(null);
       setUploadVideoUrlInput('');
-      setUploadSuccessMsg('Uploaded to @TICKER Command Deck for approval! Once approved, it broadcasts live on MVN TV & Web.');
+      setUploadSuccessMsg(isOperator ? '✓ Published LIVE to MVN Fire TV, Fire Tablet & Web!' : '✓ Submitted to Admin Command Deck for approval!');
+    } catch (err: any) {
+      setUploadSuccessMsg(`Upload error: ${err?.message || 'Check stream URL or network'}`);
     } finally {
       setIsUploading(false);
     }
@@ -273,7 +279,7 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
             </div>
             <div className="aspect-video bg-black relative">
               <video
-                src={previewVideo.videoUrl || '/masters/innova-sovereign-ForBiggerBlazes.mp4'}
+                src={previewVideo.videoUrl || resolvedVideoUrl || ''}
                 poster={previewVideo.thumbnail}
                 controls
                 autoPlay

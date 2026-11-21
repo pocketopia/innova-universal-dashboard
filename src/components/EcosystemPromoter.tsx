@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Gamepad2, Film, Tv, Database, Share2, ArrowRight } from 'lucide-react';
+import { Gamepad2, Film, MonitorPlay, Database, Share2, ArrowRight } from 'lucide-react';
 
 interface EcosystemPromoterProps {
   currentPlatform: string;
@@ -12,7 +12,7 @@ const PROMOS: Record<string, any[]> = {
   ],
   kreation: [
     { text: "Unlock exclusive in-game lore by watching 'The Neon Whisper' on ArcHaven.", icon: Film, color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" },
-    { text: "Listen to the official game soundtrack looping 24/7 on Music Video Nation.", icon: Tv, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" }
+    { text: "Listen to the official game soundtrack looping 24/7 on Music Video Nation.", icon: MonitorPlay, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" }
   ],
   mvn: [
     { text: "Watch the artist's live festival performance streaming right now on Hektic TV.", icon: Database, color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
@@ -20,7 +20,7 @@ const PROMOS: Record<string, any[]> = {
   ],
   hektic: [
     { text: "Missed the live broadcast? Watch the 4K master cut on ArcHaven Cinema.", icon: Film, color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" },
-    { text: "Vibe to the pre-show playlist on Music Video Nation.", icon: Tv, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" }
+    { text: "Vibe to the pre-show playlist on Music Video Nation.", icon: MonitorPlay, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" }
   ],
   streamshare: [
     { text: "Deliver your final master files and get featured on ArcHaven Cinema.", icon: Film, color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" },

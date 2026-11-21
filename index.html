@@ -40,7 +40,10 @@
         }
       }
       sessionStorage.clear();
-      localStorage.setItem('innova_primary_hardware_owner', 'TICKER');
+      var existingOwner = localStorage.getItem('innova_primary_hardware_owner');
+      if (existingOwner && existingOwner.toUpperCase().indexOf('HENRY') !== -1) {
+        localStorage.removeItem('innova_primary_hardware_owner');
+      }
     } catch (err) {}
   })();
 </script>
