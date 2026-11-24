@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { submitContent, updateContentStatus } from '../../lib/apiClient';
-import { uploadOrResolveProductionMedia, saveGlobalSubmission } from '../../lib/mediaVault';
+import { uploadOrResolveProductionMedia, uploadVideoAndEnsureFirstFrameThumbnail, saveGlobalSubmission } from '../../lib/mediaVault';
 import {
   Radio,
   Activity,

@@ -1,4 +1,4 @@
-import { resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions, uploadOrResolveProductionMedia } from '../../lib/mediaVault';
+import { resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions, uploadVideoAndEnsureFirstFrameThumbnail } from '../../lib/mediaVault';
 import { submitContent } from '../../lib/apiClient';
 import React, { useState } from 'react';
 import {
@@ -64,7 +64,7 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
     if (!uploadTitle.trim() || !uploadArtist.trim()) return;
     setIsUploading(true);
     try {
-      const finalVideoUrl = await uploadOrResolveProductionMedia('MVN', uploadVideoUrlInput, uploadVideoFile);
+      const { videoUrl: finalVideoUrl, thumbnailUrl: autoThumb, durationLabel } = await uploadVideoAndEnsureFirstFrameThumbnail('MVN', uploadVideoUrlInput, uploadVideoFile, '');
       if (!finalVideoUrl) {
         setUploadSuccessMsg('Error: Attach an MP4 music video file or paste a direct HTTPS stream URL.');
         return;
@@ -80,10 +80,11 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
         creator: uploadArtist.trim(),
         primaryArtist: uploadArtist.trim(),
         genre: uploadGenre,
-        duration: '3:45',
+        duration: durationLabel || '3:45',
         status: isOperator ? 'approved' : 'pending',
         submittedAt: new Date().toISOString(),
-        thumbnail: '',
+        thumbnail: autoThumb,
+        posterUrl: autoThumb,
         videoUrl: finalVideoUrl
       };
       await submitContent(newItem);

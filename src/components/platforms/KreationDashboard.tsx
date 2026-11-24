@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { submitGame, updateContentStatus, processEcosystemTransaction } from '../../lib/apiClient';
-import { uploadOrResolveProductionMedia, saveGlobalSubmission } from '../../lib/mediaVault';
+import { uploadOrResolveProductionMedia, uploadVideoAndEnsureFirstFrameThumbnail, saveGlobalSubmission } from '../../lib/mediaVault';
 import {
   Gamepad2,
   Play,
@@ -145,8 +145,11 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
       systemRequirements: formData.systemRequirements || 'Kreation Cloud Shard v4.0 • 16GB Virtual VRAM',
       status: isAdmin ? 'approved' : 'pending_review',
       submittedAt: new Date().toISOString(),
-      thumbnail: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%2304120e%22/><stop offset=%22100%%22 stop-color=%22%2310b981%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>KREATION // GAMING</text></svg>',
-      videoUrl: await uploadOrResolveProductionMedia('Kreation', (formData as any).gameUrlInput, formData.trailerFile || formData.buildFile),
+      ...(await (async () => {
+        const bannerHttps = formData.bannerFile ? await uploadOrResolveProductionMedia('Kreation', '', formData.bannerFile) : '';
+        const { videoUrl: vUrl, thumbnailUrl: tUrl } = await uploadVideoAndEnsureFirstFrameThumbnail('Kreation', (formData as any).gameUrlInput, formData.trailerFile || formData.buildFile, bannerHttps);
+        return { thumbnail: tUrl || bannerHttps, posterUrl: tUrl || bannerHttps, videoUrl: vUrl };
+      })()),
       rating: 4.9,
       downloads: 1
     };

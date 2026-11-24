@@ -1,7 +1,7 @@
 import { storeMediaFileInVault, resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions } from '../../lib/mediaVault';
 import React, { useState } from 'react';
 import { submitContent, updateContentStatus } from '../../lib/apiClient';
-import { uploadOrResolveProductionMedia } from '../../lib/mediaVault';
+import { uploadOrResolveProductionMedia, uploadVideoAndEnsureFirstFrameThumbnail } from '../../lib/mediaVault';
 import {
   Film,
   UploadCloud,
@@ -219,7 +219,7 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
     }
 
     // Check 3: Poster file must exist (Vertical Cover Art)
-    if (!formData.posterFile) {
+    if (false && !formData.posterFile) {
       console.log('❌ [ERROR] Missing Vertical Cover Art.');
       setAIReviewLogs(['❌ [ERROR] Missing Vertical Cover Art.']);
       setAiResult('failed');
@@ -271,13 +271,12 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
   };
 
   const handleFinalSubmit = async () => {
-    const posterUrl = formData.posterFile
-      ? await uploadOrResolveProductionMedia('ArcHaven', '', formData.posterFile)
-      : '';
-    const masterVideoUrl = await uploadOrResolveProductionMedia(
+    const explicitPoster = formData.posterFile ? await uploadOrResolveProductionMedia('ArcHaven', '', formData.posterFile) : '';
+    const { videoUrl: masterVideoUrl, thumbnailUrl: posterUrl } = await uploadVideoAndEnsureFirstFrameThumbnail(
       'ArcHaven',
       (formData as any).videoUrlInput || '',
-      formData.videoFile || formData.trailerFile
+      formData.videoFile || formData.trailerFile,
+      explicitPoster
     );
     if (!masterVideoUrl) {
       alert('Attach a real AI Series/Film MP4 master before submitting to ArcHaven.');
