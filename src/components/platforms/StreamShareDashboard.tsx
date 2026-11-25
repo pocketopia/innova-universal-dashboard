@@ -1473,7 +1473,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
   };
 
   return (
-    <div className="flex flex-1 min-h-[calc(100vh-2rem)] bg-[#050505] text-white">
+    <div className="flex flex-1 w-full max-w-full min-w-0 h-[calc(100vh-2rem)] overflow-hidden bg-[#050505] text-white">
       <div className="w-64 border-r border-white/10 bg-white/[0.02] flex flex-col shrink-0">
         <div className="p-6 border-b border-white/10 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center">
@@ -1492,7 +1492,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
                 onClick={() => setActiveTab('roster')}
                 className={`cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition ${
                   activeTab === 'roster'
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.45)]'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -1502,7 +1502,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
                 onClick={() => setActiveTab('ingest')}
                 className={`cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition ${
                   activeTab === 'ingest'
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.45)]'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -1512,7 +1512,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
                 onClick={() => setActiveTab('messages')}
                 className={`cursor-pointer w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition ${
                   activeTab === 'messages'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    ? 'bg-amber-500/20 text-amber-300 border-2 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)]'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -1532,7 +1532,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
                 onClick={() => setActiveTab('premieres')}
                 className={`cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition ${
                   activeTab === 'premieres'
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.45)]'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -1542,7 +1542,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
                 onClick={() => setActiveTab('messages')}
                 className={`cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition ${
                   activeTab === 'messages'
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.45)]'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -1560,8 +1560,8 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 shrink-0">
+      <div className="flex-1 min-w-0 max-w-full flex flex-col h-full overflow-hidden">
+        <div className="h-16 w-full min-w-0 border-b border-white/10 flex items-center justify-between gap-4 px-6 shrink-0 bg-[#07090e]">
           <div className="flex items-center gap-4">
             <button onClick={onBack} className="cursor-pointer flex items-center gap-2 text-slate-400 hover:text-white transition">
               <ChevronLeft className="w-4 h-4" />
@@ -1588,7 +1588,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
                 setActiveTab('roster');
               }}
               className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold transition ${
-                viewMode === 'creator' ? 'bg-emerald-500 text-black font-black' : 'text-slate-400 hover:text-white'
+                viewMode === 'creator' ? 'bg-emerald-500 text-black font-black shadow-[0_0_16px_rgba(16,185,129,0.65)]' : 'text-slate-300 hover:text-white'
               }`}
             >
               Creator Portal
@@ -1599,7 +1599,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
                 setActiveTab('premieres');
               }}
               className={`cursor-pointer px-4 py-2 rounded-lg text-xs font-bold transition ${
-                viewMode === 'client' ? 'bg-emerald-500 text-black font-black' : 'text-slate-400 hover:text-white'
+                viewMode === 'client' ? 'bg-emerald-500 text-black font-black shadow-[0_0_16px_rgba(16,185,129,0.65)]' : 'text-slate-300 hover:text-white'
               }`}
             >
               Client Dashboard
@@ -1607,8 +1607,8 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-6xl mx-auto">
+        <div className="flex-1 w-full min-w-0 overflow-y-auto p-6">
+          <div className="w-full max-w-5xl">
             {viewMode === 'creator' && activeTab === 'roster' && renderRoster()}
             {viewMode === 'creator' && activeTab === 'ingest' && renderIngest()}
             {activeTab === 'messages' && renderMessages()}

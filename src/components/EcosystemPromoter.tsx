@@ -66,6 +66,8 @@ export default function EcosystemPromoter({ currentPlatform }: EcosystemPromoter
           100% { transform: translateX(-50%); }
         }
         .innova-news-track {
+          position: absolute;
+          left: 0;
           display: inline-block;
           white-space: nowrap;
           animation: innovaNewsMarquee 38s linear infinite;
@@ -75,14 +77,14 @@ export default function EcosystemPromoter({ currentPlatform }: EcosystemPromoter
         }
       `}</style>
 
-      <div className="w-full h-8 bg-[#07090f] border-b border-cyan-500/20 flex items-center overflow-hidden select-none z-30 shrink-0">
+      <div className="w-full max-w-[100vw] min-w-0 h-8 bg-[#07090f] border-b border-cyan-500/20 flex items-center overflow-hidden select-none z-30 shrink-0 relative">
         <div className="px-3 h-full bg-gradient-to-r from-cyan-500/20 to-emerald-500/10 border-r border-cyan-500/30 flex items-center gap-2 shrink-0">
           <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
           <span className="text-[10px] font-black uppercase tracking-widest text-cyan-300">
             LIVE NETWORK FEED
           </span>
         </div>
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 min-w-0 max-w-full overflow-hidden relative h-full flex items-center">
           <div className="innova-news-track text-[11px] font-medium text-slate-300 tracking-wide pl-4">
             {marqueeText}
           </div>
