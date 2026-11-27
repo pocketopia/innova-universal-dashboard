@@ -1,6 +1,6 @@
 import CreatorBankAndInvaHub from './components/CreatorBankAndInvaHub';
 import InnovaTelegramModal from './components/InnovaTelegramModal';
-import { loadTelegramMessages, sendTelegramMessage, getTelegramNotificationsEnabled, setTelegramNotificationsEnabled } from './lib/innovaTelegramDb';
+import { loadTelegramMessages, sendTelegramMessage, syncTelegramWithMasterBrain, getTelegramNotificationsEnabled, setTelegramNotificationsEnabled } from './lib/innovaTelegramDb';
 import { subscribeToCrossDeviceBondSync, verifyOrClaimNodeOnDevice, purgeHenryForeverAndLockHost, revokeGuestHandshakeSessions } from './lib/deviceBondRegistry';
 import { getStoredGlobalSubmissions, updateGlobalSubmissionStatus } from './lib/mediaVault';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -91,11 +91,13 @@ export default function App() {
   const [telegramUnread, setTelegramUnread] = useState<number>(() => loadTelegramMessages().filter(m => !m.trashed && !m.read).length);
   useEffect(() => {
     const syncTg = () => setTelegramUnread(loadTelegramMessages().filter(m => !m.trashed && !m.read).length);
+    syncTelegramWithMasterBrain();
+    const cloudTgTimer = setInterval(() => syncTelegramWithMasterBrain(), 5000);
     window.addEventListener('storage', syncTg);
     window.addEventListener('innova-telegram-updated', syncTg);
     let bc: BroadcastChannel | null = null;
     try { bc = new BroadcastChannel('innova_telegram_sync'); bc.onmessage = () => syncTg(); } catch {}
-    return () => { window.removeEventListener('storage', syncTg); window.removeEventListener('innova-telegram-updated', syncTg); if (bc) bc.close(); };
+    return () => { clearInterval(cloudTgTimer); window.removeEventListener('storage', syncTg); window.removeEventListener('innova-telegram-updated', syncTg); if (bc) bc.close(); };
   }, []);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [showLegal, setShowLegal] = useState(false);

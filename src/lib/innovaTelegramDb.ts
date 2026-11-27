@@ -86,6 +86,18 @@ export function sendTelegramMessage(params: {
     timestampMs: Date.now()
   };
 
+  fetch(`${((import.meta as any).env?.VITE_API_URL || 'https://innova-master-brain-api.onrender.com/api').replace(/\/+$/, '')}/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'InnovaHub', 'x-user-name': cleanSender },
+    body: JSON.stringify({
+      channel: 'telegram',
+      from: cleanSender,
+      to: cleanRecipient,
+      projectTitle: msg.subject,
+      content: msg.body,
+    }),
+  }).catch(() => {});
+
   const current = loadTelegramMessages();
   const updated = [msg, ...current];
   saveTelegramMessages(updated);
@@ -124,4 +136,54 @@ export function moveTelegramToTrash(id: string): TelegramMessage[] {
 export function deleteTelegramForever(id: string): TelegramMessage[] {
   const list = loadTelegramMessages().filter((m) => m.id !== id);
   return saveTelegramMessages(list);
+}
+
+
+const getBrainApiBase = (): string => {
+  const raw = (import.meta as any).env?.VITE_API_URL || 'https://innova-master-brain-api.onrender.com/api';
+  const clean = String(raw).replace(/\/+$/, '');
+  return clean.endsWith('/api') ? clean : `${clean}/api`;
+};
+
+export async function syncTelegramWithMasterBrain(activeHandle?: string): Promise<TelegramMessage[]> {
+  try {
+    const rawH = activeHandle || localStorage.getItem('innova-username') || '@TICKER';
+    const cleanH = rawH.trim().startsWith('@') ? rawH.trim().toUpperCase() : '@' + rawH.trim().toUpperCase();
+    const res = await fetch(`${getBrainApiBase()}/messages?tenant=ALL&handle=${encodeURIComponent(cleanH)}`, {
+      headers: { 'x-tenant-id': 'ALL', 'x-user-name': cleanH }
+    });
+    if (!res.ok) return loadTelegramMessages();
+    const data = await res.json();
+    const remoteList = Array.isArray(data.messages) ? data.messages : [];
+    const localList = loadTelegramMessages();
+    const byId = new Map<string, TelegramMessage>();
+    localList.forEach((m) => byId.set(m.id, m));
+
+    let changed = false;
+    for (const rm of remoteList) {
+      if (!byId.has(rm.id)) {
+        changed = true;
+        byId.set(rm.id, {
+          id: rm.id,
+          senderHandle: rm.from || '@USER',
+          recipientHandle: rm.to || cleanH,
+          subject: rm.channel === 'platform_live'
+            ? `[GOLDEN LIVE • ${rm.tenant || 'StreamShare'}] ${rm.projectTitle || 'Screening Note'}`
+            : `[${rm.tenant || 'Innova'} Direct] ${rm.projectTitle || 'Message'}`,
+          body: rm.content || '',
+          priority: rm.channel === 'platform_live' ? 'Premiere Invite' : 'Standard',
+          read: Boolean(rm.isRead),
+          starred: false,
+          trashed: false,
+          createdAt: rm.timestamp ? new Date(rm.timestamp).toLocaleString() : new Date().toLocaleString(),
+          timestampMs: rm.timestamp ? new Date(rm.timestamp).getTime() : Date.now(),
+        });
+      }
+    }
+    const merged = Array.from(byId.values()).sort((a, b) => b.timestampMs - a.timestampMs);
+    if (changed) saveTelegramMessages(merged);
+    return merged;
+  } catch {
+    return loadTelegramMessages();
+  }
 }

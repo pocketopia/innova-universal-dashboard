@@ -134,7 +134,7 @@ const generateHandshakeCode = (): string => {
 };
 
 export default function StreamShareDashboard({ userNode, onBack }: StreamShareDashboardProps) {
-  const myHandle = normalizeHandle(userNode?.handle || '@TICKER');
+  const myHandle = normalizeHandle(userNode?.handle || userNode?.username || (typeof window !== 'undefined' ? localStorage.getItem('innova-username') : '') || '@TICKER');
 
   const [viewMode, setViewMode] = useState<ViewMode>('creator');
   const [activeTab, setActiveTab] = useState<TabType>('roster');
@@ -177,6 +177,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
   const [customPeerInput, setCustomPeerInput] = useState<string>('');
   const [messageText, setMessageText] = useState('');
   const [sendingMsg, setSendingMsg] = useState(false);
+  const [msgStatusBanner, setMsgStatusBanner] = useState<string | null>(null);
 
   const loadProjects = useCallback(async () => {
     setIsLoadingProjects(true);
@@ -188,7 +189,12 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
 
       for (const item of rawList) {
         if (!item || !item.id || seen.has(item.id)) continue;
-        const vUrl = String(item.videoUrl || item.streamUrl || '');
+        const rawV = String(item.videoUrl || item.streamUrl || '');
+        const fbV = rawV.match(/^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/([^/]+)\/o\/([^?]+)/i);
+        const vUrl = fbV ? `https://storage.googleapis.com/${fbV[1]}/${decodeURIComponent(fbV[2]).split('/').map(encodeURIComponent).join('/')}` : rawV;
+        const rawT = String(item.posterUrl || item.thumbnail || '');
+        const fbT = rawT.match(/^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/([^/]+)\/o\/([^?]+)/i);
+        const cleanThumb = fbT ? `https://storage.googleapis.com/${fbT[1]}/${decodeURIComponent(fbT[2]).split('/').map(encodeURIComponent).join('/')}` : rawT;
         if (!vUrl || vUrl.startsWith('vault://') || vUrl.startsWith('blob:')) continue;
         seen.add(item.id);
         mapped.push({
@@ -205,7 +211,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
           deliveredAt: item.deliveredAt || item.createdAt || new Date().toISOString(),
           handshakeCode: item.handshakeCode || '',
           duration: item.duration || 'HD Master',
-          thumbnail: item.posterUrl || item.thumbnail || '',
+          thumbnail: cleanThumb,
           videoUrl: vUrl,
         });
       }
@@ -436,9 +442,11 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
   };
 
   const handleSendCloudMessage = async (channel: 'dashboard' | 'platform_live', targetPeer: string, proj?: StreamShareProject | null) => {
-    const cleanPeer = normalizeHandle(targetPeer);
-    if (!messageText.trim() || !cleanPeer || sendingMsg) return;
+    const cleanPeer = normalizeHandle(targetPeer || '@TICKER');
+    const cleanBody = messageText.trim();
+    if (!cleanBody || !cleanPeer || sendingMsg) return;
     setSendingMsg(true);
+    setMsgStatusBanner(null);
     try {
       const res = await fetch(`${API_BASE_URL}/messages`, {
         method: 'POST',
@@ -451,16 +459,24 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
           channel,
           from: myHandle,
           to: cleanPeer,
-          content: messageText.trim(),
+          content: cleanBody,
           projectId: proj?.id || '',
-          projectTitle: proj?.title || 'StreamShare Delivery',
+          projectTitle: proj?.title || (channel === 'platform_live' ? 'Live Screening Feedback' : 'Client Dashboard Thread'),
         }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.message) setCloudMessages((prev) => [...prev, data.message]);
-        setMessageText('');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || data.error || `Send failed (${res.status})`);
       }
+      if (data.message) {
+        setCloudMessages((prev) => (prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]));
+      }
+      setMessageText('');
+      setActiveChatPeer(cleanPeer);
+      setMsgStatusBanner(`✓ Delivered live to ${cleanPeer} (${channel === 'platform_live' ? 'Golden StreamShare App' : 'Client Dashboard'})`);
+      setTimeout(() => setMsgStatusBanner(null), 3500);
+    } catch (err: any) {
+      setMsgStatusBanner(`⚠ Message error: ${err?.message || 'Network error'}`);
     } finally {
       setSendingMsg(false);
     }
@@ -486,7 +502,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
     }
 
     cloudMessages
-      .filter((m) => m.channel === channel)
+      .filter((m) => viewMode === 'client' ? (m.channel === 'dashboard' || m.channel === 'platform_live') : m.channel === channel)
       .forEach((m) => {
         const other = normalizeHandle(m.from) === myHandle ? normalizeHandle(m.to) : normalizeHandle(m.from);
         if (other && !map.has(other)) map.set(other, other);
@@ -495,7 +511,8 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
     return Array.from(map.entries()).map(([handle, label]) => ({ handle, label }));
   };
 
-  const goldenUnreadCount = cloudMessages.filter((m) => m.channel === 'platform_live' && normalizeHandle(m.from) !== myHandle).length;
+  const goldenUnreadCount = cloudMessages.filter((m) => m.channel === 'platform_live' && !m.isRead).length;
+  const dashMsgCount = cloudMessages.filter((m) => m.channel === 'dashboard').length;
 
   const renderRoster = () => (
     <div className="space-y-6">
@@ -1106,13 +1123,12 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
     const currentPeer = activeChatPeer || peers[0]?.handle || '@TICKER';
 
     const threadMsgs = cloudMessages.filter((m) => {
-      if (m.channel !== activeChannel) return false;
-      if (isGolden && myHandle === '@TICKER') {
-        return normalizeHandle(m.from) === currentPeer || normalizeHandle(m.to) === currentPeer || peers.length <= 1;
-      }
+      if (viewMode === 'creator' && m.channel !== activeChannel) return false;
+      if (viewMode === 'client' && m.channel !== 'dashboard' && m.channel !== 'platform_live') return false;
       return (
         (normalizeHandle(m.from) === myHandle && normalizeHandle(m.to) === currentPeer) ||
-        (normalizeHandle(m.from) === currentPeer && normalizeHandle(m.to) === myHandle)
+        (normalizeHandle(m.from) === currentPeer && normalizeHandle(m.to) === myHandle) ||
+        (isGolden && myHandle === '@TICKER' && (normalizeHandle(m.from) === currentPeer || normalizeHandle(m.to) === currentPeer))
       );
     });
 
@@ -1146,6 +1162,11 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 1. Dashboard Client Chat
+                {dashMsgCount > 0 && (
+                  <span className="px-1.5 py-0.5 text-[9px] rounded-full bg-black/80 text-emerald-300 font-mono">
+                    {dashMsgCount}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setCreatorMsgChannel('platform_live')}
@@ -1299,6 +1320,11 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
               )}
             </div>
 
+            {msgStatusBanner && (
+              <div className="mx-4 mb-2 px-3 py-2 rounded-lg bg-emerald-500/15 border border-emerald-400/40 text-[11px] font-mono text-emerald-300">
+                {msgStatusBanner}
+              </div>
+            )}
             <div className="p-4 border-t border-white/10 flex gap-3">
               <input
                 type="text"
