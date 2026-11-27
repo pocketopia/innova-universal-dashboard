@@ -30,6 +30,9 @@ export const resolveMediaVaultUrl = async (urlOrVaultId?: string): Promise<strin
   return urlOrVaultId;
 };
 
+/**
+ * Extracts the very first visible frame (0.1s) of any local video File into a real JPEG File & preview DataURL
+ */
 export const extractFirstFrameFromVideo = (
   videoFile: File
 ): Promise<{ file: File; dataUrl: string; durationLabel: string } | null> => {
@@ -59,7 +62,7 @@ export const extractFirstFrameFromVideo = (
 
     video.onloadedmetadata = () => {
       const dur = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
-      const seekTo = dur > 0.25 ? 0.12 : 0;
+      const seekTo = dur > 2.0 ? 1.2 : (dur > 0.25 ? 0.15 : 0);
       try {
         video.currentTime = seekTo;
       } catch {
@@ -138,7 +141,9 @@ const putWithXhrProgress = (
     xhr.open('PUT', uploadUrl, true);
     xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
     xhr.upload.onprogress = (evt) => {
-      if (evt.lengthComputable) onProgress(evt.loaded, evt.total);
+      if (evt.lengthComputable) {
+        onProgress(evt.loaded, evt.total);
+      }
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve();
@@ -149,6 +154,9 @@ const putWithXhrProgress = (
   });
 };
 
+/**
+ * Uploads any File to Master Brain Cloud Storage with REAL byte-by-byte progress (0% -> 100%)
+ */
 export const uploadFileToCloudWithProgress = async (
   file: File,
   tenant: 'MVN' | 'ArcHaven' | 'HekticTV' | 'Kreation' | 'StreamShare',
@@ -157,7 +165,7 @@ export const uploadFileToCloudWithProgress = async (
   const apiBase = getMasterBrainApiBase();
   const totalBytes = Math.max(1, file.size);
   const totalMB = (totalBytes / (1024 * 1024)).toFixed(2);
-  const CHUNK_SIZE = 650 * 1024;
+  const CHUNK_SIZE = 650 * 1024; // 650 KB raw binary chunks (< 1 MB Firestore doc ceiling)
   const totalChunks = Math.max(1, Math.ceil(totalBytes / CHUNK_SIZE));
 
   const report = (loaded: number, stage: string) => {
@@ -197,15 +205,17 @@ export const uploadFileToCloudWithProgress = async (
 
     const initData = await initRes.json();
 
+    // Mode A: Direct Signed Google Cloud Storage XHR Upload
     if (initData.mode === 'gcs_signed' && initData.uploadUrl) {
       await putWithXhrProgress(initData.uploadUrl, file, (loaded) => {
         report(loaded, `Uploading ${file.name} to Cloud Storage...`);
       });
-      report(totalBytes, 'Upload complete');
+      report(totalBytes, 'Upload complete!');
       setTimeout(() => emitUploadProgress({ active: false, tenant, fileName: file.name, percent: 100, uploadedMB: totalMB, totalMB, stage: 'Done' }), 600);
       return initData.publicUrl;
     }
 
+    // Mode B: Guaranteed Multi-Chunk Binary Cloud Stream (/api/media/chunk -> HTTP 206 /api/media/stream)
     const assetId = initData.assetId;
     for (let idx = 0; idx < totalChunks; idx++) {
       const start = idx * CHUNK_SIZE;
@@ -258,10 +268,10 @@ export const uploadOrResolveProductionMedia = async (
   const trimmedUrl = String(directHttpsUrl || '').trim();
   if (trimmedUrl) {
     if (/test-streams\.mux\.dev|ForBiggerBlazes|TearsOfSteel|BigBuckBunny/i.test(trimmedUrl)) {
-      throw new Error('Sample/mock test video URLs are blocked in production.');
+      throw new Error('Sample/mock test video URLs are blocked in production. Provide a real media file or HTTPS stream URL.');
     }
     if (trimmedUrl.startsWith('vault://') || trimmedUrl.startsWith('blob:')) {
-      throw new Error('Local browser vault/blob URLs cannot be published.');
+      throw new Error('Local browser vault/blob URLs cannot be published. Select your master file to upload to the cloud.');
     }
     return trimmedUrl;
   }
@@ -271,6 +281,9 @@ export const uploadOrResolveProductionMedia = async (
   return '';
 };
 
+/**
+ * Uploads a video (or resolves URL) AND automatically extracts + uploads Frame 1 as the thumbnail if no poster exists!
+ */
 export const uploadVideoAndEnsureFirstFrameThumbnail = async (
   tenant: 'MVN' | 'ArcHaven' | 'HekticTV' | 'Kreation' | 'StreamShare',
   directHttpsUrl?: string,
@@ -284,7 +297,7 @@ export const uploadVideoAndEnsureFirstFrameThumbnail = async (
   }
 
   let durationLabel = '';
-  if (videoFile && (videoFile.type.startsWith('video/') || /\.(mp4|mov|webm)$/i.test(videoFile.name))) {
+  if (videoFile && videoFile.type.startsWith('video/')) {
     const extracted = await extractFirstFrameFromVideo(videoFile);
     if (extracted) {
       durationLabel = extracted.durationLabel;
@@ -318,6 +331,7 @@ export const getStoredGlobalSubmissions = (): GlobalMediaItem[] => {
   try {
     const raw = localStorage.getItem(SUBMISSIONS_KEY);
     const parsed: GlobalMediaItem[] = raw ? JSON.parse(raw) : [];
+    // Automatically filter out any legacy broken vault:// entries
     return parsed.filter((x) => !String(x.videoUrl || '').startsWith('vault://'));
   } catch {
     return [];
@@ -349,21 +363,36 @@ export const validateSubmissionFormat = (
   const name = typeof fileOrUrl === 'string' ? fileOrUrl : fileOrUrl.name;
   const mime = typeof fileOrUrl === 'string' ? '' : fileOrUrl.type;
 
-  if (/\.(exe|dmg|pkg|msi|iso|avi|wmv|flv|mkv)$/i.test(name)) {
-    return { valid: false, error: `REJECTED (${name}): Unsupported format.` };
+  if (tenant === 'Kreation' && /\.(exe|dmg|pkg|msi|iso)$/i.test(name)) {
+    return { valid: false, error: `REJECTED (${name}): Kreation Cloud Console requires HTML5/WebGL2 (.zip / index.html / .wasm) or MP4 gameplay streams — native desktop .exe/.dmg installers cannot run on Fire TV.` };
   }
+  if (tenant !== 'Kreation' && /\.(exe|dmg|pkg|msi|iso|avi|wmv|flv|mkv)$/i.test(name)) {
+    return {
+      valid: false,
+      error: `REJECTED (${name}): Unsupported format. Provide MP4, MOV, WebM, HLS (.m3u8), or HTML5/WebGL2 archive.`,
+    };
+  }
+
   if (tenant !== 'Kreation' && typeof fileOrUrl !== 'string') {
     const allowedVideoMimes = ['video/mp4', 'video/webm', 'video/quicktime', 'application/x-mpegURL', 'application/vnd.apple.mpegurl'];
     if (mime && !allowedVideoMimes.includes(mime) && !/\.(mp4|webm|m3u8|mov)$/i.test(name)) {
-      return { valid: false, error: `REJECTED (${name}): Only MP4, MOV, WebM, and HLS (.m3u8) are accepted.` };
+      return {
+        valid: false,
+        error: `REJECTED (${name}): Invalid video container (${mime}). Only MP4, MOV, WebM, and HLS (.m3u8) are accepted.`,
+      };
     }
   }
+
   if (artworkFileOrUrl) {
     const artName = typeof artworkFileOrUrl === 'string' ? artworkFileOrUrl : artworkFileOrUrl.name;
     if (/\.(bmp|tiff|psd|exe|dmg|pdf)$/i.test(artName)) {
-      return { valid: false, error: `REJECTED (${artName}): Cover artwork must be PNG, JPG, or WEBP.` };
+      return {
+        valid: false,
+        error: `REJECTED (${artName}): Cover artwork must be PNG, JPG, or WEBP.`,
+      };
     }
   }
+
   return { valid: true };
 };
 
@@ -387,11 +416,17 @@ export const submitProjectWithFormatAndAdminGatekeeper = (
 ): { accepted: boolean; autoPublishedByAdmin: boolean; error?: string; item?: GlobalMediaItem } => {
   const targetMedia = item.fileOrUrl || item.videoUrl || '';
   const formatCheck = validateSubmissionFormat(item.tenant, targetMedia, item.artworkFileOrUrl || item.posterUrl);
-  if (!formatCheck.valid) return { accepted: false, autoPublishedByAdmin: false, error: formatCheck.error };
+  if (!formatCheck.valid) {
+    return { accepted: false, autoPublishedByAdmin: false, error: formatCheck.error };
+  }
   const activeUser = localStorage.getItem('innova-username') || item.creator || '';
   const isAdmin = isTickerAdminAccount(activeUser) || isTickerAdminAccount(item.creator);
   const finalStatus: 'approved' | 'pending' = isAdmin ? 'approved' : 'pending';
-  const savedItem: GlobalMediaItem = { ...item, status: finalStatus, submittedAt: item.submittedAt || new Date().toLocaleString() };
+  const savedItem: GlobalMediaItem = {
+    ...item,
+    status: finalStatus,
+    submittedAt: item.submittedAt || new Date().toLocaleString(),
+  };
   const existing = getStoredGlobalSubmissions().filter((x) => x.id !== savedItem.id);
   const updated = [savedItem, ...existing];
   broadcastApprovedContentLive(updated);
