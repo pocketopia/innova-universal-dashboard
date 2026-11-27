@@ -49,6 +49,9 @@ export const extractFirstFrameFromVideo = (
     video.src = objectUrl;
 
     let settled = false;
+    let attemptIdx = 0;
+    let candidateTimes: number[] = [1.5, 4.0, 8.0, 0.2];
+
     const finish = (res: { file: File; dataUrl: string; durationLabel: string } | null) => {
       if (settled) return;
       settled = true;
@@ -58,13 +61,19 @@ export const extractFirstFrameFromVideo = (
       resolve(res);
     };
 
-    const timeout = setTimeout(() => finish(null), 9000);
+    const timeout = setTimeout(() => finish(null), 12000);
 
     video.onloadedmetadata = () => {
       const dur = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
-      const seekTo = dur > 2.0 ? 1.2 : (dur > 0.25 ? 0.15 : 0);
+      candidateTimes = [
+        Math.min(dur * 0.08, 2.5),
+        Math.min(dur * 0.2, 6.0),
+        Math.min(dur * 0.35, 12.0),
+        0.15,
+      ].filter((t) => t >= 0 && (dur === 0 || t <= dur));
+      if (candidateTimes.length === 0) candidateTimes = [0];
       try {
-        video.currentTime = seekTo;
+        video.currentTime = candidateTimes[0];
       } catch {
         clearTimeout(timeout);
         finish(null);
@@ -72,7 +81,6 @@ export const extractFirstFrameFromVideo = (
     };
 
     video.onseeked = () => {
-      clearTimeout(timeout);
       try {
         const rawW = video.videoWidth || 1280;
         const rawH = video.videoHeight || 720;
@@ -85,12 +93,30 @@ export const extractFirstFrameFromVideo = (
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
+          clearTimeout(timeout);
           finish(null);
           return;
         }
         ctx.drawImage(video, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.86);
 
+        // Measure average luminance across sampled pixels so fade-from-black intros auto-advance to a bright frame!
+        const sample = ctx.getImageData(0, 0, w, h).data;
+        let lumSum = 0;
+        let count = 0;
+        for (let i = 0; i < sample.length; i += 64) {
+          lumSum += 0.299 * sample[i] + 0.587 * sample[i + 1] + 0.114 * sample[i + 2];
+          count++;
+        }
+        const avgLum = count > 0 ? lumSum / count : 50;
+
+        if (avgLum < 16 && attemptIdx + 1 < candidateTimes.length) {
+          attemptIdx++;
+          video.currentTime = candidateTimes[attemptIdx];
+          return;
+        }
+
+        clearTimeout(timeout);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
         const durSec = Math.max(1, Math.round(video.duration || 0));
         const mins = Math.floor(durSec / 60);
         const secs = durSec % 60;
@@ -103,13 +129,14 @@ export const extractFirstFrameFromVideo = (
               return;
             }
             const baseName = videoFile.name.replace(/\.[a-zA-Z0-9]+$/, '');
-            const thumbFile = new File([blob], `${baseName}_frame1.jpg`, { type: 'image/jpeg' });
+            const thumbFile = new File([blob], `${baseName}_poster.jpg`, { type: 'image/jpeg' });
             finish({ file: thumbFile, dataUrl, durationLabel });
           },
           'image/jpeg',
-          0.86
+          0.88
         );
       } catch {
+        clearTimeout(timeout);
         finish(null);
       }
     };

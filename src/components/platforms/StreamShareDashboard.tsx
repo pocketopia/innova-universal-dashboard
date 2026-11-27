@@ -1,5 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { API_BASE_URL, submitContent, fetchEcosystemContent } from '../../lib/apiClient';
+import DraftExitGuardModal from '../DraftExitGuardModal';
+import {
+  savePlatformDraftMeta,
+  loadPlatformDraftMeta,
+  saveDraftBinaryFiles,
+  loadDraftBinaryFiles,
+  clearPlatformDraft,
+} from '../../lib/draftVault';
 import {
   extractFirstFrameFromVideo,
   uploadFileToCloudWithProgress,
@@ -143,6 +151,8 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
 
   const [deliveryCode, setDeliveryCode] = useState<string>('');
   const [copiedHandshake, setCopiedHandshake] = useState(false);
+  const [showExitGuard, setShowExitGuard] = useState(false);
+  const [draftRestoredBanner, setDraftRestoredBanner] = useState<string | null>(null);
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadPercent, setUploadPercent] = useState(0);
@@ -226,6 +236,97 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
+
+  const hasUnsavedDraft = Boolean(
+    !deliveredProject &&
+      (formData.title.trim() ||
+        formData.clientCompany.trim() ||
+        formData.clientHandle.trim() ||
+        formData.synopsis.trim() ||
+        formData.videoFile ||
+        formData.bannerFile ||
+        formData.videoUrlInput.trim())
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const savedMeta = loadPlatformDraftMeta<any>('StreamShare');
+      const savedFiles = await loadDraftBinaryFiles('StreamShare');
+      if (!mounted || !savedMeta) return;
+      if (savedMeta.title || savedMeta.clientCompany || savedMeta.clientHandle || savedFiles.videoFile) {
+        setFormData((prev) => ({
+          ...prev,
+          title: savedMeta.title || '',
+          clientCompany: savedMeta.clientCompany || '',
+          clientHandle: savedMeta.clientHandle || '',
+          clientEmail: savedMeta.clientEmail || '',
+          description: savedMeta.description || '',
+          synopsis: savedMeta.synopsis || '',
+          category: savedMeta.category || 'Cinematic Weddings',
+          videoUrlInput: savedMeta.videoUrlInput || '',
+          isPublicShowcase: savedMeta.isPublicShowcase !== false,
+          detectedDuration: savedMeta.detectedDuration || '',
+          bannerPreview: savedMeta.bannerPreview || '',
+          videoFile: savedFiles.videoFile || null,
+          bannerFile: savedFiles.bannerFile || null,
+        }));
+        if (savedMeta.deliveryCode) setDeliveryCode(savedMeta.deliveryCode);
+        if (savedMeta.ingestStep) setIngestStep(savedMeta.ingestStep);
+        setActiveTab('ingest');
+        setDraftRestoredBanner(`✓ Restored saved draft "${savedMeta.title || 'Untitled Delivery'}"${savedFiles.videoFile ? ` (${savedFiles.videoFile.name})` : ''}`);
+        setTimeout(() => setDraftRestoredBanner(null), 5500);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (deliveredProject) return;
+    if (hasUnsavedDraft) {
+      savePlatformDraftMeta('StreamShare', {
+        title: formData.title,
+        clientCompany: formData.clientCompany,
+        clientHandle: formData.clientHandle,
+        clientEmail: formData.clientEmail,
+        description: formData.description,
+        synopsis: formData.synopsis,
+        category: formData.category,
+        videoUrlInput: formData.videoUrlInput,
+        isPublicShowcase: formData.isPublicShowcase,
+        detectedDuration: formData.detectedDuration,
+        bannerPreview: formData.bannerPreview?.startsWith('data:') ? formData.bannerPreview : '',
+        deliveryCode,
+        ingestStep,
+      });
+      saveDraftBinaryFiles('StreamShare', {
+        videoFile: formData.videoFile,
+        bannerFile: formData.bannerFile,
+      });
+    }
+  }, [formData, deliveryCode, ingestStep, hasUnsavedDraft, deliveredProject]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isUploading || hasUnsavedDraft) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isUploading, hasUnsavedDraft]);
+
+  const handleGuardedBack = () => {
+    if (isUploading || hasUnsavedDraft) {
+      setShowExitGuard(true);
+      return;
+    }
+    onBack();
+  };
+
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -394,6 +495,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
       };
 
       setLiveProjects((prev) => [createdProj, ...prev.filter((p) => p.id !== generatedId)]);
+      clearPlatformDraft('StreamShare');
       setDeliveredProject(createdProj);
       setUploadPercent(100);
       pushLog(`🟢 [LIVE] Delivered once (${generatedId}) with Handshake ${lockedCode}.`);
@@ -1589,7 +1691,7 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
       <div className="flex-1 min-w-0 max-w-full flex flex-col h-full overflow-hidden">
         <div className="h-16 w-full min-w-0 border-b border-white/10 flex items-center justify-between gap-4 px-6 shrink-0 bg-[#07090e]">
           <div className="flex items-center gap-4">
-            <button onClick={onBack} className="cursor-pointer flex items-center gap-2 text-slate-400 hover:text-white transition">
+            <button onClick={handleGuardedBack} className="cursor-pointer flex items-center gap-2 text-slate-400 hover:text-white transition">
               <ChevronLeft className="w-4 h-4" />
               <span className="text-xs font-bold">Back to Hub</span>
             </button>
@@ -1635,6 +1737,23 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
 
         <div className="flex-1 w-full min-w-0 overflow-y-auto p-6">
           <div className="w-full max-w-5xl">
+            {draftRestoredBanner && (
+              <div className="mb-4 px-4 py-3 rounded-xl bg-amber-500/15 border border-amber-400/50 flex items-center justify-between text-xs font-mono text-amber-300">
+                <span>{draftRestoredBanner}</span>
+                <button
+                  onClick={async () => {
+                    await clearPlatformDraft('StreamShare');
+                    setFormData(initialFormData);
+                    setDeliveryCode('');
+                    setIngestStep(1);
+                    setDraftRestoredBanner(null);
+                  }}
+                  className="cursor-pointer underline text-rose-300 hover:text-rose-200 ml-4"
+                >
+                  Clear Draft
+                </button>
+              </div>
+            )}
             {viewMode === 'creator' && activeTab === 'roster' && renderRoster()}
             {viewMode === 'creator' && activeTab === 'ingest' && renderIngest()}
             {activeTab === 'messages' && renderMessages()}
@@ -1644,6 +1763,44 @@ export default function StreamShareDashboard({ userNode, onBack }: StreamShareDa
       </div>
 
       {renderProjectDetailModal()}
+      <DraftExitGuardModal
+        open={showExitGuard}
+        tenant="StreamShare"
+        projectTitle={formData.title}
+        isUploading={isUploading}
+        onStay={() => setShowExitGuard(false)}
+        onSaveAndExit={async () => {
+          savePlatformDraftMeta('StreamShare', {
+            title: formData.title,
+            clientCompany: formData.clientCompany,
+            clientHandle: formData.clientHandle,
+            clientEmail: formData.clientEmail,
+            description: formData.description,
+            synopsis: formData.synopsis,
+            category: formData.category,
+            videoUrlInput: formData.videoUrlInput,
+            isPublicShowcase: formData.isPublicShowcase,
+            detectedDuration: formData.detectedDuration,
+            bannerPreview: formData.bannerPreview?.startsWith('data:') ? formData.bannerPreview : '',
+            deliveryCode,
+            ingestStep,
+          });
+          await saveDraftBinaryFiles('StreamShare', {
+            videoFile: formData.videoFile,
+            bannerFile: formData.bannerFile,
+          });
+          setShowExitGuard(false);
+          onBack();
+        }}
+        onDiscardAndExit={async () => {
+          await clearPlatformDraft('StreamShare');
+          setFormData(initialFormData);
+          setDeliveryCode('');
+          setIngestStep(1);
+          setShowExitGuard(false);
+          onBack();
+        }}
+      />
     </div>
   );
 }
