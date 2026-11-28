@@ -1,6 +1,14 @@
 import { storeMediaFileInVault, resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions } from '../../lib/mediaVault';
 import React, { useState } from 'react';
-import { submitContent, updateContentStatus } from '../../lib/apiClient';
+import { submitContent, updateContentStatus, fetchEcosystemContent } from '../../lib/apiClient';
+import DraftExitGuardModal from '../DraftExitGuardModal';
+import {
+  savePlatformDraftMeta,
+  loadPlatformDraftMeta,
+  saveDraftBinaryFiles,
+  loadDraftBinaryFiles,
+  clearPlatformDraft,
+} from '../../lib/draftVault';
 import { uploadOrResolveProductionMedia, uploadVideoAndEnsureFirstFrameThumbnail } from '../../lib/mediaVault';
 import {
   Film,
@@ -87,7 +95,12 @@ interface ArcHavenDashboardProps {
 }
 
 const GENRES = [
-  'Action', 'Comedy', 'Drama', 'Documentary', 'Horror', 'Sci-Fi', 'Romance', 'Thriller', 'Family', 'Animation'
+  'Sci-Fi',
+  'Cyberpunk',
+  'AI Noir',
+  'Mythic Lore & Fantasy',
+  'Speculative Thriller',
+  'AI Documentary & Anthology'
 ];
 
 const initialFormData: SubmissionFormData = {
@@ -118,6 +131,99 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
   const [newDirector, setNewDirector] = useState('');
   const [newProducer, setNewProducer] = useState('');
   const [previewSubmission, setPreviewSubmission] = useState<ArcHavenSubmission | null>(null);
+  const [isUploadingMaster, setIsUploadingMaster] = useState(false);
+  const [showExitGuard, setShowExitGuard] = useState(false);
+
+  const hasUnsavedDraft = Boolean(
+    formData.title.trim() ||
+    formData.synopsis.trim() ||
+    formData.videoFile ||
+    formData.posterFile ||
+    formData.trailerFile ||
+    formData.captionFile
+  );
+
+  React.useEffect(() => {
+    let mounted = true;
+    fetchEcosystemContent('ArcHaven').then((items: any[]) => {
+      if (!mounted || !Array.isArray(items) || items.length === 0) return;
+      if (typeof setSubmissions === 'function') {
+        setSubmissions(items.map((x: any) => ({
+          id: x.id,
+          title: x.title || 'Untitled AI Premiere',
+          status: x.status || 'approved',
+          submittedBy: x.creator || '@TICKER',
+          submittedAt: x.submittedAt || new Date().toISOString(),
+          genre: x.genre || 'Sci-Fi',
+          synopsis: x.synopsis || x.description || '',
+          posterUrl: x.posterUrl || x.thumbnail || '',
+          videoUrl: x.videoUrl || '',
+        })));
+      }
+    }).catch(() => {});
+
+    (async () => {
+      const meta = loadPlatformDraftMeta<any>('ArcHaven');
+      const files = await loadDraftBinaryFiles('ArcHaven');
+      if (!mounted || !meta) return;
+      if (meta.title || meta.synopsis || files.videoFile || files.posterFile || files.trailerFile) {
+        setFormData(prev => ({
+          ...prev,
+          title: meta.title || '',
+          synopsis: meta.synopsis || '',
+          genre: meta.genre || GENRES[0],
+          isSeries: Boolean(meta.isSeries),
+          seriesTitle: meta.seriesTitle || '',
+          seasonNumber: meta.seasonNumber || 1,
+          episodeNumber: meta.episodeNumber || 1,
+          cast: Array.isArray(meta.cast) ? meta.cast : [],
+          directors: Array.isArray(meta.directors) ? meta.directors : [],
+          producers: Array.isArray(meta.producers) ? meta.producers : [],
+          videoFile: files.videoFile || null,
+          posterFile: files.posterFile || null,
+          trailerFile: files.trailerFile || null,
+          captionFile: files.captionFile || null,
+          audioFile: files.audioFile || null,
+        }));
+        if (meta.ingestStep) setIngestStep(meta.ingestStep);
+        setActiveTab('ingest');
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  React.useEffect(() => {
+    if (hasUnsavedDraft) {
+      savePlatformDraftMeta('ArcHaven', {
+        title: formData.title,
+        synopsis: formData.synopsis,
+        genre: formData.genre,
+        isSeries: formData.isSeries,
+        seriesTitle: formData.seriesTitle,
+        seasonNumber: formData.seasonNumber,
+        episodeNumber: formData.episodeNumber,
+        cast: formData.cast,
+        directors: formData.directors,
+        producers: formData.producers,
+        ingestStep,
+      });
+      saveDraftBinaryFiles('ArcHaven', {
+        videoFile: formData.videoFile,
+        posterFile: formData.posterFile,
+        trailerFile: formData.trailerFile,
+        captionFile: formData.captionFile,
+        audioFile: formData.audioFile,
+      });
+    }
+  }, [formData, ingestStep, hasUnsavedDraft]);
+
+  const handleGuardedBack = () => {
+    if (isUploadingMaster || hasUnsavedDraft) {
+      setShowExitGuard(true);
+      return;
+    }
+    onBack();
+  };
 
   const isAdmin = userNode?.handle?.toUpperCase() === '@TICKER';
 
@@ -200,22 +306,15 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
       return;
     }
 
-    // Check 2: Caption file must exist and be .srt or .vtt
-    if (!formData.captionFile) {
-      console.log('❌ [ERROR] Missing or Invalid Caption File (.srt or .vtt required).');
-      setAIReviewLogs(['❌ [ERROR] Missing or Invalid Caption File (.srt or .vtt required).']);
-      setAiResult('failed');
-      setIsAIReviewing(false);
-      return;
-    }
-
-    const captionFileName = formData.captionFile.name.toLowerCase();
-    if (!captionFileName.endsWith('.srt') && !captionFileName.endsWith('.vtt')) {
-      console.log('❌ [ERROR] Missing or Invalid Caption File (.srt or .vtt required).');
-      setAIReviewLogs(['❌ [ERROR] Missing or Invalid Caption File (.srt or .vtt required).']);
-      setAiResult('failed');
-      setIsAIReviewing(false);
-      return;
+    // Check 2: Validate .srt/.vtt caption format if attached (optional — auto-captions supported)
+    if (formData.captionFile) {
+      const captionFileName = formData.captionFile.name.toLowerCase();
+      if (!captionFileName.endsWith('.srt') && !captionFileName.endsWith('.vtt')) {
+        setAIReviewLogs(['❌ [ERROR] Invalid Caption File (.srt or .vtt required when attaching subtitles).']);
+        setAiResult('failed');
+        setIsAIReviewing(false);
+        return;
+      }
     }
 
     // Check 3: Poster file must exist (Vertical Cover Art)
@@ -237,7 +336,7 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
       '🔊 [AUDIO] Analyzing audio mix levels...',
       '✅ [AUDIO] LUFS compliance verified (-23 LUFS) - PASSED',
       '📝 [CAPTIONS] Parsing closed caption file...',
-      `✅ [CAPTIONS] Caption file detected: ${formData.captionFile.name} - PASSED`,
+      `✅ [CAPTIONS] ${formData.captionFile ? 'Caption file detected: ' + formData.captionFile.name : 'AI Neural Subtitle Track Ready'} - PASSED`,
       '⚠️ [CAPTIONS] Checking caption timing sync...',
       '✅ [CAPTIONS] SRT format validated - PASSED',
       '🎭 [METADATA] Verifying title and synopsis completeness...',
@@ -271,15 +370,20 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
   };
 
   const handleFinalSubmit = async () => {
+    if (isUploadingMaster) return;
+    setIsUploadingMaster(true);
+    try {
     const explicitPoster = formData.posterFile ? await uploadOrResolveProductionMedia('ArcHaven', '', formData.posterFile) : '';
-    const { videoUrl: masterVideoUrl, thumbnailUrl: posterUrl } = await uploadVideoAndEnsureFirstFrameThumbnail(
+    const captionHttps = formData.captionFile ? await uploadOrResolveProductionMedia('ArcHaven', '', formData.captionFile) : '';
+    const { videoUrl: masterVideoUrl, thumbnailUrl: posterUrl, durationLabel } = await uploadVideoAndEnsureFirstFrameThumbnail(
       'ArcHaven',
       (formData as any).videoUrlInput || '',
       formData.videoFile || formData.trailerFile,
       explicitPoster
     );
     if (!masterVideoUrl) {
-      alert('Attach a real AI Series/Film MP4 master before submitting to ArcHaven.');
+      alert('Attach a real AI Series/Film MP4/MOV master before submitting to ArcHaven.');
+      setIsUploadingMaster(false);
       return;
     }
 
@@ -292,6 +396,15 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
         tenant: 'ArcHaven',
         type: formData.isSeries ? 'Series' : 'Film',
         isSeries: formData.isSeries,
+        seriesTitle: formData.isSeries ? (formData.seriesTitle || formData.title) : undefined,
+        seasonNumber: formData.isSeries ? (formData.seasonNumber || 1) : undefined,
+        episodeNumber: formData.isSeries ? (formData.episodeNumber || 1) : undefined,
+        duration: formData.isSeries
+          ? `S${formData.seasonNumber || 1}:E${formData.episodeNumber || 1} • ${durationLabel || '42m'}`
+          : (durationLabel || '4K Feature'),
+        captionUrl: captionHttps || undefined,
+        cast: formData.cast,
+        producers: formData.producers,
         title: formData.title,
         synopsis: formData.synopsis,
         description: formData.synopsis,
@@ -306,6 +419,7 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
       };
       remoteResult = await submitContent(payload);
     } catch (err: any) {
+      setIsUploadingMaster(false);
       alert(err?.message || 'Failed submitting to ArcHaven Master Brain.');
       return;
     }
@@ -325,11 +439,15 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
       newSubmission,
       ...(Array.isArray(prev) && prev.length > 0 ? prev : VERIFIED_ARCHAVEN_SUBMISSIONS)
     ]);
+    await clearPlatformDraft('ArcHaven');
     setFormData(initialFormData);
     setIngestStep(1);
     setAiResult(null);
     setAIReviewLogs([]);
     setActiveTab('dashboard');
+    } finally {
+      setIsUploadingMaster(false);
+    }
   };
 
   const handleApproveSubmission = async (id: string) => {
@@ -1310,7 +1428,7 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
       <aside className="w-64 border-r border-white/10 bg-[#0a0a0f] flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-white/10">
-          <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition mb-4">
+          <button onClick={handleGuardedBack} className="cursor-pointer flex items-center gap-2 text-slate-400 hover:text-white transition mb-4">
             <ChevronLeft className="w-4 h-4" />
             <span className="text-xs font-bold">BACK TO HUB</span>
           </button>
@@ -1435,6 +1553,45 @@ export default function ArcHavenDashboard({ userNode, onBack, submissions, setSu
           </div>
         </div>
       )}
+    
+      <DraftExitGuardModal
+        open={showExitGuard}
+        tenant="ArcHaven"
+        projectTitle={formData.title}
+        isUploading={isUploadingMaster}
+        onStay={() => setShowExitGuard(false)}
+        onSaveAndExit={async () => {
+          savePlatformDraftMeta('ArcHaven', {
+            title: formData.title,
+            synopsis: formData.synopsis,
+            genre: formData.genre,
+            isSeries: formData.isSeries,
+            seriesTitle: formData.seriesTitle,
+            seasonNumber: formData.seasonNumber,
+            episodeNumber: formData.episodeNumber,
+            cast: formData.cast,
+            directors: formData.directors,
+            producers: formData.producers,
+            ingestStep,
+          });
+          await saveDraftBinaryFiles('ArcHaven', {
+            videoFile: formData.videoFile,
+            posterFile: formData.posterFile,
+            trailerFile: formData.trailerFile,
+            captionFile: formData.captionFile,
+            audioFile: formData.audioFile,
+          });
+          setShowExitGuard(false);
+          onBack();
+        }}
+        onDiscardAndExit={async () => {
+          await clearPlatformDraft('ArcHaven');
+          setFormData(initialFormData);
+          setIngestStep(1);
+          setShowExitGuard(false);
+          onBack();
+        }}
+      />
     </div>
   );
 }

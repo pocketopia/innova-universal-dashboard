@@ -1,5 +1,13 @@
 import { resolveMediaVaultUrl, saveGlobalSubmission, getStoredGlobalSubmissions, uploadVideoAndEnsureFirstFrameThumbnail } from '../../lib/mediaVault';
-import { submitContent } from '../../lib/apiClient';
+import { submitContent, fetchEcosystemContent } from '../../lib/apiClient';
+import DraftExitGuardModal from '../DraftExitGuardModal';
+import {
+  savePlatformDraftMeta,
+  loadPlatformDraftMeta,
+  saveDraftBinaryFiles,
+  loadDraftBinaryFiles,
+  clearPlatformDraft,
+} from '../../lib/draftVault';
 import React, { useState } from 'react';
 import {
   Music,
@@ -50,6 +58,63 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
   const [uploadVideoUrlInput, setUploadVideoUrlInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccessMsg, setUploadSuccessMsg] = useState('');
+  const [remoteMvnList, setRemoteMvnList] = useState<MusicVideoSubmission[]>([]);
+  const [showExitGuard, setShowExitGuard] = useState(false);
+
+  const hasUnsavedDraft = Boolean(
+    uploadTitle.trim() || uploadArtist.trim() || uploadVideoFile || uploadVideoUrlInput.trim()
+  );
+
+  React.useEffect(() => {
+    let mounted = true;
+    fetchEcosystemContent('MVN').then((items: any[]) => {
+      if (!mounted || !Array.isArray(items)) return;
+      setRemoteMvnList(
+        items.map((x: any) => ({
+          id: x.id,
+          songTitle: x.songTitle || x.title || 'Untitled Track',
+          primaryArtist: x.primaryArtist || x.creator || '@ARTIST',
+          genre: x.genre || 'Pop Hits',
+          duration: x.duration || '3:45',
+          status: (x.status === 'approved' ? 'syndicated' : x.status || 'syndicated') as any,
+          submittedAt: x.submittedAt || new Date().toISOString(),
+          thumbnail: x.posterUrl || x.thumbnail || '',
+          videoUrl: x.videoUrl || '',
+        }))
+      );
+    }).catch(() => {});
+
+    (async () => {
+      const meta = loadPlatformDraftMeta<any>('MVN');
+      const files = await loadDraftBinaryFiles('MVN');
+      if (!mounted || !meta) return;
+      if (meta.uploadTitle || meta.uploadArtist || files.uploadVideoFile) {
+        setUploadTitle(meta.uploadTitle || '');
+        setUploadArtist(meta.uploadArtist || '');
+        setUploadGenre(meta.uploadGenre || 'Pop Hits');
+        setUploadVideoUrlInput(meta.uploadVideoUrlInput || '');
+        if (files.uploadVideoFile) setUploadVideoFile(files.uploadVideoFile);
+        setShowSubmitInfo(true);
+        setUploadSuccessMsg(`✓ Restored saved music video draft "${meta.uploadTitle || 'Untitled Track'}"`);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  React.useEffect(() => {
+    if (hasUnsavedDraft) {
+      savePlatformDraftMeta('MVN', { uploadTitle, uploadArtist, uploadGenre, uploadVideoUrlInput });
+      saveDraftBinaryFiles('MVN', { uploadVideoFile });
+    }
+  }, [uploadTitle, uploadArtist, uploadGenre, uploadVideoUrlInput, uploadVideoFile, hasUnsavedDraft]);
+
+  const handleGuardedBack = () => {
+    if (isUploading || hasUnsavedDraft) {
+      setShowExitGuard(true);
+      return;
+    }
+    onBack();
+  };
 
   React.useEffect(() => {
     if (previewVideo?.videoUrl) {
@@ -92,6 +157,8 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
       if (typeof setSubmissions === 'function') {
         setSubmissions((prev: any[]) => [newItem, ...(Array.isArray(prev) ? prev : [])]);
       }
+      await clearPlatformDraft('MVN');
+      setRemoteMvnList(prev => [{ id: newId, songTitle: newItem.songTitle, primaryArtist: newItem.primaryArtist, genre: newItem.genre, duration: newItem.duration, status: 'syndicated', submittedAt: newItem.submittedAt, thumbnail: autoThumb, videoUrl: finalVideoUrl }, ...prev]);
       setUploadTitle('');
       setUploadArtist('');
       setUploadVideoFile(null);
@@ -108,13 +175,19 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
     songTitle: x.title,
     primaryArtist: x.creator,
     genre: x.genre || 'Music Video',
-    duration: '3:45',
+    duration: (x as any).duration || '3:45',
     status: (x.status === 'approved' ? 'syndicated' : x.status) as any,
     submittedAt: x.submittedAt,
     thumbnail: x.thumbnail,
     videoUrl: x.videoUrl
   }));
-  const displaySubmissions: MusicVideoSubmission[] = [...storedMvn, ...VERIFIED_MVN_BROADCASTS];
+  const displaySubmissions: MusicVideoSubmission[] = (() => {
+    const map = new Map<string, MusicVideoSubmission>();
+    [...remoteMvnList, ...storedMvn, ...VERIFIED_MVN_BROADCASTS].forEach(item => {
+      if (item?.id && !map.has(item.id)) map.set(item.id, item);
+    });
+    return Array.from(map.values());
+  })();
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -249,7 +322,7 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
-          <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition"><ChevronLeft className="w-4 h-4" /><span className="text-xs font-bold">Back to Hub</span></button>
+          <button onClick={handleGuardedBack} className="cursor-pointer flex items-center gap-2 text-slate-400 hover:text-white transition"><ChevronLeft className="w-4 h-4" /><span className="text-xs font-bold">Back to Hub</span></button>
         </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-6xl mx-auto">
@@ -301,7 +374,7 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
       {/* Submit Music Informational Modal */}
       {showSubmitInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="relative w-full max-w-lg rounded-2xl border border-cyan-500/30 bg-[#0a0d14] p-6 shadow-2xl">
+          <div className="relative w-full max-w-lg rounded-2xl border border-red-500/50 shadow-[0_0_35px_rgba(239,68,68,0.28)] bg-[#0a080c] p-6 shadow-2xl">
             <button
               onClick={() => { setShowSubmitInfo(false); setUploadSuccessMsg(''); }}
               className="absolute right-4 top-4 text-slate-400 hover:text-white cursor-pointer"
@@ -349,12 +422,15 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
                     onChange={e => setUploadGenre(e.target.value)}
                     className="w-full rounded-xl bg-black/50 border border-white/10 px-3.5 py-2.5 text-xs text-white outline-none focus:border-cyan-500"
                   >
-                    <option value="Pop Hits">Pop Hits</option>
-                    <option value="Hip Hop & R&B">Hip Hop & R&B</option>
-                    <option value="Electronic / Dance">Electronic / Dance</option>
-                    <option value="Rock">Rock</option>
-                    <option value="Latin Vibes">Latin Vibes</option>
-                    <option value="Smooth Jazz">Smooth Jazz</option>
+                    <option value="Pop Hits">Pop Hits (Channel 1)</option>
+                    <option value="Hip Hop & R&B">Hip Hop &amp; R&amp;B (Channel 2)</option>
+                    <option value="Rock">Rock &amp; Alternative (Channel 3)</option>
+                    <option value="Electronic / Dance">Electronic / Dance (Channel 4)</option>
+                    <option value="2000's">Classics • 2000's</option>
+                    <option value="1990's">Classics • 1990's</option>
+                    <option value="1980's">Classics • 1980's</option>
+                    <option value="1970's">Classics • 1970's</option>
+                    <option value="1960's">Classics • 1960's</option>
                   </select>
                 </div>
               </div>
@@ -404,6 +480,29 @@ export default function MVNDashboard({ userNode, onBack, submissions, setSubmiss
           </div>
         </div>
       )}
+    
+      <DraftExitGuardModal
+        open={showExitGuard}
+        tenant="MVN"
+        projectTitle={uploadTitle}
+        isUploading={isUploading}
+        onStay={() => setShowExitGuard(false)}
+        onSaveAndExit={async () => {
+          savePlatformDraftMeta('MVN', { uploadTitle, uploadArtist, uploadGenre, uploadVideoUrlInput });
+          await saveDraftBinaryFiles('MVN', { uploadVideoFile });
+          setShowExitGuard(false);
+          onBack();
+        }}
+        onDiscardAndExit={async () => {
+          await clearPlatformDraft('MVN');
+          setUploadTitle('');
+          setUploadArtist('');
+          setUploadVideoFile(null);
+          setUploadVideoUrlInput('');
+          setShowExitGuard(false);
+          onBack();
+        }}
+      />
     </div>
   );
 }

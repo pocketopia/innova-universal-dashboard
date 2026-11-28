@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { submitGame, updateContentStatus, processEcosystemTransaction } from '../../lib/apiClient';
+import { API_BASE_URL, submitGame, updateContentStatus, processEcosystemTransaction, fetchEcosystemContent } from '../../lib/apiClient';
+import DraftExitGuardModal from '../DraftExitGuardModal';
+import {
+  savePlatformDraftMeta,
+  loadPlatformDraftMeta,
+  saveDraftBinaryFiles,
+  loadDraftBinaryFiles,
+  clearPlatformDraft,
+} from '../../lib/draftVault';
 import { uploadOrResolveProductionMedia, uploadVideoAndEnsureFirstFrameThumbnail, saveGlobalSubmission } from '../../lib/mediaVault';
 import {
   Gamepad2,
@@ -52,6 +60,8 @@ interface IndieGame {
   submittedAt: string;
   thumbnail?: string;
   videoUrl?: string;
+  playableBuildUrl?: string;
+  buildUrl?: string;
   rating?: number;
   downloads?: number;
 }
@@ -71,7 +81,7 @@ interface KreationDashboardProps {
 const initialFormData: GameFormData = {
   title: '',
   developerStudio: '',
-  genre: '',
+  genre: 'Adventure Open World',
   systemRequirements: '',
   bannerFile: null,
   screenshotFiles: [null, null, null],
@@ -79,7 +89,7 @@ const initialFormData: GameFormData = {
   buildFile: null
 };
 
-const genres = ['RPG', 'FPS', 'Puzzle', 'Platformer', 'Action', 'Adventure', 'Strategy', 'Simulation', 'Racing', 'Sports'];
+const genres = ['Adventure Open World', 'RPG', 'First Person', 'Side Scroll'];
 
 export default function KreationDashboard({ userNode, onBack, games, setGames }: KreationDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('hub');
@@ -91,6 +101,83 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
   const [selectedGame, setSelectedGame] = useState<IndieGame | null>(null);
   const [isTransacting, setIsTransacting] = useState(false);
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
+  const [isUploadingBuild, setIsUploadingBuild] = useState(false);
+  const [showExitGuard, setShowExitGuard] = useState(false);
+
+  const hasUnsavedDraft = Boolean(
+    formData.title.trim() || formData.developerStudio.trim() || formData.systemRequirements.trim() || formData.bannerFile || formData.trailerFile || formData.buildFile
+  );
+
+  React.useEffect(() => {
+    let mounted = true;
+    fetchEcosystemContent('Kreation').then((items: any[]) => {
+      if (!mounted || !Array.isArray(items) || items.length === 0) return;
+      if (typeof setGames === 'function') {
+        setGames(items.map((g: any) => ({
+          id: g.id,
+          title: g.title || 'Untitled Game',
+          developerStudio: g.developerStudio || g.creator || '@STUDIO',
+          genre: g.category || g.genre || 'Adventure Open World',
+          systemRequirements: g.systemRequirements || 'Kreation Cloud Shard v4.0 • Fire TV Gamepad Ready',
+          status: g.status || 'approved',
+          submittedAt: g.submittedAt || new Date().toISOString(),
+          thumbnail: g.posterUrl || g.thumbnail || '',
+          videoUrl: g.videoUrl || '',
+          playableBuildUrl: g.playableBuildUrl || g.buildUrl || '',
+          buildUrl: g.buildUrl || g.playableBuildUrl || '',
+          rating: g.rating || 5.0,
+          downloads: g.downloads || 1,
+        })));
+      }
+    }).catch(() => {});
+
+    (async () => {
+      const meta = loadPlatformDraftMeta<any>('Kreation');
+      const files = await loadDraftBinaryFiles('Kreation');
+      if (!mounted || !meta) return;
+      if (meta.title || meta.developerStudio || files.buildFile || files.trailerFile || files.bannerFile) {
+        setFormData(prev => ({
+          ...prev,
+          title: meta.title || '',
+          developerStudio: meta.developerStudio || '',
+          genre: meta.genre || 'Adventure Open World',
+          systemRequirements: meta.systemRequirements || '',
+          bannerFile: files.bannerFile || null,
+          trailerFile: files.trailerFile || null,
+          buildFile: files.buildFile || null,
+        }));
+        if (meta.ingestStep) setIngestStep(meta.ingestStep);
+        setActiveTab('ingest');
+        setStatusBanner(`✓ Restored saved Kreation game draft "${meta.title || 'Untitled Build'}"${files.buildFile ? ` (${files.buildFile.name})` : ''}`);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  React.useEffect(() => {
+    if (hasUnsavedDraft) {
+      savePlatformDraftMeta('Kreation', {
+        title: formData.title,
+        developerStudio: formData.developerStudio,
+        genre: formData.genre,
+        systemRequirements: formData.systemRequirements,
+        ingestStep,
+      });
+      saveDraftBinaryFiles('Kreation', {
+        bannerFile: formData.bannerFile,
+        trailerFile: formData.trailerFile,
+        buildFile: formData.buildFile,
+      });
+    }
+  }, [formData, ingestStep, hasUnsavedDraft]);
+
+  const handleGuardedBack = () => {
+    if (isUploadingBuild || hasUnsavedDraft) {
+      setShowExitGuard(true);
+      return;
+    }
+    onBack();
+  };
 
   const isAdmin = userNode?.handle?.toUpperCase() === '@TICKER';
   const displayGames: IndieGame[] =
@@ -136,38 +223,98 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
   };
 
   const handleSubmitToValve = async () => {
-    const generatedId = `KR-${Date.now().toString().slice(-6)}`;
-    const payload: IndieGame = {
-      id: generatedId,
-      title: formData.title || 'UNTITLED KREATION SHARD',
-      developerStudio: formData.developerStudio || userNode?.handle || '@CREATOR',
-      genre: formData.genre || 'Action',
-      systemRequirements: formData.systemRequirements || 'Kreation Cloud Shard v4.0 • 16GB Virtual VRAM',
-      status: isAdmin ? 'approved' : 'pending_review',
-      submittedAt: new Date().toISOString(),
-      ...(await (async () => {
-        const bannerHttps = formData.bannerFile ? await uploadOrResolveProductionMedia('Kreation', '', formData.bannerFile) : '';
-        const { videoUrl: vUrl, thumbnailUrl: tUrl } = await uploadVideoAndEnsureFirstFrameThumbnail('Kreation', (formData as any).gameUrlInput, formData.trailerFile || formData.buildFile, bannerHttps);
-        return { thumbnail: tUrl || bannerHttps, posterUrl: tUrl || bannerHttps, videoUrl: vUrl };
-      })()),
-      rating: 4.9,
-      downloads: 1
-    };
-
-    try {
-      await submitGame(payload);
-      setStatusBanner(`Container "${payload.title}" submitted to Valve Queue (${generatedId}).`);
-    } catch {
-      setStatusBanner(`Container "${payload.title}" synced to local Kreation NVRAM queue (${generatedId}).`);
+    if (isUploadingBuild) return;
+    if (!formData.buildFile && !formData.trailerFile) {
+      setStatusBanner('⚠ Attach an HTML5/WebGL2 .zip game build (or .html/.wasm) or gameplay stream MP4 before submitting.');
+      return;
     }
+    setIsUploadingBuild(true);
+    const generatedId = `KR-${Date.now().toString().slice(-6)}`;
+    try {
+      setStatusBanner('Uploading Kreation game build & artwork directly to Google Cloud Storage...');
+      const bannerHttps = formData.bannerFile
+        ? await uploadOrResolveProductionMedia('Kreation', '', formData.bannerFile)
+        : '';
 
-    setGames((prev: any) => {
-      const base = Array.isArray(prev) && prev.length > 0 ? prev : VERIFIED_KREATION_GAMES;
-      return [payload, ...base];
-    });
-    setFormData(initialFormData);
-    setIngestStep(1);
-    setActiveTab('hub');
+      let playableBuildUrl = '';
+      if (formData.buildFile) {
+        const rawBuildUrl = await uploadOrResolveProductionMedia('Kreation', '', formData.buildFile);
+        if (/\.zip$/i.test(formData.buildFile.name)) {
+          setStatusBanner(`Unpacking HTML5/WebGL2 container (${formData.buildFile.name}) onto Cloud Shard CDN...`);
+          const exRes = await fetch(`${API_BASE_URL}/media/extract-kreation-zip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'Kreation' },
+            body: JSON.stringify({ zipUrl: rawBuildUrl, gameId: generatedId }),
+          });
+          const exData = await exRes.json().catch(() => ({}));
+          if (!exRes.ok || !exData.playableBuildUrl) {
+            throw new Error(exData.error || exData.message || 'ZIP package must contain an index.html entry at its root.');
+          }
+          playableBuildUrl = exData.playableBuildUrl;
+        } else {
+          playableBuildUrl = rawBuildUrl;
+        }
+      }
+
+      let trailerVideoUrl = '';
+      let autoFrameThumb = '';
+      if (formData.trailerFile) {
+        const tRes = await uploadVideoAndEnsureFirstFrameThumbnail('Kreation', '', formData.trailerFile, bannerHttps);
+        trailerVideoUrl = tRes.videoUrl;
+        autoFrameThumb = tRes.thumbnailUrl;
+      }
+
+      const finalPoster = bannerHttps || autoFrameThumb;
+      const payload: any = {
+        id: generatedId,
+        tenant: 'Kreation',
+        type: 'game',
+        title: formData.title || 'UNTITLED KREATION SHARD',
+        developerStudio: formData.developerStudio || userNode?.handle || '@TICKER',
+        creator: formData.developerStudio || userNode?.handle || '@TICKER',
+        genre: formData.genre || 'Adventure Open World',
+        category: formData.genre || 'Adventure Open World',
+        systemRequirements: formData.systemRequirements || 'Kreation Cloud Shard v4.0 • Fire TV Gamepad & WebGL2 Ready',
+        status: isAdmin ? 'approved' : 'pending_review',
+        submittedAt: new Date().toISOString(),
+        thumbnail: finalPoster,
+        posterUrl: finalPoster,
+        videoUrl: trailerVideoUrl,
+        playableBuildUrl,
+        buildUrl: playableBuildUrl,
+        gameUrl: playableBuildUrl,
+        rating: 5.0,
+        downloads: 1,
+      };
+
+      await submitGame(payload);
+      saveGlobalSubmission({
+        id: generatedId,
+        tenant: 'Kreation',
+        type: 'game',
+        title: payload.title,
+        creator: payload.developerStudio,
+        genre: payload.genre,
+        status: isAdmin ? 'approved' : 'pending',
+        submittedAt: payload.submittedAt,
+        thumbnail: finalPoster,
+        videoUrl: playableBuildUrl || trailerVideoUrl,
+      });
+
+      await clearPlatformDraft('Kreation');
+      setGames((prev: any) => {
+        const base = Array.isArray(prev) && prev.length > 0 ? prev : VERIFIED_KREATION_GAMES;
+        return [payload, ...base];
+      });
+      setStatusBanner(`✓ Game "${payload.title}" live on Kreation Cloud Console (${playableBuildUrl ? 'INSTANT PLAY WebGL2 Build Ready' : 'Gameplay Stream Ready'} • ${generatedId})!`);
+      setFormData(initialFormData);
+      setIngestStep(1);
+      setActiveTab('hub');
+    } catch (err: any) {
+      setStatusBanner(`⚠ Kreation Upload Error: ${err?.message || 'Network or ZIP validation error'}`);
+    } finally {
+      setIsUploadingBuild(false);
+    }
   };
 
   const handleApprove = async (id: string) => {
@@ -534,7 +681,7 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
-          <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition"><ChevronLeft className="w-4 h-4" /><span className="text-xs font-bold">Back to Hub</span></button>
+          <button onClick={handleGuardedBack} className="cursor-pointer flex items-center gap-2 text-slate-400 hover:text-white transition"><ChevronLeft className="w-4 h-4" /><span className="text-xs font-bold">Back to Hub</span></button>
           {statusBanner && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono">
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -558,6 +705,27 @@ export default function KreationDashboard({ userNode, onBack, games, setGames }:
           </div>
         </div>
       </div>
+    
+      <DraftExitGuardModal
+        open={showExitGuard}
+        tenant="Kreation"
+        projectTitle={formData.title}
+        isUploading={isUploadingBuild}
+        onStay={() => setShowExitGuard(false)}
+        onSaveAndExit={async () => {
+          savePlatformDraftMeta('Kreation', { title: formData.title, developerStudio: formData.developerStudio, genre: formData.genre, systemRequirements: formData.systemRequirements, ingestStep });
+          await saveDraftBinaryFiles('Kreation', { bannerFile: formData.bannerFile, trailerFile: formData.trailerFile, buildFile: formData.buildFile });
+          setShowExitGuard(false);
+          onBack();
+        }}
+        onDiscardAndExit={async () => {
+          await clearPlatformDraft('Kreation');
+          setFormData(initialFormData);
+          setIngestStep(1);
+          setShowExitGuard(false);
+          onBack();
+        }}
+      />
     </div>
   );
 }

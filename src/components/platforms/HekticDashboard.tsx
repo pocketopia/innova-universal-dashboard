@@ -1,5 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { submitContent, updateContentStatus } from '../../lib/apiClient';
+import { submitContent, updateContentStatus, fetchEcosystemContent } from '../../lib/apiClient';
+import DraftExitGuardModal from '../DraftExitGuardModal';
+import {
+  savePlatformDraftMeta,
+  loadPlatformDraftMeta,
+  saveDraftBinaryFiles,
+  loadDraftBinaryFiles,
+  clearPlatformDraft,
+} from '../../lib/draftVault';
 import { uploadOrResolveProductionMedia, uploadVideoAndEnsureFirstFrameThumbnail, saveGlobalSubmission } from '../../lib/mediaVault';
 import {
   Radio,
@@ -75,7 +83,7 @@ interface HekticDashboardProps {
   setSubmissions: any;
 }
 
-const genres = ['Music', 'Esports', 'Extreme Sports', 'Reality TV'];
+const genres = ['Esports', 'Extreme Sports', 'Reality TV', 'Music & The Mosh Pit'];
 const REGIONS = [
   { id: 'us-east', name: 'US-East', latency: '12ms' },
   { id: 'us-west', name: 'US-West', latency: '28ms' },
@@ -110,6 +118,81 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
   const trailerInputRef = useRef<HTMLInputElement>(null);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const [previewBroadcast, setPreviewBroadcast] = useState<HekticSubmission | null>(null);
+  const [isUploadingBroadcast, setIsUploadingBroadcast] = useState(false);
+  const [showExitGuard, setShowExitGuard] = useState(false);
+
+  const hasUnsavedDraft = Boolean(
+    formData.title.trim() || formData.synopsis.trim() || formData.tags.trim() || formData.bannerFile || formData.trailerFile || formData.mediaFile
+  );
+
+  React.useEffect(() => {
+    let mounted = true;
+    fetchEcosystemContent('HekticTV').then((items: any[]) => {
+      if (!mounted || !Array.isArray(items) || items.length === 0) return;
+      if (typeof setSubmissions === 'function') {
+        setSubmissions(items.map((x: any) => ({
+          id: x.id,
+          title: x.title || 'Untitled Broadcast',
+          status: (x.status === 'approved' || x.status === 'live') ? 'live' : (x.status || 'pending'),
+          submittedBy: x.creator || '@CREATOR',
+          submittedAt: x.submittedAt || new Date().toLocaleDateString(),
+          category: x.genre || x.category || 'Esports',
+          viewers: x.views || 0,
+          thumbnail: x.posterUrl || x.thumbnail || '',
+          videoUrl: x.videoUrl || '',
+        })));
+      }
+    }).catch(() => {});
+
+    (async () => {
+      const meta = loadPlatformDraftMeta<any>('HekticTV');
+      const files = await loadDraftBinaryFiles('HekticTV');
+      if (!mounted || !meta) return;
+      if (meta.title || meta.synopsis || files.mediaFile || files.bannerFile || files.trailerFile) {
+        setFormData(prev => ({
+          ...prev,
+          title: meta.title || '',
+          category: meta.category || genres[0],
+          synopsis: meta.synopsis || '',
+          tags: meta.tags || '',
+          bannerFile: files.bannerFile || null,
+          trailerFile: files.trailerFile || null,
+          mediaFile: files.mediaFile || null,
+          bannerPreview: files.bannerFile ? URL.createObjectURL(files.bannerFile) : null,
+          trailerPreview: files.trailerFile ? URL.createObjectURL(files.trailerFile) : null,
+          mediaPreview: files.mediaFile ? URL.createObjectURL(files.mediaFile) : null,
+        }));
+        if (meta.ingestStep) setIngestStep(meta.ingestStep);
+        setActiveTab('ingest');
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  React.useEffect(() => {
+    if (hasUnsavedDraft) {
+      savePlatformDraftMeta('HekticTV', {
+        title: formData.title,
+        category: formData.category,
+        synopsis: formData.synopsis,
+        tags: formData.tags,
+        ingestStep,
+      });
+      saveDraftBinaryFiles('HekticTV', {
+        bannerFile: formData.bannerFile,
+        trailerFile: formData.trailerFile,
+        mediaFile: formData.mediaFile,
+      });
+    }
+  }, [formData, ingestStep, hasUnsavedDraft]);
+
+  const handleGuardedBack = () => {
+    if (isUploadingBroadcast || hasUnsavedDraft) {
+      setShowExitGuard(true);
+      return;
+    }
+    onBack();
+  };
 
   const isAdmin = userNode?.handle?.toUpperCase() === '@TICKER';
 
@@ -200,23 +283,42 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
   };
 
   const handleSubmitToRegistry = async () => {
+    if (isUploadingBroadcast) return;
+    setIsUploadingBroadcast(true);
     const generatedId = "HEK-" + Date.now().toString().slice(-6);
-    const thumbnail = formData.bannerPreview || "data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%%22 stop-color=%22%23120b04%22/><stop offset=%22100%%22 stop-color=%22%23f59e0b%22/></linearGradient></defs><rect width=%22800%22 height=%22450%22 fill=%22url(%23g)%22/><text x=%2248%22 y=%22230%22 fill=%22%23ffffff%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2226%22 letter-spacing=%224%22>HEKTIC // LIVE STREAM</text></svg>";
-    const videoUrl = await uploadOrResolveProductionMedia('HekticTV', (formData as any).videoUrlInput, formData.mediaFile || formData.trailerFile);
-    if (!videoUrl) {
-      alert('Attach a real episode MP4/MOV file before submitting to Hektic TV.');
-      return;
-    }
-    const initialStatus = isAdmin ? 'approved' : 'pending';
-
     try {
+      const explicitBanner = formData.bannerFile
+        ? await uploadOrResolveProductionMedia('HekticTV', '', formData.bannerFile)
+        : '';
+      const trailerCloudUrl = formData.trailerFile && formData.mediaFile
+        ? await uploadOrResolveProductionMedia('HekticTV', '', formData.trailerFile)
+        : '';
+      const { videoUrl, thumbnailUrl } = await uploadVideoAndEnsureFirstFrameThumbnail(
+        'HekticTV',
+        (formData as any).videoUrlInput || '',
+        formData.mediaFile || formData.trailerFile,
+        explicitBanner
+      );
+      if (!videoUrl) {
+        alert('Attach a real episode MP4/MOV file before submitting to Hektic TV.');
+        setIsUploadingBroadcast(false);
+        return;
+      }
+      const thumbnail = explicitBanner || thumbnailUrl;
+      const initialStatus = isAdmin ? 'approved' : 'pending';
       const payload = {
         id: generatedId,
+        tenant: 'HekticTV',
         title: formData.title,
         genre: formData.category,
-        creator: userNode.handle,
+        category: formData.category,
+        creator: userNode?.handle || '@TICKER',
         synopsis: formData.synopsis || 'Live Hektic Nation transmission.',
+        description: formData.synopsis || 'Live Hektic Nation transmission.',
+        tags: formData.tags,
         thumbnail,
+        posterUrl: thumbnail,
+        trailerUrl: trailerCloudUrl || videoUrl,
         videoUrl,
         status: initialStatus
       };
@@ -240,7 +342,9 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
       newSubmission,
       ...(Array.isArray(prev) && prev.length > 0 ? prev : VERIFIED_HEKTIC_BROADCASTS)
     ]);
-    setFormData(initialFormData);
+    await clearPlatformDraft('HekticTV');
+      setIsUploadingBroadcast(false);
+      setFormData(initialFormData);
     setIngestStep(1);
     setCheckResult(null);
     setCheckLogs([]);
@@ -1057,7 +1161,7 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
         <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
           <div className="flex items-center gap-4">
             <button
-              onClick={onBack}
+              onClick={handleGuardedBack}
               className="flex items-center gap-2 text-slate-400 hover:text-white transition"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -1127,6 +1231,27 @@ export default function HekticDashboard({ userNode, onBack, submissions, setSubm
           </div>
         </div>
       )}
+    
+      <DraftExitGuardModal
+        open={showExitGuard}
+        tenant="HekticTV"
+        projectTitle={formData.title}
+        isUploading={isUploadingBroadcast}
+        onStay={() => setShowExitGuard(false)}
+        onSaveAndExit={async () => {
+          savePlatformDraftMeta('HekticTV', { title: formData.title, category: formData.category, synopsis: formData.synopsis, tags: formData.tags, ingestStep });
+          await saveDraftBinaryFiles('HekticTV', { bannerFile: formData.bannerFile, trailerFile: formData.trailerFile, mediaFile: formData.mediaFile });
+          setShowExitGuard(false);
+          onBack();
+        }}
+        onDiscardAndExit={async () => {
+          await clearPlatformDraft('HekticTV');
+          setFormData(initialFormData);
+          setIngestStep(1);
+          setShowExitGuard(false);
+          onBack();
+        }}
+      />
     </div>
   );
 }
